@@ -5,16 +5,28 @@ import * as path from 'path';
 let win: BrowserWindow | null = null;
 const args = process.argv.slice(1);
 const serve = args.some(val => val === '--serve');
+const configPath = path.join(app.getPath('userData'), 'window-config.json');
 
 function createWindow(): BrowserWindow {
   const size = screen.getPrimaryDisplay().workAreaSize;
 
+  let windowBounds = { x: 0, y: 0, width: size.width, height: size.height };
+  try {
+    const config = fs.readFileSync(configPath, 'utf8');
+    const saved = JSON.parse(config);
+    if (saved.x !== undefined && saved.y !== undefined && saved.width && saved.height) {
+      windowBounds = saved;
+    }
+  } catch (e) {
+    // ignore, use defaults
+  }
+
   // Create the browser window.
   win = new BrowserWindow({
-    x: 0,
-    y: 0,
-    width: size.width,
-    height: size.height,
+    x: windowBounds.x,
+    y: windowBounds.y,
+    width: windowBounds.width,
+    height: windowBounds.height,
     webPreferences: {
       nodeIntegration: true,
       allowRunningInsecureContent: serve,
@@ -46,6 +58,16 @@ function createWindow(): BrowserWindow {
     const url = `file://${path.resolve(fullPath).replace(/\\/g, '/')}`;
     win.loadURL(url);
   }
+
+  const saveBounds = () => {
+    if (win) {
+      const bounds = win.getBounds();
+      fs.writeFileSync(configPath, JSON.stringify(bounds));
+    }
+  };
+
+  win.on('move', saveBounds);
+  win.on('resize', saveBounds);
 
   // Emitted when the window is closed.
   win.on('closed', () => {

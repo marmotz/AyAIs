@@ -1,11 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, output } from '@angular/core';
-
-export interface AIService {
-  name: string;
-  url: string;
-  icon: string;
-}
+import { Component, model, output } from '@angular/core';
+import { AI_SERVICES } from '@app/ai-services/constants';
+import { AIService } from '@app/ai-services/interfaces';
 
 @Component({
   selector: 'app-sidebar',
@@ -13,18 +9,13 @@ export interface AIService {
   templateUrl: './sidebar.component.html',
 })
 export class SidebarComponent {
-  services: AIService[] = [
-    { name: 'ChatGPT', url: 'https://chat.openai.com', icon: '🤖' },
-    { name: 'Claude', url: 'https://claude.ai', icon: '🧠' },
-    { name: 'Gemini', url: 'https://gemini.google.com', icon: '✨' },
-  ];
-
-  selectedService: AIService | null = null;
+  services: AIService[] = AI_SERVICES;
 
   serviceSelected = output<AIService>();
+  selectedService = model<AIService | null>(null);
 
   onServiceClick(service: AIService) {
-    this.selectedService = service;
+    this.selectedService.set(service);
     this.serviceSelected.emit(service);
   }
 }

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, globalShortcut, screen, Tray } from 'electron';
+import { app, BrowserWindow, globalShortcut, ipcMain, screen, Tray } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -7,6 +7,7 @@ let tray: Tray | null = null;
 const args = process.argv.slice(1);
 const serve = args.some((val) => val === '--serve');
 const configPath = path.join(app.getPath('userData'), 'window-config.json');
+const appConfigPath = path.join(app.getPath('userData'), 'app-config.json');
 
 function createWindow(): BrowserWindow {
   const size = screen.getPrimaryDisplay().workAreaSize;
@@ -94,6 +95,30 @@ function createWindow(): BrowserWindow {
 
   return win;
 }
+
+// IPC handlers for app settings
+ipcMain.handle('get-last-service', () => {
+  try {
+    const config = fs.readFileSync(appConfigPath, 'utf8');
+    const saved = JSON.parse(config);
+    return saved.lastService || null;
+  } catch {
+    return null;
+  }
+});
+
+ipcMain.handle('save-service', (event, serviceName) => {
+  try {
+    let config: any = {};
+    try {
+      config = JSON.parse(fs.readFileSync(appConfigPath, 'utf8'));
+    } catch {}
+    config.lastService = serviceName;
+    fs.writeFileSync(appConfigPath, JSON.stringify(config));
+  } catch (e) {
+    console.error('Failed to save service', e);
+  }
+});
 
 try {
   // This method will be called when Electron has finished

@@ -5,7 +5,7 @@
       <button
         class="flex cursor-pointer items-center gap-2.5 rounded-lg border-none px-4 py-3 text-base text-white transition-colors duration-200 hover:bg-slate-700"
         (click)="onServiceClick(service)"
-        [class]="selectedService?.name === service.name ? 'bg-blue-500' : 'bg-transparent'"
+        [class]="selectedService()?.name === service.name ? 'bg-blue-500' : 'bg-transparent'"
       >
         <span class="text-xl">{{ service.icon }}</span>
         <span class="flex-1 text-left">{{ service.name }}</span>

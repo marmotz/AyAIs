@@ -31,7 +31,8 @@ function createWindow(): BrowserWindow {
       nodeIntegration: true,
       allowRunningInsecureContent: serve,
       contextIsolation: false,
-      webSecurity: !serve
+      webSecurity: !serve,
+      webviewTag: true
     },
   });
 
@@ -45,6 +46,7 @@ function createWindow(): BrowserWindow {
       reloaderFn(module);
     });
     win.loadURL('http://localhost:4200');
+    win.webContents.openDevTools();
   } else {
     // Path when running electron executable
     let pathIndex = './browser/index.html';
@@ -57,6 +59,10 @@ function createWindow(): BrowserWindow {
     const fullPath = path.join(__dirname, pathIndex);
     const url = `file://${path.resolve(fullPath).replace(/\\/g, '/')}`;
     win.loadURL(url);
+    // Always open DevTools in development (when not packaged)
+    if (!app.isPackaged) {
+      win.webContents.openDevTools();
+    }
   }
 
   const saveBounds = () => {

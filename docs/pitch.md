@@ -1,4 +1,4 @@
-# AIline - Pitch
+# AiLine - Pitch
 
 ## Concept
 
@@ -26,6 +26,7 @@ Gratuit et open source.
 - TailwindCSS
 
 ## UI / Architecture
+
 - Multiview: barre de navigation latérale à gauche avec des icônes colorées pour chaque IA; à droite, le site chargé selon l'icône sélectionnée.
 - Persistance des sessions navigateur intégrée et possibilités de bascule rapide entre IA via l'interface.
 

@@ -3,18 +3,8 @@
   "compilerOptions": {
     "esModuleInterop": true,
     "outDir": "../out-tsc/spec",
-    "types": [
-      "vitest/globals",
-      "node"
-    ]
+    "types": ["vitest/globals", "node"]
   },
-  "include": [
-    "**/*.spec.ts",
-    "**/*.d.ts"
-  ],
-  "exclude": [
-    "dist",
-    "release",
-    "node_modules"
-  ]
+  "include": ["**/*.spec.ts", "**/*.d.ts"],
+  "exclude": ["dist", "release", "node_modules"]
 }

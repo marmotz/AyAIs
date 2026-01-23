@@ -1,1 +1,13 @@
-Hello
+<div class="flex h-screen overflow-hidden">
+  <app-sidebar (serviceSelected)="onServiceSelected($event)" />
+  <div class="flex flex-1 flex-col relative">
+    <div #webviewsContainer class="absolute inset-0 w-full h-full"></div>
+
+    @if (!selectedService()) {
+      <div class="flex flex-1 flex-col items-center justify-center p-5 text-center">
+        <h1 class="mb-2.5 text-gray-800">Welcome to AiLine</h1>
+        <p class="text-xl text-gray-600">Select an AI service from the sidebar to get started.</p>
+      </div>
+    }
+  </div>
+</div>

@@ -1,0 +1,15 @@
+<div class="box-border h-screen w-64 bg-slate-800 p-5 text-white">
+  <h2 class="mb-5 text-center text-xl">AI Services</h2>
+  <nav class="flex flex-col gap-2.5">
+    @for (service of services; track service.name) {
+      <button
+        class="flex cursor-pointer items-center gap-2.5 rounded-lg border-none px-4 py-3 text-base text-white transition-colors duration-200 hover:bg-slate-700"
+        (click)="onServiceClick(service)"
+        [class]="selectedService?.name === service.name ? 'bg-blue-500' : 'bg-transparent'"
+      >
+        <span class="text-xl">{{ service.icon }}</span>
+        <span class="flex-1 text-left">{{ service.name }}</span>
+      </button>
+    }
+  </nav>
+</div>

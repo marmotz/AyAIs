@@ -1,10 +1,11 @@
-import { app, BrowserWindow, screen } from 'electron';
+import { app, BrowserWindow, globalShortcut, screen, Tray } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
 
 let win: BrowserWindow | null = null;
+let tray: Tray | null = null;
 const args = process.argv.slice(1);
-const serve = args.some(val => val === '--serve');
+const serve = args.some((val) => val === '--serve');
 const configPath = path.join(app.getPath('userData'), 'window-config.json');
 
 function createWindow(): BrowserWindow {
@@ -32,16 +33,16 @@ function createWindow(): BrowserWindow {
       allowRunningInsecureContent: serve,
       contextIsolation: false,
       webSecurity: !serve,
-      webviewTag: true
+      webviewTag: true,
     },
   });
 
   if (serve) {
-    import('electron-debug').then(debug => {
-      debug.default({isEnabled: true, showDevTools: true});
+    import('electron-debug').then((debug) => {
+      debug.default({ isEnabled: true, showDevTools: true });
     });
 
-    import('electron-reloader').then(reloader => {
+    import('electron-reloader').then((reloader) => {
       const reloaderFn = (reloader as any).default || reloader;
       reloaderFn(module);
     });
@@ -52,7 +53,7 @@ function createWindow(): BrowserWindow {
     let pathIndex = './browser/index.html';
 
     if (fs.existsSync(path.join(__dirname, '../dist/browser/index.html'))) {
-       // Path when running electron in local folder
+      // Path when running electron in local folder
       pathIndex = '../dist/browser/index.html';
     }
 
@@ -75,6 +76,14 @@ function createWindow(): BrowserWindow {
   win.on('move', saveBounds);
   win.on('resize', saveBounds);
 
+  // Prevent window from closing, hide to tray instead
+  win.on('close', (event) => {
+    if (win) {
+      event.preventDefault();
+      win.hide();
+    }
+  });
+
   // Emitted when the window is closed.
   win.on('closed', () => {
     // Dereference the window object, usually you would store window
@@ -91,13 +100,41 @@ try {
   // initialization and is ready to create browser windows.
   // Some APIs can only be used after this event occurs.
   // Added 400 ms to fix the black background issue while using transparent window. More detais at https://github.com/electron/electron/issues/15947
-  app.on('ready', () => setTimeout(createWindow, 400));
+  app.on('ready', () => {
+    setTimeout(createWindow, 400);
+
+    // Create system tray
+    const iconPath = path.resolve(process.cwd(), 'src/assets/icons/favicon.png');
+    tray = new Tray(iconPath);
+    tray.setToolTip('AiLine');
+
+    // Tray click shows window
+    tray.on('click', () => {
+      if (win) {
+        win.show();
+        win.focus();
+      }
+    });
+
+    // Register global shortcut
+    globalShortcut.register('Super+I', () => {
+      if (win) {
+        if (win.isVisible()) {
+          win.hide();
+        } else {
+          win.show();
+          win.focus();
+        }
+      }
+    });
+  });
 
   // Quit when all windows are closed.
   app.on('window-all-closed', () => {
     // On OS X it is common for applications and their menu bar
     // to stay active until the user quits explicitly with Cmd + Q
-    if (process.platform !== 'darwin') {
+    // But keep running if tray is present
+    if (process.platform !== 'darwin' && !tray) {
       app.quit();
     }
   });
@@ -110,6 +147,9 @@ try {
     }
   });
 
+  app.on('will-quit', () => {
+    globalShortcut.unregisterAll();
+  });
 } catch (e) {
   // Catch Error
   // throw e;

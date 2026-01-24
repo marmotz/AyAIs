@@ -1,6 +1,6 @@
 {
-  "name": "ailine-electron",
-  "description": "Cross-platform desktop app with Electron for AI website integration",
+  "name": "ayais-electron",
+  "description": "AyAIs (All your AIs) is a cross-platform desktop app with Electron for AI website integration",
   "author": {
     "name": "Marmotz",
     "email": "contact@marmotz.dev"
@@ -8,6 +8,5 @@
   "version": "0.0.0",
   "main": "main.js",
   "private": true,
-  "dependencies": {
-  }
+  "dependencies": {}
 }

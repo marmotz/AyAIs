@@ -2,7 +2,7 @@
   <nav class="flex flex-col gap-3">
     @for (service of services; track service.name) {
       <button
-        class="group relative size-16 cursor-pointer rounded-lg border-none p-2 text-white transition-colors duration-200"
+        class="group relative size-16 cursor-pointer rounded-lg border-none p-2 text-white transition-colors duration-200 focus:outline-none"
         (click)="onServiceClick(service)"
       >
         <img

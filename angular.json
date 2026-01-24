@@ -1,14 +1,12 @@
 {
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
   "cli": {
-    "schematicCollections": [
-      "@angular-eslint/schematics"
-    ]
+    "schematicCollections": ["@angular-eslint/schematics"]
   },
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "ailine": {
+    "ayais": {
       "root": "",
       "sourceRoot": "src",
       "projectType": "application",
@@ -29,18 +27,11 @@
               "base": "dist"
             },
             "index": "src/index.html",
-            "polyfills": [
-              "zone.js"
-            ],
+            "polyfills": ["zone.js"],
             "tsConfig": "src/tsconfig.app.json",
             "inlineStyleLanguage": "css",
-            "assets": [
-              "src/favicon.ico",
-              "src/assets"
-            ],
-            "styles": [
-              "src/styles.css"
-            ],
+            "assets": ["src/favicon.ico", "src/assets"],
+            "styles": ["src/styles.css"],
             "scripts": [],
             "browser": "src/main.ts"
           },
@@ -74,31 +65,28 @@
               ]
             },
             "testing": {
-              "polyfills": [
-                "zone.js",
-                "zone.js/testing"
-              ]
+              "polyfills": ["zone.js", "zone.js/testing"]
             }
           }
         },
         "serve": {
           "builder": "@angular/build:dev-server",
           "options": {
-            "buildTarget": "ailine:build"
+            "buildTarget": "ayais:build"
           },
           "configurations": {
             "dev": {
-              "buildTarget": "ailine:build:dev"
+              "buildTarget": "ayais:build:dev"
             },
             "production": {
-              "buildTarget": "ailine:build:production"
+              "buildTarget": "ayais:build:production"
             }
           }
         },
         "extract-i18n": {
           "builder": "@angular/build:extract-i18n",
           "options": {
-            "buildTarget": "ailine:build"
+            "buildTarget": "ayais:build"
           }
         },
         "test": {
@@ -106,15 +94,10 @@
           "options": {
             "runner": "vitest",
             "tsConfig": "src/tsconfig.spec.json",
-            "browsers": [
-              "chromium"
-            ],
-            "buildTarget": "ailine:build:testing",
+            "browsers": ["chromium"],
+            "buildTarget": "ayais:build:testing",
             "coverage": true,
-            "coverageReporters": [
-              "html",
-              "lcovonly"
-            ],
+            "coverageReporters": ["html", "lcovonly"],
             "reporters": [
               ["default", { "summary": true }],
               [
@@ -129,24 +112,19 @@
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
-            "lintFilePatterns": [
-              "src/**/*.ts",
-              "src/**/*.html"
-            ]
+            "lintFilePatterns": ["src/**/*.ts", "src/**/*.html"]
           }
         }
       }
     },
-    "ailine-e2e": {
+    "ayais-e2e": {
       "root": "e2e",
       "projectType": "application",
       "architect": {
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
-            "lintFilePatterns": [
-              "e2e/**/*.ts"
-            ]
+            "lintFilePatterns": ["e2e/**/*.ts"]
           }
         }
       }

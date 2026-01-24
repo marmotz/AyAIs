@@ -1,4 +1,4 @@
-import { app, BrowserWindow, globalShortcut, ipcMain, screen, Tray } from 'electron';
+import { app, BrowserWindow, globalShortcut, ipcMain, Menu, screen, Tray } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -29,6 +29,7 @@ function createWindow(): BrowserWindow {
     y: windowBounds.y,
     width: windowBounds.width,
     height: windowBounds.height,
+    title: 'AyAIs',
     webPreferences: {
       nodeIntegration: true,
       allowRunningInsecureContent: serve,
@@ -126,12 +127,17 @@ try {
   // Some APIs can only be used after this event occurs.
   // Added 400 ms to fix the black background issue while using transparent window. More detais at https://github.com/electron/electron/issues/15947
   app.on('ready', () => {
+    if (!app.requestSingleInstanceLock()) {
+      app.quit();
+      return;
+    }
     setTimeout(createWindow, 400);
+    Menu.setApplicationMenu(null);
 
     // Create system tray
     const iconPath = path.resolve(process.cwd(), 'src/assets/icons/favicon.png');
     tray = new Tray(iconPath);
-    tray.setToolTip('AiLine');
+    tray.setToolTip('AyAIs');
 
     // Tray click shows window
     tray.on('click', () => {
@@ -161,6 +167,13 @@ try {
     // But keep running if tray is present
     if (process.platform !== 'darwin' && !tray) {
       app.quit();
+    }
+  });
+
+  app.on('second-instance', () => {
+    if (win) {
+      if (win.isMinimized()) win.restore();
+      win.focus();
     }
   });
 

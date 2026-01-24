@@ -1,0 +1,53 @@
+<div class="settings-container p-4">
+  <h2 class="mb-4 text-xl">Settings</h2>
+
+  <!-- Tabs -->
+  <div class="tabs mb-4 flex space-x-2">
+    <button
+      (click)="setTab('startup')"
+      class="rounded bg-gray-200 px-3 py-1"
+      [class.bg-blue-100]="selectedTab === 'startup'"
+    >
+      Startup
+    </button>
+    <button
+      (click)="setTab('shortcuts')"
+      class="rounded bg-gray-200 px-3 py-1"
+      [class.bg-blue-100]="selectedTab === 'shortcuts'"
+    >
+      Shortcuts
+    </button>
+  </div>
+
+  <!-- Startup tab content -->
+  <div
+    *ngIf="selectedTab === 'startup'"
+    class="startup-content space-y-4"
+  >
+    <p class="text-sm text-gray-700">Configure how AyAIs starts on your computer.</p>
+    <label class="flex items-center gap-2">
+      <input
+        type="checkbox"
+        [(ngModel)]="startupOnBoot"
+        (change)="onToggle()"
+      />
+      Open AyAIs on startup
+    </label>
+    <label class="flex items-center gap-2">
+      <input
+        type="checkbox"
+        [(ngModel)]="launchMinimized"
+        (change)="onToggle()"
+      />
+      Launch AyAIs minimized
+    </label>
+  </div>
+
+  <!-- Shortcuts tab content currently empty -->
+  <div
+    *ngIf="selectedTab === 'shortcuts'"
+    class="shortcuts-content text-gray-600"
+  >
+    <p>Coming soon...</p>
+  </div>
+</div>

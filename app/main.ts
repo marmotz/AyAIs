@@ -135,6 +135,30 @@ ipcMain.handle('save-service', (event, serviceName) => {
   }
 });
 
+// App-wide config persistence (startup and shortcuts)
+ipcMain.handle('get-app-config', () => {
+  try {
+    const config = fs.readFileSync(appConfigPath, 'utf8');
+    const saved = JSON.parse(config);
+    return saved.appConfig || { openOnStartup: false, launchMinimized: false };
+  } catch {
+    return { openOnStartup: false, launchMinimized: false };
+  }
+});
+
+ipcMain.handle('save-app-config', (event, cfg) => {
+  try {
+    let config: any = {};
+    try {
+      config = JSON.parse(fs.readFileSync(appConfigPath, 'utf8'));
+    } catch {}
+    config.appConfig = cfg;
+    fs.writeFileSync(appConfigPath, JSON.stringify(config));
+  } catch (e) {
+    console.error('Failed to save app config', e);
+  }
+});
+
 try {
   // This method will be called when Electron has finished
   // initialization and is ready to create browser windows.

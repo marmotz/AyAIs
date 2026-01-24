@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { ElectronService } from '@app/electron/electron.service';
+import { ElectronService } from '@app/services/electron.service';
 import { TranslateModule } from '@ngx-translate/core';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { App } from './app.component';

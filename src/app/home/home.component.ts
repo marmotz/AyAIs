@@ -1,21 +1,21 @@
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, inject, NO_ERRORS_SCHEMA, signal, ViewChild } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
 import { AI_SERVICES } from '@app/ai-services/constants';
 import { AIService } from '@app/ai-services/interfaces';
-import { ElectronService } from '@app/electron/electron.service';
+import { ElectronService } from '@app/services/electron.service';
+import { NavigationService } from '@app/services/navigation.service';
 import { SidebarComponent } from '@app/sidebar/sidebar.component';
-import { APP_CONFIG } from '@env';
-import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
-  imports: [SidebarComponent, CommonModule],
+  imports: [SidebarComponent, CommonModule, RouterOutlet],
   schemas: [NO_ERRORS_SCHEMA],
 })
 export class Home {
-  private electronService = inject(ElectronService);
-  private translate = inject(TranslateService);
+  private readonly electron = inject(ElectronService);
+  private readonly navigation = inject(NavigationService);
 
   private services: AIService[] = AI_SERVICES;
 
@@ -23,21 +23,11 @@ export class Home {
   private webviews = new Map<string, any>();
 
   protected readonly selectedService = signal<AIService | null>(null);
+  protected readonly isAiServicesRoute = this.navigation.isAiServicesRoute;
 
   constructor() {
-    const electronService = this.electronService;
-
-    this.translate.setDefaultLang('en');
-    console.log('APP_CONFIG', APP_CONFIG);
-
-    if (electronService.isElectron) {
-      console.log(process.env);
-      console.log('Run in electron');
-      console.log('Electron ipcRenderer', this.electronService.ipcRenderer);
-      console.log('NodeJS childProcess', this.electronService.childProcess);
-
-      // Load last selected service
-      this.electronService.ipcRenderer.invoke('get-last-service').then((lastServiceName: string | null) => {
+    if (this.electron.isElectron) {
+      this.electron.ipcRenderer.invoke('get-last-service').then((lastServiceName: string | null) => {
         if (lastServiceName) {
           const service = this.services.find((s) => s.name === lastServiceName);
           if (service) {
@@ -75,8 +65,8 @@ export class Home {
     }
 
     // Save selected service
-    if (this.electronService.isElectron) {
-      this.electronService.ipcRenderer.invoke('save-service', service.name);
+    if (this.electron.isElectron) {
+      this.electron.ipcRenderer.invoke('save-service', service.name);
     }
   }
 }

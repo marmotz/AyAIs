@@ -22,11 +22,32 @@
       </button>
     }
 
-    <div
-      class="absolute h-16 w-1 translate-x-18 translate-y-19 rounded bg-slate-500 text-sm whitespace-nowrap text-white opacity-100 transition-transform duration-500"
-      [style]="{
-        transform: `translateY(calc(var(--spacing) * 19 * ${selectedIndex() - 1})`,
-      }"
-    ></div>
+    @if (isAiServicesRoute()) {
+      <div
+        class="absolute h-16 w-1 translate-x-18 translate-y-19 rounded bg-slate-500 text-sm whitespace-nowrap text-white transition-transform duration-500"
+        [style]="{
+          transform: `translateY(calc(var(--spacing) * 19 * ${selectedIndex() - 1})`,
+        }"
+      ></div>
+    }
   </nav>
+
+  <div class="flex w-full flex-col items-center">
+    <button
+      class="group relative mt-auto size-12 cursor-pointer rounded-2xl border-none p-2 text-white transition-colors duration-200 hover:bg-slate-500/10 focus:outline-none"
+      (click)="openSettings()"
+      title="Settings"
+    >
+      <img
+        src="assets/icons/settings.svg"
+        alt="Settings"
+        class="size-8 group-hover:opacity-100"
+      />
+    </button>
+    @if (isSettingsRoute()) {
+      <div
+        class="absolute h-10 w-1 translate-x-10 translate-y-1 rounded bg-slate-500 text-sm whitespace-nowrap text-white"
+      ></div>
+    }
+  </div>
 </div>

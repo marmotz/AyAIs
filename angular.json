@@ -94,19 +94,10 @@
           "options": {
             "runner": "vitest",
             "tsConfig": "src/tsconfig.spec.json",
-            "browsers": ["chromium"],
             "buildTarget": "ayais:build:testing",
             "coverage": true,
-            "coverageReporters": ["html", "lcovonly"],
-            "reporters": [
-              ["default", { "summary": true }],
-              [
-                "html",
-                {
-                  "outputFile": "test-results/vitest/index.html"
-                }
-              ]
-            ]
+            "coverageReporters": ["lcovonly"],
+            "reporters": [["default", { "summary": true }]]
           }
         },
         "lint": {

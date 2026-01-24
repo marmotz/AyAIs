@@ -3,20 +3,20 @@ import { provideRouter } from '@angular/router';
 import { ElectronService } from '@app/electron/electron.service';
 import { TranslateModule } from '@ngx-translate/core';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { App } from './app.component';
+import { Home } from './home.component';
 
-describe('AppComponent', () => {
+describe('Home', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [],
-      imports: [App, TranslateModule.forRoot()],
+      imports: [Home, TranslateModule.forRoot()],
       providers: [provideRouter([]), ElectronService],
     }).compileComponents();
   });
 
-  it('should create the app', () => {
-    const fixture = TestBed.createComponent<any>(App as any);
-    const app = fixture.debugElement.componentInstance;
-    expect(app).toBeTruthy();
+  it('should create the component', () => {
+    const fixture = TestBed.createComponent<any>(Home as any);
+    const home = fixture.debugElement.componentInstance;
+    expect(home).toBeTruthy();
   });
 });

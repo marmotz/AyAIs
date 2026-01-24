@@ -17,14 +17,11 @@
     "experimentalDecorators": true,
     "allowJs": true,
     "target": "ES2022",
-    "typeRoots": [
-      "node_modules/@types"
-    ],
-    "useDefineForClassFields": false
+    "typeRoots": ["node_modules/@types"],
+    "useDefineForClassFields": false,
+    "types": ["vitest/globals", "node"]
   },
-  "exclude": [
-    "node_modules"
-  ],
+  "exclude": ["node_modules"],
   "angularCompilerOptions": {
     "strictTemplates": true,
     "fullTemplateTypeCheck": true,

@@ -28,6 +28,10 @@
     "version": "conventional-changelog -i CHANGELOG.md -s -r 0 && git add CHANGELOG.md",
     "lint": "ng lint"
   },
+  "build": {
+    "appId": "dev.marmotz.ayais",
+    "icon": "src/assets/icons/AI.png"
+  },
   "dependencies": {
     "@angular/common": "21.1.1",
     "@angular/compiler": "21.1.1",

@@ -9,6 +9,19 @@ const serve = args.some((val) => val === '--serve');
 const configPath = path.join(app.getPath('userData'), 'window-config.json');
 const appConfigPath = path.join(app.getPath('userData'), 'app-config.json');
 
+/** Resolve the app icon path in development and production.
+ *  - In development, point to the source asset in AI.png
+ *  - In production, point to the packaged asset under resources
+ */
+function getIconPath(): string {
+  if (app.isPackaged) {
+    // Packaged app: assets are located in the resources path
+    return path.join(process.resourcesPath, 'AI.png');
+  }
+  // Development: use the project source asset
+  return path.resolve(__dirname, 'AI.png');
+}
+
 function createWindow(): BrowserWindow {
   const size = screen.getPrimaryDisplay().workAreaSize;
 
@@ -37,6 +50,7 @@ function createWindow(): BrowserWindow {
       webSecurity: !serve,
       webviewTag: true,
     },
+    icon: getIconPath(),
   });
 
   if (serve) {
@@ -127,6 +141,12 @@ try {
   // Some APIs can only be used after this event occurs.
   // Added 400 ms to fix the black background issue while using transparent window. More detais at https://github.com/electron/electron/issues/15947
   app.on('ready', () => {
+    // Set a stable AppUserModelID for Windows taskbar/notifications
+    try {
+      app.setAppUserModelId('dev.marmotz.ayais');
+    } catch {
+      // ignore if not supported on current platform
+    }
     if (!app.requestSingleInstanceLock()) {
       app.quit();
       return;
@@ -135,8 +155,8 @@ try {
     Menu.setApplicationMenu(null);
 
     // Create system tray
-    const iconPath = path.resolve(process.cwd(), 'src/assets/icons/favicon.png');
-    tray = new Tray(iconPath);
+    const trayIconPath = getIconPath();
+    tray = new Tray(trayIconPath);
     tray.setToolTip('AyAIs');
 
     // Tray click shows window

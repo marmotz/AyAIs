@@ -1,5 +1,7 @@
 {
   "asar": true,
+  "productName": "ayais",
+  "appId": "dev.marmotz.${name}",
   "directories": {
     "output": "release/"
   },

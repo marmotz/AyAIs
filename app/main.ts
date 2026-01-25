@@ -93,9 +93,6 @@ function saveAppConfig() {
 }
 
 function getIconPath(): string {
-  if (app.isPackaged) {
-    return path.join(process.resourcesPath, 'AI.png');
-  }
   return path.resolve(__dirname, 'AI.png');
 }
 

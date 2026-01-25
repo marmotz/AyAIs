@@ -4,7 +4,6 @@ import { Router } from '@angular/router';
 import { AI_SERVICES } from '@app/ai-services/constants';
 import { AIService } from '@app/ai-services/interfaces';
 import { NavigationService } from '@app/services/navigation.service';
-import '@fontsource/inter';
 
 @Component({
   selector: 'app-sidebar',

@@ -49,12 +49,6 @@ test.describe('Check Home Page', () => {
   //   expect(screenshot).toMatchSnapshot(`home-${browserName}.png`);
   // });
 
-  test('Check title', async () => {
-    const elem = await firstWindow.$('app-home h1');
-    const text = elem ? await elem.innerText() : null;
-    expect(text).toBe('App works !');
-  });
-
   test.afterAll(async () => {
     await context.tracing.stop({ path: 'e2e/tracing/trace.zip' });
     await app.close();

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, inject, NO_ERRORS_SCHEMA, signal, ViewChild } from '@angular/core';
+import { Component, effect, ElementRef, inject, NO_ERRORS_SCHEMA, signal, ViewChild } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { AI_SERVICES } from '@app/ai-services/constants';
 import { AIService } from '@app/ai-services/interfaces';
@@ -35,16 +35,27 @@ export class Home {
         }
       }
     });
+
+    effect(() => {
+      const selectedService = this.selectedService();
+      const isAiServicesRoute = this.isAiServicesRoute();
+
+      if (selectedService) {
+        if (isAiServicesRoute) {
+          const webview: WebviewTag = this.webviews.get(selectedService.name);
+          this.showWebview(webview);
+        } else {
+          this.hideAllWebviews();
+        }
+      }
+    });
   }
 
   async onServiceSelected(service: AIService) {
     this.selectedService.set(service);
     const container = this.webviewsContainer?.nativeElement as HTMLElement;
 
-    // Hide all existing webviews
-    this.webviews.forEach((webview: WebviewTag) => {
-      webview.classList.add('invisible', 'size-0');
-    });
+    this.hideAllWebviews();
 
     // Create or show a dedicated webview for this service
     let webview: WebviewTag = this.webviews.get(service.name);
@@ -52,12 +63,29 @@ export class Home {
       webview = await this.webviewService.createWebview(service);
       container?.appendChild(webview);
       this.webviews.set(service.name, webview);
-    } else {
-      webview.classList.remove('invisible', 'size-0');
     }
 
-    webview.focus();
+    this.showWebview(webview);
 
     await window.electronAPI.saveLastService(service.name);
+  }
+
+  hideWebview(webview: WebviewTag) {
+    webview.style.visibility = 'hidden';
+    webview.style.height = '0';
+    webview.style.width = '0';
+  }
+
+  showWebview(webview: WebviewTag) {
+    webview.style.visibility = 'visible';
+    webview.style.height = '100%';
+    webview.style.width = '100%';
+    webview.focus();
+  }
+
+  hideAllWebviews() {
+    this.webviews.forEach((webview: WebviewTag) => {
+      this.hideWebview(webview);
+    });
   }
 }

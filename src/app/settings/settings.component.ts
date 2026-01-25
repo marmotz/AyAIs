@@ -41,7 +41,7 @@ export class SettingsComponent implements OnInit {
     window.electronAPI.saveAppConfig(newConfig).catch(() => {});
   }
 
-  goBack(): void {
-    this.router.navigate(['/home']);
+  async goBack(): Promise<void> {
+    await this.router.navigate(['/app']);
   }
 }

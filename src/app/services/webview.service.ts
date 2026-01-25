@@ -8,8 +8,6 @@ import { WebviewTag } from 'electron';
 export class WebviewService {
   async createWebview(service: AIService) {
     const webview: WebviewTag = document.createElement('webview') as any;
-    webview.style.width = '100%';
-    webview.style.height = '100%';
     webview.style.display = 'flex';
     webview.partition = `persist:${service.name}`;
     webview.spellcheck = true;

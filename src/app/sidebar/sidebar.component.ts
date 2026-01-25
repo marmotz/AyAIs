@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { AI_SERVICES } from '@app/ai-services/constants';
 import { AIService } from '@app/ai-services/interfaces';
 import { NavigationService } from '@app/services/navigation.service';
-import '@fontsource/michroma';
+import '@fontsource/inter';
 
 @Component({
   selector: 'app-sidebar',
@@ -25,13 +25,17 @@ export class SidebarComponent {
 
   private router = inject(Router);
 
-  onServiceClick(service: AIService) {
+  async onServiceClick(service: AIService) {
     this.selectedService.set(service);
     this.serviceSelected.emit(service);
-    this.router.navigate(['/app']);
+    await this.router.navigate(['/app']);
   }
 
-  openSettings() {
-    this.router.navigate(['/app/settings']);
+  async openSettings() {
+    await this.router.navigate(['/app/settings']);
+  }
+
+  async openAiServices() {
+    await this.router.navigate(['/app']);
   }
 }

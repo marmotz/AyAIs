@@ -1,12 +1,14 @@
 <div class="box-border flex h-screen w-22 flex-col bg-linear-to-r from-blue-50 to-blue-100 text-white">
-  <div class="flex flex-col items-center bg-blue-200 via-blue-200 pb-2 shadow-lg">
+  <div
+    class="flex flex-col items-center rounded-b-xl border-blue-300 bg-radial from-blue-100 via-blue-100 to-blue-300 pb-2 shadow-lg"
+  >
     <img
       src="assets/icons/AI.png"
       alt="Logo"
       class="size-16"
     />
     <div
-      class="w-full cursor-default text-center text-xl text-slate-600 text-shadow-sm"
+      class="w-full cursor-default text-center text-xl font-bold text-slate-600"
       id="logo"
     >
       AyAIs
@@ -29,11 +31,11 @@
       </button>
     }
 
-    @if (isAiServicesRoute()) {
+    @if (isAiServicesRoute() && selectedIndex() !== -1) {
       <div
-        class="absolute h-16 w-1 translate-x-18 translate-y-19 rounded bg-slate-500 text-sm whitespace-nowrap text-white transition-transform duration-500"
+        class="absolute h-16 w-1 translate-x-18 rounded bg-slate-500 text-sm whitespace-nowrap text-white transition-transform duration-500"
         [style]="{
-          transform: `translateY(calc(var(--spacing) * 19 * ${selectedIndex() - 1})`,
+          transform: `translateY(calc(var(--spacing) * 19 * ${selectedIndex()})`,
         }"
       ></div>
     }
@@ -42,7 +44,7 @@
   <div class="flex w-full flex-col items-center">
     <button
       class="group relative mt-auto size-12 cursor-pointer rounded-2xl border-none p-2 text-white transition-colors duration-200 hover:bg-slate-500/10 focus:outline-none"
-      (click)="openSettings()"
+      (click)="isAiServicesRoute() ? openSettings() : openAiServices()"
       title="Settings"
     >
       <img

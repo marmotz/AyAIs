@@ -16,23 +16,17 @@
   ],
   "win": {
     "icon": "dist/browser/assets/icons",
-    "target": [
-      "portable"
-    ]
+    "target": ["portable"]
   },
   "portable": {
-    "splashImage": "dist/browser/assets/icons/electron.bmp"
+    "splashImage": "dist/browser/assets/icons/AI.png"
   },
   "mac": {
     "icon": "dist/browser/assets/icons",
-    "target": [
-      "dmg"
-    ]
+    "target": ["dmg"]
   },
   "linux": {
     "icon": "dist/browser/assets/icons",
-    "target": [
-      "AppImage"
-    ]
+    "target": ["AppImage"]
   }
 }

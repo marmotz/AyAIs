@@ -6,6 +6,6 @@ export interface AppConfig {
     height: number;
   };
   lastService: string | undefined;
-  openOnStartup: boolean;
-  launchMinimized: boolean;
+  launchAtStartup: boolean;
+  launchHidden: boolean;
 }

@@ -14,21 +14,17 @@ import { SettingTabComponent } from './setting-tab/setting-tab.component';
 export class SettingsComponent implements OnInit {
   private router = inject(Router);
 
-  private appConfig!: AppConfig;
-
   // Startup-related settings
   startupOnBoot = false;
-  launchMinimized = false;
+  launchHidden = false;
   selectedTab: 'startup' | 'shortcuts' = 'startup';
 
   ngOnInit(): void {
     window.electronAPI
       .getAppConfig()
       .then((appConfig: AppConfig) => {
-        this.appConfig = appConfig;
-
-        this.startupOnBoot = appConfig.openOnStartup;
-        this.launchMinimized = appConfig.launchMinimized;
+        this.startupOnBoot = appConfig.launchAtStartup;
+        this.launchHidden = appConfig.launchHidden;
       })
       .catch(() => {});
   }
@@ -38,12 +34,11 @@ export class SettingsComponent implements OnInit {
   }
 
   onToggle(): void {
-    const appConfig: AppConfig = {
-      ...this.appConfig,
-      openOnStartup: this.startupOnBoot,
-      launchMinimized: this.launchMinimized,
+    const newConfig: Partial<AppConfig> = {
+      launchAtStartup: this.startupOnBoot,
+      launchHidden: this.launchHidden,
     };
-    window.electronAPI.saveAppConfig(appConfig).catch(() => {});
+    window.electronAPI.saveAppConfig(newConfig).catch(() => {});
   }
 
   goBack(): void {

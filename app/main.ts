@@ -9,7 +9,7 @@ let tray: Tray | null = null;
 const args = process.argv.slice(1);
 const serve = args.some((val) => val === '--serve');
 const configPath = path.join(app.getPath('userData'), 'config.json');
-const appConfig = loadAppConfig();
+let appConfig = loadAppConfig();
 
 function loadAppConfig() {
   let rawConfig = '{}';
@@ -22,8 +22,8 @@ function loadAppConfig() {
   const appConfig: Partial<AppConfig> = JSON.parse(rawConfig);
 
   return {
-    openOnStartup: false,
-    launchMinimized: false,
+    launchAtStartup: false,
+    launchHidden: false,
     lastService: undefined,
     ...appConfig,
     position: {
@@ -36,8 +36,60 @@ function loadAppConfig() {
   } satisfies AppConfig;
 }
 
-function saveAppConfig(config: AppConfig) {
-  fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+function isStartupEnabled(): boolean {
+  try {
+    const loginItemSettings = app.getLoginItemSettings();
+
+    return loginItemSettings.openAtLogin;
+  } catch {
+    return false;
+  }
+}
+
+function enableStartup(): void {
+  try {
+    app.setLoginItemSettings({
+      openAtLogin: true,
+      args: [],
+    });
+  } catch (e) {
+    console.error('Failed to enable startup:', e);
+  }
+}
+
+function disableStartup(): void {
+  try {
+    app.setLoginItemSettings({
+      openAtLogin: false,
+      args: [],
+    });
+  } catch (e) {
+    console.error('Failed to disable startup:', e);
+  }
+}
+
+function syncStartupSettings(): void {
+  try {
+    const currentlyEnabled = isStartupEnabled();
+    const shouldBeEnabled = appConfig.launchAtStartup;
+
+    if (currentlyEnabled && !shouldBeEnabled) {
+      // Désactiver le démarrage automatique
+      disableStartup();
+    } else if (!currentlyEnabled && shouldBeEnabled) {
+      // Activer le démarrage automatique
+      enableStartup();
+    }
+    // Si les états sont identiques, ne rien faire
+  } catch (e) {
+    console.error('Failed to sync startup settings:', e);
+  }
+}
+
+function saveAppConfig() {
+  fs.writeFileSync(configPath, JSON.stringify(appConfig, null, 2));
+  // Synchroniser les paramètres de démarrage après sauvegarde
+  syncStartupSettings();
 }
 
 function getIconPath(): string {
@@ -63,6 +115,35 @@ function getTrayIcon(): any {
   return nativeImage.createFromPath(getIconPath());
 }
 
+function showWindow(): void {
+  if (win) {
+    if (process.platform === 'win32' || process.platform === 'darwin') {
+      win.setSkipTaskbar(false);
+    } else if (process.platform === 'linux') {
+      // On Linux, we need to use window flags to hide from taskbar
+      win.setSkipTaskbar(false);
+      win.setVisibleOnAllWorkspaces(true);
+    }
+    win.show();
+    win.focus();
+  }
+}
+
+function hideWindow(): void {
+  if (win) {
+    if (process.platform === 'win32' || process.platform === 'darwin') {
+      win.setSkipTaskbar(true);
+    } else if (process.platform === 'linux') {
+      // On Linux, we need to use window flags to hide from taskbar
+      win.setSkipTaskbar(true);
+      win.setVisibleOnAllWorkspaces(false);
+      win.setAlwaysOnTop(false);
+    }
+
+    win.hide();
+  }
+}
+
 function createWindow(): BrowserWindow {
   const size = screen.getPrimaryDisplay().workAreaSize;
   let windowBounds = { x: 0, y: 0, width: size.width, height: size.height };
@@ -78,7 +159,7 @@ function createWindow(): BrowserWindow {
   } catch {
     // ignore
   }
-  const window = new BrowserWindow({
+  const windowOptions: Electron.BrowserWindowConstructorOptions = {
     x: windowBounds.x,
     y: windowBounds.y,
     width: windowBounds.width,
@@ -93,7 +174,15 @@ function createWindow(): BrowserWindow {
       preload: path.join(__dirname, 'preload.js'),
     },
     icon: getIconPath(),
-  });
+    skipTaskbar: appConfig.launchHidden,
+  };
+
+  // Linux specific window options
+  if (process.platform === 'linux' && appConfig.launchHidden) {
+    windowOptions.show = false;
+  }
+
+  const window = new BrowserWindow(windowOptions);
   if (serve) {
     import('electron-debug').then((debug) => {
       debug.default({ isEnabled: true, showDevTools: true });
@@ -119,7 +208,7 @@ function createWindow(): BrowserWindow {
   const saveBounds = () => {
     if (window) {
       appConfig.position = window.getBounds();
-      saveAppConfig(appConfig);
+      saveAppConfig();
     }
   };
   window.on('move', saveBounds);
@@ -127,12 +216,18 @@ function createWindow(): BrowserWindow {
   window.on('close', (event) => {
     if (window && !isQuitting) {
       event.preventDefault();
-      window.hide();
+      hideWindow();
     }
   });
+
   window.on('closed', () => {
     win = null;
   });
+
+  // Set initial taskbar visibility based on launchHidden setting
+  if (appConfig.launchHidden) {
+    window.setSkipTaskbar(true);
+  }
 
   return window;
 }
@@ -146,28 +241,37 @@ ipcMain.handle('get-last-service', () => {
   }
 });
 
-ipcMain.handle('save-last-service', (event, serviceName) => {
+ipcMain.handle('save-last-service', (_event, serviceName) => {
   try {
     appConfig.lastService = serviceName;
-    saveAppConfig(appConfig);
+    saveAppConfig();
   } catch (e) {
     console.error('Failed to save service', e);
   }
 });
 
 ipcMain.handle('get-app-config', () => {
+  return appConfig;
+});
+
+ipcMain.handle('save-app-config', (_event, newAppConfig: Partial<AppConfig>) => {
   try {
-    return appConfig;
-  } catch {
-    return { openOnStartup: false, launchMinimized: false };
+    appConfig = {
+      ...appConfig,
+      ...newAppConfig,
+    };
+    saveAppConfig();
+  } catch (e) {
+    console.error('Failed to save app config', e);
   }
 });
 
-ipcMain.handle('save-app-config', (event, appConfig: AppConfig) => {
+ipcMain.handle('is-startup-enabled', () => {
   try {
-    saveAppConfig(appConfig);
+    return isStartupEnabled();
   } catch (e) {
-    console.error('Failed to save app config', e);
+    console.error('Failed to check startup status', e);
+    return false;
   }
 });
 
@@ -193,8 +297,14 @@ try {
       app.quit();
       return;
     }
+
+    // Synchroniser les paramètres de démarrage au lancement de l'app
+    syncStartupSettings();
     setTimeout(() => {
       win = createWindow();
+      if (appConfig.launchHidden) {
+        hideWindow();
+      }
     }, 400);
     Menu.setApplicationMenu(null);
     const trayMenu = Menu.buildFromTemplate([
@@ -212,17 +322,19 @@ try {
     tray.setContextMenu(trayMenu);
     tray.on('click', () => {
       if (win) {
-        win.show();
-        win.focus();
+        if (win.isVisible()) {
+          hideWindow();
+        } else {
+          showWindow();
+        }
       }
     });
     globalShortcut.register('Super+I', () => {
       if (win) {
         if (win.isVisible()) {
-          win.hide();
+          hideWindow();
         } else {
-          win.show();
-          win.focus();
+          showWindow();
         }
       }
     });
@@ -244,14 +356,16 @@ app.on('window-all-closed', () => {
 
 app.on('second-instance', () => {
   if (win) {
-    if (win.isMinimized()) win.restore();
-    win.focus();
+    showWindow();
   }
 });
 
 app.on('activate', () => {
   if (win === null) {
     win = createWindow();
+    if (appConfig.launchHidden) {
+      hideWindow();
+    }
   }
 });
 

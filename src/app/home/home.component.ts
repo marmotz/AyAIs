@@ -3,9 +3,10 @@ import { Component, ElementRef, inject, NO_ERRORS_SCHEMA, signal, ViewChild } fr
 import { RouterOutlet } from '@angular/router';
 import { AI_SERVICES } from '@app/ai-services/constants';
 import { AIService } from '@app/ai-services/interfaces';
-import { ElectronService } from '@app/services/electron.service';
 import { NavigationService } from '@app/services/navigation.service';
+import { WebviewService } from '@app/services/webview.service';
 import { SidebarComponent } from '@app/sidebar/sidebar.component';
+import { WebviewTag } from 'electron';
 
 @Component({
   selector: 'app-home',
@@ -14,8 +15,8 @@ import { SidebarComponent } from '@app/sidebar/sidebar.component';
   schemas: [NO_ERRORS_SCHEMA],
 })
 export class Home {
-  private readonly electron = inject(ElectronService);
-  private readonly navigation = inject(NavigationService);
+  private readonly navigationService = inject(NavigationService);
+  private readonly webviewService = inject(WebviewService);
 
   private services: AIService[] = AI_SERVICES;
 
@@ -23,50 +24,40 @@ export class Home {
   private webviews = new Map<string, any>();
 
   protected readonly selectedService = signal<AIService | null>(null);
-  protected readonly isAiServicesRoute = this.navigation.isAiServicesRoute;
+  protected readonly isAiServicesRoute = this.navigationService.isAiServicesRoute;
 
   constructor() {
-    if (this.electron.isElectron) {
-      this.electron.ipcRenderer.invoke('get-last-service').then((lastServiceName: string | null) => {
-        if (lastServiceName) {
-          const service = this.services.find((s) => s.name === lastServiceName);
-          if (service) {
-            this.onServiceSelected(service);
-          }
+    window.electronAPI.getLastService().then(async (lastServiceName: string | undefined) => {
+      if (lastServiceName) {
+        const service = this.services.find((s) => s.name === lastServiceName);
+        if (service) {
+          await this.onServiceSelected(service);
         }
-      });
-    } else {
-      console.log('Run in browser');
-    }
+      }
+    });
   }
 
-  onServiceSelected(service: AIService) {
+  async onServiceSelected(service: AIService) {
     this.selectedService.set(service);
     const container = this.webviewsContainer?.nativeElement as HTMLElement;
 
     // Hide all existing webviews
-    this.webviews.forEach((wv) => {
-      wv.style.display = 'none';
+    this.webviews.forEach((webview: WebviewTag) => {
+      webview.classList.add('invisible', 'size-0');
     });
 
     // Create or show a dedicated webview for this service
-    let wv = this.webviews.get(service.name);
-    if (!wv) {
-      wv = document.createElement('webview') as any;
-      wv.style.width = '100%';
-      wv.style.height = '100%';
-      wv.style.display = 'flex';
-      wv.src = service.url;
-      wv.partition = `persist:${service.name}`;
-      container?.appendChild(wv);
-      this.webviews.set(service.name, wv);
+    let webview: WebviewTag = this.webviews.get(service.name);
+    if (!webview) {
+      webview = await this.webviewService.createWebview(service);
+      container?.appendChild(webview);
+      this.webviews.set(service.name, webview);
     } else {
-      wv.style.display = 'flex';
+      webview.classList.remove('invisible', 'size-0');
     }
 
-    // Save selected service
-    if (this.electron.isElectron) {
-      this.electron.ipcRenderer.invoke('save-service', service.name);
-    }
+    webview.focus();
+
+    await window.electronAPI.saveLastService(service.name);
   }
 }

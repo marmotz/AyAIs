@@ -1,197 +1,221 @@
-import { app, BrowserWindow, globalShortcut, ipcMain, Menu, screen, Tray } from 'electron';
+import { app, BrowserWindow, globalShortcut, ipcMain, Menu, nativeImage, screen, shell, Tray } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
+import { AppConfig } from './app-config';
 
 let win: BrowserWindow | null = null;
+let isQuitting = false;
 let tray: Tray | null = null;
 const args = process.argv.slice(1);
 const serve = args.some((val) => val === '--serve');
-const configPath = path.join(app.getPath('userData'), 'window-config.json');
-const appConfigPath = path.join(app.getPath('userData'), 'app-config.json');
+const configPath = path.join(app.getPath('userData'), 'config.json');
+const appConfig = loadAppConfig();
 
-/** Resolve the app icon path in development and production.
- *  - In development, point to the source asset in AI.png
- *  - In production, point to the packaged asset under resources
- */
+function loadAppConfig() {
+  let rawConfig = '{}';
+  try {
+    rawConfig = fs.readFileSync(configPath, 'utf8');
+  } catch {
+    // use default
+  }
+
+  const appConfig: Partial<AppConfig> = JSON.parse(rawConfig);
+
+  return {
+    openOnStartup: false,
+    launchMinimized: false,
+    lastService: undefined,
+    ...appConfig,
+    position: {
+      x: 0,
+      y: 0,
+      width: 800,
+      height: 600,
+      ...(appConfig.position ?? {}),
+    },
+  } satisfies AppConfig;
+}
+
+function saveAppConfig(config: AppConfig) {
+  fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+}
+
 function getIconPath(): string {
   if (app.isPackaged) {
-    // Packaged app: assets are located in the resources path
     return path.join(process.resourcesPath, 'AI.png');
   }
-  // Development: use the project source asset
   return path.resolve(__dirname, 'AI.png');
+}
+
+// Returns a tray icon with macOS template support when available
+function getTrayIcon(): any {
+  // macOS: use a small template icon to avoid occupying the status bar
+  if (process.platform === 'darwin') {
+    try {
+      const base = nativeImage.createFromPath(getIconPath());
+      const small = base.resize({ width: 16, height: 16 });
+      small.setTemplateImage(true);
+      return small;
+    } catch {
+      // fallback below
+    }
+  }
+  return nativeImage.createFromPath(getIconPath());
 }
 
 function createWindow(): BrowserWindow {
   const size = screen.getPrimaryDisplay().workAreaSize;
-
   let windowBounds = { x: 0, y: 0, width: size.width, height: size.height };
   try {
-    const config = fs.readFileSync(configPath, 'utf8');
-    const saved = JSON.parse(config);
-    if (saved.x !== undefined && saved.y !== undefined && saved.width && saved.height) {
-      windowBounds = saved;
+    if (
+      appConfig.position.x !== undefined &&
+      appConfig.position.y !== undefined &&
+      appConfig.position.width &&
+      appConfig.position.height
+    ) {
+      windowBounds = appConfig.position;
     }
-  } catch (e) {
-    // ignore, use defaults
+  } catch {
+    // ignore
   }
-
-  // Create the browser window.
-  win = new BrowserWindow({
+  const window = new BrowserWindow({
     x: windowBounds.x,
     y: windowBounds.y,
     width: windowBounds.width,
     height: windowBounds.height,
     title: 'AyAIs',
     webPreferences: {
-      nodeIntegration: true,
+      nodeIntegration: false,
       allowRunningInsecureContent: serve,
-      contextIsolation: false,
+      contextIsolation: true,
       webSecurity: !serve,
       webviewTag: true,
+      preload: path.join(__dirname, 'preload.js'),
     },
     icon: getIconPath(),
   });
-
   if (serve) {
     import('electron-debug').then((debug) => {
       debug.default({ isEnabled: true, showDevTools: true });
     });
-
     import('electron-reloader').then((reloader) => {
       const reloaderFn = (reloader as any).default || reloader;
       reloaderFn(module);
     });
-    win.loadURL('http://localhost:4200');
-    win.webContents.openDevTools();
+    window.loadURL('http://localhost:4200');
+    window.webContents.openDevTools();
   } else {
-    // Path when running electron executable
     let pathIndex = './browser/index.html';
-
     if (fs.existsSync(path.join(__dirname, '../dist/browser/index.html'))) {
-      // Path when running electron in local folder
       pathIndex = '../dist/browser/index.html';
     }
-
     const fullPath = path.join(__dirname, pathIndex);
     const url = `file://${path.resolve(fullPath).replace(/\\/g, '/')}`;
-    win.loadURL(url);
-    // Always open DevTools in development (when not packaged)
+    window.loadURL(url);
     if (!app.isPackaged) {
-      win.webContents.openDevTools();
+      window.webContents.openDevTools();
     }
   }
-
   const saveBounds = () => {
-    if (win) {
-      const bounds = win.getBounds();
-      fs.writeFileSync(configPath, JSON.stringify(bounds));
+    if (window) {
+      appConfig.position = window.getBounds();
+      saveAppConfig(appConfig);
     }
   };
-
-  win.on('move', saveBounds);
-  win.on('resize', saveBounds);
-
-  // Prevent window from closing, hide to tray instead
-  win.on('close', (event) => {
-    if (win) {
+  window.on('move', saveBounds);
+  window.on('resize', saveBounds);
+  window.on('close', (event) => {
+    if (window && !isQuitting) {
       event.preventDefault();
-      win.hide();
+      window.hide();
     }
   });
-
-  // Emitted when the window is closed.
-  win.on('closed', () => {
-    // Dereference the window object, usually you would store window
-    // in an array if your app supports multi windows, this is the time
-    // when you should delete the corresponding element.
+  window.on('closed', () => {
     win = null;
   });
 
-  return win;
+  return window;
 }
 
 // IPC handlers for app settings
 ipcMain.handle('get-last-service', () => {
   try {
-    const config = fs.readFileSync(appConfigPath, 'utf8');
-    const saved = JSON.parse(config);
-    return saved.lastService || null;
+    return appConfig.lastService;
   } catch {
     return null;
   }
 });
 
-ipcMain.handle('save-service', (event, serviceName) => {
+ipcMain.handle('save-last-service', (event, serviceName) => {
   try {
-    let config: any = {};
-    try {
-      config = JSON.parse(fs.readFileSync(appConfigPath, 'utf8'));
-    } catch {}
-    config.lastService = serviceName;
-    fs.writeFileSync(appConfigPath, JSON.stringify(config));
+    appConfig.lastService = serviceName;
+    saveAppConfig(appConfig);
   } catch (e) {
     console.error('Failed to save service', e);
   }
 });
 
-// App-wide config persistence (startup and shortcuts)
 ipcMain.handle('get-app-config', () => {
   try {
-    const config = fs.readFileSync(appConfigPath, 'utf8');
-    const saved = JSON.parse(config);
-    return saved.appConfig || { openOnStartup: false, launchMinimized: false };
+    return appConfig;
   } catch {
     return { openOnStartup: false, launchMinimized: false };
   }
 });
 
-ipcMain.handle('save-app-config', (event, cfg) => {
+ipcMain.handle('save-app-config', (event, appConfig: AppConfig) => {
   try {
-    let config: any = {};
-    try {
-      config = JSON.parse(fs.readFileSync(appConfigPath, 'utf8'));
-    } catch {}
-    config.appConfig = cfg;
-    fs.writeFileSync(appConfigPath, JSON.stringify(config));
+    saveAppConfig(appConfig);
   } catch (e) {
     console.error('Failed to save app config', e);
   }
 });
 
+// Open external URLs in the default browser via IPC
+ipcMain.handle('open-external', async (_event, url: string) => {
+  try {
+    await shell.openExternal(url);
+    return true;
+  } catch (e) {
+    console.error('Failed to open external URL', url, e);
+    return false;
+  }
+});
+
 try {
-  // This method will be called when Electron has finished
-  // initialization and is ready to create browser windows.
-  // Some APIs can only be used after this event occurs.
-  // Added 400 ms to fix the black background issue while using transparent window. More detais at https://github.com/electron/electron/issues/15947
   app.on('ready', () => {
-    // Set a stable AppUserModelID for Windows taskbar/notifications
     try {
       app.setAppUserModelId('dev.marmotz.ayais');
     } catch {
-      // ignore if not supported on current platform
+      // ignore
     }
     if (!app.requestSingleInstanceLock()) {
       app.quit();
       return;
     }
-    setTimeout(createWindow, 400);
+    setTimeout(() => {
+      win = createWindow();
+    }, 400);
     Menu.setApplicationMenu(null);
-
-    // Create system tray
-    const trayIconPath = getIconPath();
-    tray = new Tray(trayIconPath);
+    const trayMenu = Menu.buildFromTemplate([
+      {
+        label: 'Quit AyAIs',
+        click: () => {
+          isQuitting = true;
+          app.quit();
+        },
+      },
+    ]);
+    tray = new Tray(getTrayIcon());
     tray.setToolTip('AyAIs');
-
-    // Tray click shows window
+    // Attach the tray menu so users can quit from the tray
+    tray.setContextMenu(trayMenu);
     tray.on('click', () => {
       if (win) {
         win.show();
         win.focus();
       }
     });
-
-    // Register global shortcut
     globalShortcut.register('Super+I', () => {
       if (win) {
         if (win.isVisible()) {
@@ -203,36 +227,34 @@ try {
       }
     });
   });
-
-  // Quit when all windows are closed.
-  app.on('window-all-closed', () => {
-    // On OS X it is common for applications and their menu bar
-    // to stay active until the user quits explicitly with Cmd + Q
-    // But keep running if tray is present
-    if (process.platform !== 'darwin' && !tray) {
-      app.quit();
-    }
-  });
-
-  app.on('second-instance', () => {
-    if (win) {
-      if (win.isMinimized()) win.restore();
-      win.focus();
-    }
-  });
-
-  app.on('activate', () => {
-    // On OS X it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
-    if (win === null) {
-      createWindow();
-    }
-  });
-
-  app.on('will-quit', () => {
-    globalShortcut.unregisterAll();
-  });
 } catch (e) {
-  // Catch Error
-  // throw e;
+  // ignore
 }
+
+app.on('before-quit', () => {
+  isQuitting = true;
+});
+
+// Quit when all windows are closed.
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin' && !tray) {
+    app.quit();
+  }
+});
+
+app.on('second-instance', () => {
+  if (win) {
+    if (win.isMinimized()) win.restore();
+    win.focus();
+  }
+});
+
+app.on('activate', () => {
+  if (win === null) {
+    win = createWindow();
+  }
+});
+
+app.on('will-quit', () => {
+  globalShortcut.unregisterAll();
+});

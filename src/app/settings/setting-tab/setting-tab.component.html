@@ -1,0 +1,24 @@
+<div class="tabs mb-4 flex gap-2 border-b border-gray-200">
+  <button
+    (click)="select('startup')"
+    [ngClass]="
+      selectedTab === 'startup'
+        ? 'border-b-2 border-blue-600 bg-white font-semibold text-blue-700'
+        : 'bg-gray-100 text-gray-700'
+    "
+    class="rounded-t-lg px-4 py-2"
+  >
+    Startup
+  </button>
+  <button
+    (click)="select('shortcuts')"
+    [ngClass]="
+      selectedTab === 'shortcuts'
+        ? 'border-b-2 border-blue-600 bg-white font-semibold text-blue-700'
+        : 'bg-gray-100 text-gray-700'
+    "
+    class="rounded-t-lg px-4 py-2"
+  >
+    Shortcuts
+  </button>
+</div>

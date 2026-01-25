@@ -1,49 +1,43 @@
-<div class="settings-container p-4">
-  <h2 class="mb-4 text-xl">Settings</h2>
-
-  <!-- Tabs -->
-  <div class="tabs mb-4 flex space-x-2">
+<div class="settings-card mx-auto mt-6 max-w-2xl rounded-xl bg-white p-6 shadow-md">
+  <div class="mb-4 flex items-center justify-between">
+    <h2 class="text-2xl font-semibold text-slate-800">Settings</h2>
     <button
-      (click)="setTab('startup')"
-      class="rounded bg-gray-200 px-3 py-1"
-      [class.bg-blue-100]="selectedTab === 'startup'"
+      (click)="goBack()"
+      class="cursor-pointer text-sm text-sky-600 hover:underline"
+      aria-label="Back to Home"
     >
-      Startup
-    </button>
-    <button
-      (click)="setTab('shortcuts')"
-      class="rounded bg-gray-200 px-3 py-1"
-      [class.bg-blue-100]="selectedTab === 'shortcuts'"
-    >
-      Shortcuts
+      Back
     </button>
   </div>
 
-  <!-- Startup tab content -->
+  <app-setting-tab
+    [selectedTab]="selectedTab"
+    (tabSelected)="setTab($event)"
+  ></app-setting-tab>
+
   <div
     *ngIf="selectedTab === 'startup'"
     class="startup-content space-y-4"
   >
     <p class="text-sm text-gray-700">Configure how AyAIs starts on your computer.</p>
-    <label class="flex items-center gap-2">
+    <label class="flex items-center gap-3">
       <input
         type="checkbox"
         [(ngModel)]="startupOnBoot"
         (change)="onToggle()"
       />
-      Open AyAIs on startup
+      <span>Open AyAIs on startup</span>
     </label>
-    <label class="flex items-center gap-2">
+    <label class="flex items-center gap-3">
       <input
         type="checkbox"
         [(ngModel)]="launchMinimized"
         (change)="onToggle()"
       />
-      Launch AyAIs minimized
+      <span>Launch AyAIs minimized</span>
     </label>
   </div>
 
-  <!-- Shortcuts tab content currently empty -->
   <div
     *ngIf="selectedTab === 'shortcuts'"
     class="shortcuts-content text-gray-600"

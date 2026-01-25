@@ -2,17 +2,19 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ElectronService } from '@app/services/electron.service';
+import { AppConfig } from '../../../app/app-config';
+import { SettingTabComponent } from './setting-tab/setting-tab.component';
 
 @Component({
   selector: 'app-settings',
   standalone: true,
   templateUrl: './settings.component.html',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, SettingTabComponent],
 })
 export class SettingsComponent implements OnInit {
-  private electronService = inject(ElectronService);
   private router = inject(Router);
+
+  private appConfig!: AppConfig;
 
   // Startup-related settings
   startupOnBoot = false;
@@ -20,17 +22,15 @@ export class SettingsComponent implements OnInit {
   selectedTab: 'startup' | 'shortcuts' = 'startup';
 
   ngOnInit(): void {
-    if (this.electronService.isElectron) {
-      this.electronService.ipcRenderer
-        ?.invoke('get-app-config')
-        ?.then((cfg: any) => {
-          if (cfg) {
-            this.startupOnBoot = !!cfg.openOnStartup;
-            this.launchMinimized = !!cfg.launchMinimized;
-          }
-        })
-        .catch(() => {});
-    }
+    window.electronAPI
+      .getAppConfig()
+      .then((appConfig: AppConfig) => {
+        this.appConfig = appConfig;
+
+        this.startupOnBoot = appConfig.openOnStartup;
+        this.launchMinimized = appConfig.launchMinimized;
+      })
+      .catch(() => {});
   }
 
   setTab(tab: 'startup' | 'shortcuts') {
@@ -38,14 +38,12 @@ export class SettingsComponent implements OnInit {
   }
 
   onToggle(): void {
-    // Persist changes whenever a toggle changes
-    if (this.electronService?.ipcRenderer) {
-      const cfg = {
-        openOnStartup: this.startupOnBoot,
-        launchMinimized: this.launchMinimized,
-      };
-      this.electronService.ipcRenderer.invoke('save-app-config', cfg).catch(() => {});
-    }
+    const appConfig: AppConfig = {
+      ...this.appConfig,
+      openOnStartup: this.startupOnBoot,
+      launchMinimized: this.launchMinimized,
+    };
+    window.electronAPI.saveAppConfig(appConfig).catch(() => {});
   }
 
   goBack(): void {

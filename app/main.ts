@@ -328,7 +328,7 @@ try {
     });
     globalShortcut.register('Super+I', () => {
       if (win) {
-        if (win.isVisible()) {
+        if (win.isVisible() && win.isFocused()) {
           hideWindow();
         } else {
           showWindow();

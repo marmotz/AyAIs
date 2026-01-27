@@ -52,7 +52,7 @@ Visit the [Releases](https://github.com/marmotz/ayais/releases) page to download
 
 #### Windows
 
-1. Download `AyAis-Setup-x.x.x.exe`
+1. Download `AyAis-x.x.x.exe`
 2. Run the installer
 3. Follow the installation wizard
 4. Launch AyAIs from the desktop shortcut or Start menu
@@ -186,7 +186,7 @@ Configuration file: `config.json`
 ## Keyboard Shortcuts
 
 | Action                | Win/Linux Default Shortcut | Mac Default Shortcut |
-| --------------------- | -------------------------- | -------------------- |
+|-----------------------|----------------------------|----------------------|
 | Show/Hide Application | `Super+I` (Win/Linux)      | `Cmd+I` (Mac)        |
 
 ## Tech Stack

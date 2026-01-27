@@ -21,6 +21,7 @@
     "target": ["portable"]
   },
   "portable": {
+    "artifactName": "AyAIs-${version}.${ext}",
     "splashImage": "dist/browser/assets/icons/png/1024x1024.png"
   },
   "mac": {

@@ -26,7 +26,8 @@
     "e2e": "npm run web:prod && playwright test -c e2e/playwright.config.ts e2e/",
     "e2e:show-trace": "playwright show-trace e2e/tracing/trace.zip",
     "version": "conventional-changelog -i CHANGELOG.md -s -r 0 && git add CHANGELOG.md",
-    "lint": "prettier --check ."
+    "lint": "prettier --check .",
+    "icon:generate": "cp resources/icon.png app/ && npx electron-icon-builder --input=./resources/icon.png --output=./src/assets"
   },
   "dependencies": {
     "@angular/common": "21.1.1",

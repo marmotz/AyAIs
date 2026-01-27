@@ -1,7 +1,7 @@
 {
   "asar": true,
-  "productName": "ayais",
-  "appId": "dev.marmotz.${name}",
+  "productName": "AyAIs",
+  "appId": "dev.marmotz.ayais",
   "directories": {
     "output": "release/"
   },
@@ -17,18 +17,18 @@
     }
   ],
   "win": {
-    "icon": "dist/browser/assets/icons",
+    "icon": "dist/browser/assets/icons/win/icon.ico",
     "target": ["portable"]
   },
   "portable": {
-    "splashImage": "dist/browser/assets/icons/AI.png"
+    "splashImage": "dist/browser/assets/icons/png/1024x1024.png"
   },
   "mac": {
-    "icon": "dist/browser/assets/icons",
+    "icon": "dist/browser/assets/icons/mac/icon.icns",
     "target": ["dmg"]
   },
   "linux": {
-    "icon": "dist/browser/assets/icons",
+    "icon": "dist/browser/assets/icons/png/512x512.png",
     "target": ["AppImage"]
   }
 }

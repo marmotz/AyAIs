@@ -93,7 +93,7 @@ function saveAppConfig() {
 }
 
 function getIconPath(): string {
-  return path.resolve(__dirname, 'AI.png');
+  return path.resolve(__dirname, 'icon.png');
 }
 
 // Returns a tray icon with macOS template support when available

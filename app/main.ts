@@ -290,6 +290,15 @@ try {
     } catch {
       // ignore
     }
+
+    if (process.platform === 'darwin' && app.dock) {
+      try {
+        app.dock.setIcon(getIconPath());
+      } catch {
+        // ignore
+      }
+    }
+
     if (!app.requestSingleInstanceLock()) {
       app.quit();
       return;

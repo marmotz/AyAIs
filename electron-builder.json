@@ -19,8 +19,7 @@
   "win": {
     "icon": "dist/browser/assets/icons/win/icon.ico",
     "target": ["nsis"],
-    "certificateFile": "build/certificate.pfx",
-    "certificatePassword": "${WIN_CERT_PASSWORD}"
+    "cscLink": "build/certificate.pfx"
   },
   "nsis": {
     "artifactName": "AyAis-Setup-${version}.${ext}",

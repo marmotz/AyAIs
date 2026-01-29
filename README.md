@@ -102,6 +102,71 @@ Enter your password when prompted. You'll now be able to launch AyAis from Appli
    ./AyAis-x.x.x.AppImage
    ```
 
+### Windows SmartScreen Warning
+
+When you first run AyAis on Windows, you may see a blue warning from SmartScreen saying "Windows protected your PC" and mentioning an "unknown publisher". This is because AyAis is open source and not signed with a commercial certificate (which costs several hundred dollars per year).
+
+**Official builds from GitHub Releases are signed with a self-signed certificate to reduce this warning.**
+
+#### For Users: Trusting the Self-Signed Certificate
+
+Even with self-signing, Windows may still show a warning. To avoid it completely, you can add the certificate to your trusted publishers:
+
+1. **Or simply click "More info" → "Run anyway"**:
+
+- When SmartScreen appears, click "More info"
+- Click "Run anyway" (the app will open)
+- Windows will remember this choice for future runs
+
+2. **Add to trusted publishers** (optional, reduces future warnings):
+
+- Right-click `AyAis-Setup-x.x.x.exe` → Properties → Digital Signatures
+- Select the signature → Details → View Certificate
+- Install Certificate → Local Machine → Trusted Publishers
+
+**Note**: Self-signing reduces but doesn't eliminate SmartScreen warnings. Commercial certificates are the only way to completely remove them.
+
+#### For Developers: Local Building with Code Signing
+
+If you want to build locally on Windows with code signing:
+
+1. **Generate a self-signed certificate** (PowerShell as Administrator):
+
+   ```powershell
+   # Create certificate with 5-year validity
+   $cert = New-SelfSignedCertificate `
+     -Type CodeSigningCert `
+     -Subject "CN=AyAis Development" `
+     -KeyUsage DigitalSignature `
+     -KeyLength 2048 `
+     -CertStoreLocation "Cert:\LocalMachine\My" `
+     -NotAfter (Get-Date).AddYears(5)
+
+   # Export to PFX format
+   $password = ConvertTo-SecureString -String "YOUR_PASSWORD_HERE" -Force -AsPlainText
+   Export-PfxCertificate -Cert $cert `
+     -FilePath "build/certificate.pfx" `
+     -Password $password
+
+   echo "Certificate created: $($cert.Thumbprint)"
+   ```
+
+2. **Set environment variable**:
+
+   ```powershell
+   $env:WIN_CERT_PASSWORD = "YOUR_PASSWORD_HERE"
+   ```
+
+   Or add it to your system environment variables for persistence.
+
+3. **Build the signed installer**:
+
+   ```bash
+   npm run electron:build
+   ```
+
+   The output will be `release/AyAis-Setup-x.x.x.exe` with a valid signature.
+
 ## Development
 
 ### Clone the Repository

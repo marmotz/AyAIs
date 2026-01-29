@@ -18,11 +18,14 @@
   ],
   "win": {
     "icon": "dist/browser/assets/icons/win/icon.ico",
-    "target": ["portable"]
+    "target": ["nsis"],
+    "certificateFile": "build/certificate.pfx",
+    "certificatePassword": "${WIN_CERT_PASSWORD}"
   },
-  "portable": {
-    "artifactName": "AyAIs-${version}.${ext}",
-    "splashImage": "dist/browser/assets/icons/png/1024x1024.png"
+  "nsis": {
+    "artifactName": "AyAis-Setup-${version}.${ext}",
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true
   },
   "mac": {
     "icon": "dist/browser/assets/icons/mac/icon.icns",

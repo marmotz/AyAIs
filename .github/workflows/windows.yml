@@ -40,9 +40,38 @@ jobs:
 
       - name: Setup Code Signing Certificate
         run: |
+          if (-not $env:WIN_CERT_PASSWORD) {
+            Write-Host "ERROR: WIN_CERT_PASSWORD secret is empty"
+            exit 1
+          }
           mkdir -p build
-          [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("${{ secrets.WIN_CERTIFICATE_PFX }}")) | Out-File -Encoding Byte -FilePath build/certificate.pfx
+          [IO.File]::WriteAllBytes("build/certificate.pfx", [System.Convert]::FromBase64String("${{ secrets.WIN_CERTIFICATE_PFX }}"))
+
+          if (Test-Path "build/certificate.pfx") {
+            Write-Host "Certificate file created successfully"
+            Write-Host "File size: $((Get-Item "build/certificate.pfx").Length) bytes"
+
+            # Verify certificate can be opened with password
+            try {
+              $password = ConvertTo-SecureString -String $env:WIN_CERT_PASSWORD -Force -AsPlainText
+              $cert = Get-PfxCertificate -FilePath "build/certificate.pfx" -Password $password
+              Write-Host "Certificate verified successfully with password"
+              Write-Host "Subject: $($cert.Subject)"
+              Write-Host "Issuer: $($cert.Issuer)"
+              Write-Host "Expires: $($cert.NotAfter)"
+            } catch {
+              Write-Host "ERROR: Cannot open certificate with provided password"
+              Write-Host "Error: $_"
+              exit 1
+            }
+          } else {
+            Write-Host "ERROR: Certificate file was not created"
+            exit 1
+          }
         shell: pwsh
+        env:
+          WIN_CERT_PASSWORD: ${{ secrets.WIN_CERT_PASSWORD }}
+          WIN_CERTIFICATE_PFX: ${{ secrets.WIN_CERTIFICATE_PFX }}
 
       - name: Install Playwright Browsers
         run: npx playwright@1.57.0 install --with-deps
@@ -55,7 +84,7 @@ jobs:
 
       - name: Build the app
         env:
-          WIN_CERT_PASSWORD: ${{ secrets.WIN_CERT_PASSWORD }}
+          CSC_KEY_PASSWORD: ${{ secrets.WIN_CERT_PASSWORD }}
         run: npm run electron:build
 
       - name: Upload build artifacts

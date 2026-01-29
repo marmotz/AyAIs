@@ -17,6 +17,7 @@ jobs:
 
   build-windows:
     uses: ./.github/workflows/windows.yml
+    secrets: inherit
 
   release:
     runs-on: ubuntu-latest

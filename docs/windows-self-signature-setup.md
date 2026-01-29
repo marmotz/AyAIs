@@ -22,7 +22,9 @@ openssl req -x509 -newkey rsa:2048 \
   -out certificate.crt \
   -days 1825 \
   -nodes \
-  -subj "/CN=AyAis Development/O=AyAis/C=FR"
+  -subj "/CN=AyAis/O=AyAis/C=FR" \
+  -addext "extendedKeyUsage=codeSigning" \
+  -addext "keyUsage=digitalSignature"
 
 # Create PFX file (choose a strong password)
 openssl pkcs12 -export \

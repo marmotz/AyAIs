@@ -1,6 +1,6 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { AppConfig } from '../../../../app/app-config';
+import { AppConfig } from '@shared/types/app-config.interface';
 
 @Component({
   selector: 'app-settings-startup',

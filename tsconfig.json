@@ -6,7 +6,8 @@
     "baseUrl": ".",
     "paths": {
       "@app/*": ["src/app/*"],
-      "@env": ["src/environments/environment.ts"]
+      "@env": ["src/environments/environment.ts"],
+      "@shared/*": ["shared/*"]
     },
     "module": "es2022",
     "esModuleInterop": true,

@@ -4,12 +4,13 @@ import { Router } from '@angular/router';
 import { AI_SERVICES } from '@app/ai-services/constants';
 import { AIService } from '@app/ai-services/interfaces';
 import { NavigationService } from '@app/services/navigation.service';
+import { WhatsnewComponent } from '@app/whatsnew/whatsnew.component';
 import type { AppConfig } from '@shared/types/app-config.interface';
 import { DialogModule } from 'primeng/dialog';
 
 @Component({
   selector: 'app-sidebar',
-  imports: [CommonModule, DialogModule],
+  imports: [CommonModule, DialogModule, WhatsnewComponent],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.css',
 })

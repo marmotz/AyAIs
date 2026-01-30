@@ -85,7 +85,7 @@
 
     @if (isSettingsRoute()) {
       <div
-        class="absolute h-10 w-1 translate-x-10 translate-y-1 rounded bg-slate-500 text-sm whitespace-nowrap text-white"
+        class="absolute h-10 w-1 translate-x-10 translate-y-16 rounded bg-slate-500 text-sm whitespace-nowrap text-white"
       ></div>
     }
   </div>
@@ -95,12 +95,14 @@
     (visibleChange)="whatsNewVisible.set($event)"
     [modal]="true"
     [style]="{ width: '50vw' }"
+    dismissableMask
+    closeOnEscape
   >
     <ng-template pTemplate="header">
       <h2 class="m-0 text-xl font-semibold">What's new</h2>
     </ng-template>
     <ng-template pTemplate="content">
-      <p></p>
+      <app-whatsnew />
     </ng-template>
   </p-dialog>
 </div>

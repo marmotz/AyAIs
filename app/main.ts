@@ -1,7 +1,8 @@
+import { AppConfig } from '@shared/types/app-config.interface';
 import { app, BrowserWindow, globalShortcut, ipcMain, Menu, nativeImage, screen, shell, Tray } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
-import { AppConfig } from './app-config';
+import { DEFAULT_CONFIGURATION } from './default-configuration';
 
 let win: BrowserWindow | null = null;
 let isQuitting = false;
@@ -21,19 +22,32 @@ function loadAppConfig() {
 
   const appConfig: Partial<AppConfig> = JSON.parse(rawConfig);
 
-  return {
-    launchAtStartup: false,
-    launchHidden: false,
-    lastService: undefined,
-    ...appConfig,
+  const mergedConfig: AppConfig = {
+    ...DEFAULT_CONFIGURATION,
+    ...(appConfig ?? {}),
     position: {
-      x: 0,
-      y: 0,
-      width: 800,
-      height: 600,
-      ...(appConfig.position ?? {}),
+      ...DEFAULT_CONFIGURATION.position,
+      ...(appConfig?.position ?? {}),
     },
-  } satisfies AppConfig;
+    shortcuts: {
+      ...DEFAULT_CONFIGURATION.shortcuts,
+      ...(appConfig?.shortcuts ?? {}),
+      globalShortcuts: {
+        ...DEFAULT_CONFIGURATION.shortcuts.globalShortcuts,
+        ...(appConfig?.shortcuts?.globalShortcuts ?? {}),
+      },
+      internalShortcuts: {
+        ...DEFAULT_CONFIGURATION.shortcuts.internalShortcuts,
+        ...(appConfig?.shortcuts?.internalShortcuts ?? {}),
+        services: {
+          ...DEFAULT_CONFIGURATION.shortcuts.internalShortcuts.services,
+          ...(appConfig?.shortcuts?.internalShortcuts?.services ?? {}),
+        },
+      },
+    },
+  };
+
+  return mergedConfig;
 }
 
 function isStartupEnabled(): boolean {
@@ -261,9 +275,29 @@ ipcMain.handle('save-app-config', (_event, newAppConfig: Partial<AppConfig>) => 
       ...newAppConfig,
     };
     saveAppConfig();
+    if (newAppConfig.shortcuts && win) {
+      refreshShortcuts(win);
+    }
   } catch (e) {
     console.error('Failed to save app config', e);
   }
+});
+
+ipcMain.handle('disable-shortcuts', () => {
+  if (win) {
+    disableInternalShortcuts();
+  }
+});
+
+ipcMain.handle('enable-shortcuts', () => {
+  if (win) {
+    enableInternalShortcuts(win);
+  }
+});
+
+ipcMain.handle('quit-app', () => {
+  isQuitting = true;
+  app.quit();
 });
 
 ipcMain.handle('is-startup-enabled', () => {
@@ -319,7 +353,14 @@ try {
     Menu.setApplicationMenu(null);
     const trayMenu = Menu.buildFromTemplate([
       {
-        label: 'Quit AyAIs',
+        label: 'Preferences',
+        click: () => {
+          showWindow()
+          win.webContents.send('open-settings');
+        },
+      },
+      {
+        label: 'Quit',
         click: () => {
           isQuitting = true;
           app.quit();
@@ -344,65 +385,97 @@ try {
   // ignore
 }
 
-const MAX_SERVICES = 9;
-const SERVICE_SHORTCUTS: string[] = [];
-
-for (let i = 0; i <= MAX_SERVICES; i++) {
-  SERVICE_SHORTCUTS.push(`Control+${i}`);
-  SERVICE_SHORTCUTS.push(`Control+num${i}`);
+function refreshShortcuts(window: BrowserWindow) {
+  refreshGlobalShortcuts();
+  refreshInternalShortcuts(window);
 }
 
-function registerNavigationShortcuts(window: BrowserWindow) {
-  globalShortcut.register('Control+Tab', () => {
+function refreshGlobalShortcuts() {
+  unregisterGlobalShortcuts();
+  registerGlobalShortcuts();
+}
+
+function refreshInternalShortcuts(window: BrowserWindow) {
+  unregisterInternalShortcuts();
+  registerInternalShortcuts(window);
+}
+
+function disableInternalShortcuts() {
+  unregisterInternalShortcuts();
+}
+
+function enableInternalShortcuts(window: BrowserWindow) {
+  registerInternalShortcuts(window);
+}
+
+function registerGlobalShortcuts() {
+  globalShortcut.register(appConfig.shortcuts.globalShortcuts.showHideApp, () => {
+    if (win) {
+      if (win.isVisible() && win.isFocused()) {
+        hideWindow();
+      } else {
+        showWindow();
+      }
+    }
+  });
+}
+
+function unregisterGlobalShortcuts() {
+  globalShortcut.unregister(appConfig.shortcuts.globalShortcuts.showHideApp);
+}
+
+function registerInternalShortcuts(window: BrowserWindow) {
+  globalShortcut.register(appConfig.shortcuts.internalShortcuts.openSettings, () => {
+    window.webContents.send('open-settings');
+  });
+
+  globalShortcut.register(appConfig.shortcuts.internalShortcuts.quitApp, () => {
+    isQuitting = true;
+    app.quit();
+  });
+
+  globalShortcut.register(appConfig.shortcuts.internalShortcuts.nextService, () => {
     window.webContents.send('navigate-service', 'next');
   });
 
-  globalShortcut.register('Control+Shift+Tab', () => {
+  globalShortcut.register(appConfig.shortcuts.internalShortcuts.previousService, () => {
     window.webContents.send('navigate-service', 'previous');
   });
 
-  for (let i = 0; i <= MAX_SERVICES; i++) {
-    const serviceIndex = i ? i - 1 : 10;
-
-    globalShortcut.register(`Control+${i}`, () => {
-      window.webContents.send('select-service', serviceIndex);
+  const serviceShortcuts = appConfig.shortcuts.internalShortcuts.services;
+  Object.entries(serviceShortcuts).forEach(([id, accelerator]) => {
+    const index = parseInt(id.replace('service', ''), 10) - 1;
+    globalShortcut.register(accelerator, () => {
+      window.webContents.send('select-service', index);
     });
-
-    globalShortcut.register(`Control+num${i}`, () => {
-      window.webContents.send('select-service', serviceIndex);
-    });
-  }
+  });
 }
 
-function unregisterNavigationShortcuts() {
-  globalShortcut.unregister('Control+Tab');
-  globalShortcut.unregister('Control+Shift+Tab');
+function unregisterInternalShortcuts() {
+  globalShortcut.unregister(appConfig.shortcuts.internalShortcuts.openSettings);
+  globalShortcut.unregister(appConfig.shortcuts.internalShortcuts.quitApp);
+  globalShortcut.unregister(appConfig.shortcuts.internalShortcuts.nextService);
+  globalShortcut.unregister(appConfig.shortcuts.internalShortcuts.previousService);
 
-  for (let i = 0; i <= MAX_SERVICES; i++) {
-    globalShortcut.unregister(`Control+${i}`);
-    globalShortcut.unregister(`Control+num${i}`);
-  }
+  const serviceShortcuts = appConfig.shortcuts.internalShortcuts.services;
+  Object.values(serviceShortcuts).forEach((accelerator) => {
+    globalShortcut.unregister(accelerator);
+  });
 }
 
 function setupShortcuts(window: BrowserWindow) {
-  globalShortcut.register('Super+I', () => {
-    if (window.isVisible() && window.isFocused()) {
-      hideWindow();
-    } else {
-      showWindow();
-    }
-  });
+  registerGlobalShortcuts();
 
   window.on('focus', () => {
-    registerNavigationShortcuts(window);
+    registerInternalShortcuts(window);
   });
 
   window.on('blur', () => {
-    unregisterNavigationShortcuts();
+    unregisterInternalShortcuts();
   });
 
   if (window.isFocused()) {
-    registerNavigationShortcuts(window);
+    registerInternalShortcuts(window);
   }
 }
 

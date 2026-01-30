@@ -272,6 +272,14 @@ this.http
 
 ### Testing Guidelines
 
+#### Mandatory Unit Testing Requirements for Angular
+
+- **Always create unit tests** for every new component, service, directive, pipe, or other Angular artifact
+- **Always update existing unit tests** when modifying any component, service, directive, pipe, or other Angular artifact
+- Test files must be created alongside the implementation file with the naming pattern: `artifact-name.spec.ts`
+- Tests must cover both success and error scenarios
+- All tests must pass before considering the work complete
+
 #### Unit Tests
 
 - Use Vitest as the test runner

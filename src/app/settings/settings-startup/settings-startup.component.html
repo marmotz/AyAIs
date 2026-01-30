@@ -1,0 +1,19 @@
+<div class="startup-content space-y-4">
+  <p class="text-sm text-gray-700">Configure how AyAIs starts on your computer.</p>
+  <label class="flex items-center gap-3">
+    <input
+      type="checkbox"
+      [ngModel]="startupOnBoot()"
+      (ngModelChange)="startupOnBoot.set($event); onToggle()"
+    />
+    <span>Open AyAIs on startup</span>
+  </label>
+  <label class="flex items-center gap-3">
+    <input
+      type="checkbox"
+      [ngModel]="launchHidden()"
+      (ngModelChange)="launchHidden.set($event); onToggle()"
+    />
+    <span>Launch AyAIs minimized</span>
+  </label>
+</div>

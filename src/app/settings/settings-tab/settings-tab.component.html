@@ -1,0 +1,13 @@
+<button
+  (click)="select()"
+  class="rounded-t-lg cursor-pointer px-4 py-2"
+  [class.border-b-2]="isActive()"
+  [class.border-blue-600]="isActive()"
+  [class.bg-white]="isActive()"
+  [class.font-semibold]="isActive()"
+  [class.text-blue-700]="isActive()"
+  [class.bg-gray-100]="!isActive()"
+  [class.text-gray-700]="!isActive()"
+>
+  {{ tab().label }}
+</button>

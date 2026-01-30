@@ -1,45 +1,20 @@
-import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AppConfig } from '../../../app/app-config';
-import { SettingTabComponent } from './setting-tab/setting-tab.component';
+import { SettingsShortcutsComponent } from './settings-shortcuts/settings-shortcuts.component';
+import { SettingsStartupComponent } from './settings-startup/settings-startup.component';
+import { SettingsTabComponent } from './settings-tab/settings-tab.component';
 
 @Component({
   selector: 'app-settings',
   standalone: true,
   templateUrl: './settings.component.html',
-  imports: [CommonModule, FormsModule, SettingTabComponent],
+  imports: [FormsModule, SettingsTabComponent, SettingsStartupComponent, SettingsShortcutsComponent],
 })
-export class SettingsComponent implements OnInit {
+export class SettingsComponent {
   private router = inject(Router);
 
-  // Startup-related settings
-  startupOnBoot = false;
-  launchHidden = false;
-  selectedTab: 'startup' | 'shortcuts' = 'startup';
-
-  ngOnInit(): void {
-    window.electronAPI
-      .getAppConfig()
-      .then((appConfig: AppConfig) => {
-        this.startupOnBoot = appConfig.launchAtStartup;
-        this.launchHidden = appConfig.launchHidden;
-      })
-      .catch(() => {});
-  }
-
-  setTab(tab: 'startup' | 'shortcuts') {
-    this.selectedTab = tab;
-  }
-
-  onToggle(): void {
-    const newConfig: Partial<AppConfig> = {
-      launchAtStartup: this.startupOnBoot,
-      launchHidden: this.launchHidden,
-    };
-    window.electronAPI.saveAppConfig(newConfig).catch(() => {});
-  }
+  selectedTab = 'startup';
 
   async goBack(): Promise<void> {
     await this.router.navigate(['/app']);

@@ -57,6 +57,12 @@ export class Home {
       this.onServiceSelected(this.services[nextIndex]);
     });
 
+    window.electronAPI.onSelectService((index: number) => {
+      if (index >= 0 && index < this.services.length) {
+        this.onServiceSelected(this.services[index]);
+      }
+    });
+
     effect(() => {
       const selectedService = this.selectedService();
       const isAiServicesRoute = this.isAiServicesRoute();

@@ -182,14 +182,17 @@ function createWindow(): BrowserWindow {
   const window = new BrowserWindow(windowOptions);
   if (serve) {
     import('electron-debug').then((debug) => {
-      debug.default({ isEnabled: true, showDevTools: true });
+      debug.default({
+        isEnabled: true,
+        showDevTools: true,
+      });
     });
     import('electron-reloader').then((reloader) => {
       const reloaderFn = (reloader as any).default || reloader;
       reloaderFn(module);
     });
     window.loadURL('http://localhost:4213');
-    window.webContents.openDevTools();
+    // window.webContents.openDevTools();
   } else {
     let pathIndex = './browser/index.html';
     if (fs.existsSync(path.join(__dirname, '../dist/browser/index.html'))) {
@@ -341,6 +344,14 @@ try {
   // ignore
 }
 
+const MAX_SERVICES = 9;
+const SERVICE_SHORTCUTS: string[] = [];
+
+for (let i = 0; i <= MAX_SERVICES; i++) {
+  SERVICE_SHORTCUTS.push(`Control+${i}`);
+  SERVICE_SHORTCUTS.push(`Control+num${i}`);
+}
+
 function registerNavigationShortcuts(window: BrowserWindow) {
   globalShortcut.register('Control+Tab', () => {
     window.webContents.send('navigate-service', 'next');
@@ -349,11 +360,28 @@ function registerNavigationShortcuts(window: BrowserWindow) {
   globalShortcut.register('Control+Shift+Tab', () => {
     window.webContents.send('navigate-service', 'previous');
   });
+
+  for (let i = 0; i <= MAX_SERVICES; i++) {
+    const serviceIndex = i ? i - 1 : 10;
+
+    globalShortcut.register(`Control+${i}`, () => {
+      window.webContents.send('select-service', serviceIndex);
+    });
+
+    globalShortcut.register(`Control+num${i}`, () => {
+      window.webContents.send('select-service', serviceIndex);
+    });
+  }
 }
 
 function unregisterNavigationShortcuts() {
   globalShortcut.unregister('Control+Tab');
   globalShortcut.unregister('Control+Shift+Tab');
+
+  for (let i = 0; i <= MAX_SERVICES; i++) {
+    globalShortcut.unregister(`Control+${i}`);
+    globalShortcut.unregister(`Control+num${i}`);
+  }
 }
 
 function setupShortcuts(window: BrowserWindow) {

@@ -10,4 +10,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onNavigateService: (callback: (direction: 'next' | 'previous') => void) => {
     ipcRenderer.on('navigate-service', (_event, direction) => callback(direction));
   },
+  onSelectService: (callback: (index: number) => void) => {
+    ipcRenderer.on('select-service', (_event, index) => callback(index));
+  },
 });

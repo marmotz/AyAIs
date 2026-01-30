@@ -21,6 +21,7 @@ declare global {
       saveLastService: (service: string) => Promise<void>;
       openExternal: (url: string) => Promise<void>;
       onNavigateService: (callback: (direction: 'next' | 'previous') => void) => void;
+      onSelectService: (callback: (index: number) => void) => void;
     };
   }
 }

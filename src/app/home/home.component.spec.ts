@@ -11,6 +11,7 @@ describe('Home', () => {
       saveLastService: vi.fn(),
       openExternal: vi.fn(),
       onNavigateService: vi.fn(),
+      onSelectService: vi.fn(),
     };
 
     await TestBed.configureTestingModule({

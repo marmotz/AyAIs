@@ -1,0 +1,30 @@
+<div class="shortcuts-content space-y-6">
+  <p class="text-sm text-gray-700">Configure keyboard shortcuts for quick navigation between AI services.</p>
+
+  <div class="space-y-2">
+    @for (shortcut of shortcuts(); track shortcut.id) {
+      <div class="flex items-start justify-between gap-4 pb-6">
+        <label class="flex-1 py-2 text-sm font-medium text-gray-700">
+          {{ shortcut.label }}
+        </label>
+        <div class="relative">
+          <input
+            type="text"
+            readonly
+            [value]="getDisplayValue(shortcut)"
+            (click)="startEditing(shortcut)"
+            [class.ring-2]="isEditing(shortcut.id)"
+            [class.ring-blue-500]="isEditing(shortcut.id)"
+            [class.bg-blue-50]="isEditing(shortcut.id)"
+            class="w-48 cursor-pointer rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-center font-mono text-sm text-gray-900 transition-colors hover:bg-gray-100 focus:outline-none"
+          />
+          @if (isEditing(shortcut.id)) {
+            <div class="absolute top-11 right-0 left-0 text-center text-xs font-medium text-blue-600">
+              Press keys then Escape to save
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+</div>

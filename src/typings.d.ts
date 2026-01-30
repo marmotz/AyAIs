@@ -20,6 +20,7 @@ declare global {
       getLastService: () => Promise<string | undefined>;
       saveLastService: (service: string) => Promise<void>;
       openExternal: (url: string) => Promise<void>;
+      onNavigateService: (callback: (direction: 'next' | 'previous') => void) => void;
     };
   }
 }

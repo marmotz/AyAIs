@@ -188,7 +188,7 @@ function createWindow(): BrowserWindow {
       const reloaderFn = (reloader as any).default || reloader;
       reloaderFn(module);
     });
-    window.loadURL('http://localhost:4200');
+    window.loadURL('http://localhost:4213');
     window.webContents.openDevTools();
   } else {
     let pathIndex = './browser/index.html';
@@ -311,6 +311,7 @@ try {
       if (appConfig.launchHidden) {
         hideWindow();
       }
+      setupShortcuts(win);
     }, 400);
     Menu.setApplicationMenu(null);
     const trayMenu = Menu.buildFromTemplate([
@@ -335,18 +336,46 @@ try {
         }
       }
     });
-    globalShortcut.register('Super+I', () => {
-      if (win) {
-        if (win.isVisible() && win.isFocused()) {
-          hideWindow();
-        } else {
-          showWindow();
-        }
-      }
-    });
   });
 } catch (e) {
   // ignore
+}
+
+function registerNavigationShortcuts(window: BrowserWindow) {
+  globalShortcut.register('Control+Tab', () => {
+    window.webContents.send('navigate-service', 'next');
+  });
+
+  globalShortcut.register('Control+Shift+Tab', () => {
+    window.webContents.send('navigate-service', 'previous');
+  });
+}
+
+function unregisterNavigationShortcuts() {
+  globalShortcut.unregister('Control+Tab');
+  globalShortcut.unregister('Control+Shift+Tab');
+}
+
+function setupShortcuts(window: BrowserWindow) {
+  globalShortcut.register('Super+I', () => {
+    if (window.isVisible() && window.isFocused()) {
+      hideWindow();
+    } else {
+      showWindow();
+    }
+  });
+
+  window.on('focus', () => {
+    registerNavigationShortcuts(window);
+  });
+
+  window.on('blur', () => {
+    unregisterNavigationShortcuts();
+  });
+
+  if (window.isFocused()) {
+    registerNavigationShortcuts(window);
+  }
 }
 
 app.on('before-quit', () => {

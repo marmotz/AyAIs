@@ -36,6 +36,27 @@ export class Home {
       }
     });
 
+    window.electronAPI.onNavigateService((direction: 'next' | 'previous') => {
+      const currentService = this.selectedService();
+      if (!currentService) {
+        return;
+      }
+
+      const currentIndex = this.services.findIndex((s) => s.name === currentService.name);
+      if (currentIndex === -1) {
+        return;
+      }
+
+      let nextIndex: number;
+      if (direction === 'previous') {
+        nextIndex = currentIndex === 0 ? this.services.length - 1 : currentIndex - 1;
+      } else {
+        nextIndex = currentIndex === this.services.length - 1 ? 0 : currentIndex + 1;
+      }
+
+      this.onServiceSelected(this.services[nextIndex]);
+    });
+
     effect(() => {
       const selectedService = this.selectedService();
       const isAiServicesRoute = this.isAiServicesRoute();

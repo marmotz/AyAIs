@@ -201,6 +201,32 @@ export class MyComponent {
 }
 ```
 
+#### Control Flow Statements
+
+```typescript
+// ALWAYS use braces for control flow statements
+// NEVER use single-line if statements without braces
+
+// ❌ NEVER - Single-line if without braces
+if (!currentService) return;
+
+// ✅ ALWAYS - Multi-line with braces
+if (!currentService) {
+  return;
+}
+
+// ❌ NEVER - Single-line if/else without braces
+if (condition) doSomething();
+else doSomethingElse();
+
+// ✅ ALWAYS - Multi-line with braces
+if (condition) {
+  doSomething();
+} else {
+  doSomethingElse();
+}
+```
+
 #### Control Flow Syntax
 
 ```typescript

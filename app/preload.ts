@@ -7,4 +7,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getLastService: () => ipcRenderer.invoke('get-last-service'),
   saveLastService: (service: string) => ipcRenderer.invoke('save-last-service', service),
   openExternal: (url: string) => ipcRenderer.invoke('open-external', url),
+  onNavigateService: (callback: (direction: 'next' | 'previous') => void) => {
+    ipcRenderer.on('navigate-service', (_event, direction) => callback(direction));
+  },
 });

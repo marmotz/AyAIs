@@ -73,7 +73,8 @@
         "serve": {
           "builder": "@angular/build:dev-server",
           "options": {
-            "buildTarget": "ayais:build"
+            "buildTarget": "ayais:build",
+            "port": 4213
           },
           "configurations": {
             "dev": {

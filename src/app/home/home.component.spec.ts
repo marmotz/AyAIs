@@ -10,6 +10,9 @@ describe('Home', () => {
       getLastService: vi.fn().mockResolvedValue(undefined),
       saveLastService: vi.fn(),
       openExternal: vi.fn(),
+      onNavigateService: vi.fn(),
+      onSelectService: vi.fn(),
+      onOpenSettings: vi.fn(),
     };
 
     await TestBed.configureTestingModule({

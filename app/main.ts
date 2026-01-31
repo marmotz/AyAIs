@@ -1,7 +1,8 @@
+import { AppConfig } from '@shared/types/app-config.interface';
 import { app, BrowserWindow, globalShortcut, ipcMain, Menu, nativeImage, screen, shell, Tray } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
-import { AppConfig } from './app-config';
+import { DEFAULT_CONFIGURATION } from './default-configuration';
 
 let win: BrowserWindow | null = null;
 let isQuitting = false;
@@ -21,19 +22,32 @@ function loadAppConfig() {
 
   const appConfig: Partial<AppConfig> = JSON.parse(rawConfig);
 
-  return {
-    launchAtStartup: false,
-    launchHidden: false,
-    lastService: undefined,
-    ...appConfig,
+  const mergedConfig: AppConfig = {
+    ...DEFAULT_CONFIGURATION,
+    ...(appConfig ?? {}),
     position: {
-      x: 0,
-      y: 0,
-      width: 800,
-      height: 600,
-      ...(appConfig.position ?? {}),
+      ...DEFAULT_CONFIGURATION.position,
+      ...(appConfig?.position ?? {}),
     },
-  } satisfies AppConfig;
+    shortcuts: {
+      ...DEFAULT_CONFIGURATION.shortcuts,
+      ...(appConfig?.shortcuts ?? {}),
+      globalShortcuts: {
+        ...DEFAULT_CONFIGURATION.shortcuts.globalShortcuts,
+        ...(appConfig?.shortcuts?.globalShortcuts ?? {}),
+      },
+      internalShortcuts: {
+        ...DEFAULT_CONFIGURATION.shortcuts.internalShortcuts,
+        ...(appConfig?.shortcuts?.internalShortcuts ?? {}),
+        services: {
+          ...DEFAULT_CONFIGURATION.shortcuts.internalShortcuts.services,
+          ...(appConfig?.shortcuts?.internalShortcuts?.services ?? {}),
+        },
+      },
+    },
+  };
+
+  return mergedConfig;
 }
 
 function isStartupEnabled(): boolean {
@@ -182,14 +196,17 @@ function createWindow(): BrowserWindow {
   const window = new BrowserWindow(windowOptions);
   if (serve) {
     import('electron-debug').then((debug) => {
-      debug.default({ isEnabled: true, showDevTools: true });
+      debug.default({
+        isEnabled: true,
+        showDevTools: true,
+      });
     });
     import('electron-reloader').then((reloader) => {
       const reloaderFn = (reloader as any).default || reloader;
       reloaderFn(module);
     });
-    window.loadURL('http://localhost:4200');
-    window.webContents.openDevTools();
+    window.loadURL('http://localhost:4213');
+    // window.webContents.openDevTools();
   } else {
     let pathIndex = './browser/index.html';
     if (fs.existsSync(path.join(__dirname, '../dist/browser/index.html'))) {
@@ -258,9 +275,29 @@ ipcMain.handle('save-app-config', (_event, newAppConfig: Partial<AppConfig>) => 
       ...newAppConfig,
     };
     saveAppConfig();
+    if (newAppConfig.shortcuts && win) {
+      refreshShortcuts(win);
+    }
   } catch (e) {
     console.error('Failed to save app config', e);
   }
+});
+
+ipcMain.handle('disable-shortcuts', () => {
+  if (win) {
+    disableInternalShortcuts();
+  }
+});
+
+ipcMain.handle('enable-shortcuts', () => {
+  if (win) {
+    enableInternalShortcuts(win);
+  }
+});
+
+ipcMain.handle('quit-app', () => {
+  isQuitting = true;
+  app.quit();
 });
 
 ipcMain.handle('is-startup-enabled', () => {
@@ -311,11 +348,19 @@ try {
       if (appConfig.launchHidden) {
         hideWindow();
       }
+      setupShortcuts(win);
     }, 400);
     Menu.setApplicationMenu(null);
     const trayMenu = Menu.buildFromTemplate([
       {
-        label: 'Quit AyAIs',
+        label: 'Preferences',
+        click: () => {
+          showWindow()
+          win.webContents.send('open-settings');
+        },
+      },
+      {
+        label: 'Quit',
         click: () => {
           isQuitting = true;
           app.quit();
@@ -335,18 +380,103 @@ try {
         }
       }
     });
-    globalShortcut.register('Super+I', () => {
-      if (win) {
-        if (win.isVisible() && win.isFocused()) {
-          hideWindow();
-        } else {
-          showWindow();
-        }
-      }
-    });
   });
 } catch (e) {
   // ignore
+}
+
+function refreshShortcuts(window: BrowserWindow) {
+  refreshGlobalShortcuts();
+  refreshInternalShortcuts(window);
+}
+
+function refreshGlobalShortcuts() {
+  unregisterGlobalShortcuts();
+  registerGlobalShortcuts();
+}
+
+function refreshInternalShortcuts(window: BrowserWindow) {
+  unregisterInternalShortcuts();
+  registerInternalShortcuts(window);
+}
+
+function disableInternalShortcuts() {
+  unregisterInternalShortcuts();
+}
+
+function enableInternalShortcuts(window: BrowserWindow) {
+  registerInternalShortcuts(window);
+}
+
+function registerGlobalShortcuts() {
+  globalShortcut.register(appConfig.shortcuts.globalShortcuts.showHideApp, () => {
+    if (win) {
+      if (win.isVisible() && win.isFocused()) {
+        hideWindow();
+      } else {
+        showWindow();
+      }
+    }
+  });
+}
+
+function unregisterGlobalShortcuts() {
+  globalShortcut.unregister(appConfig.shortcuts.globalShortcuts.showHideApp);
+}
+
+function registerInternalShortcuts(window: BrowserWindow) {
+  globalShortcut.register(appConfig.shortcuts.internalShortcuts.openSettings, () => {
+    window.webContents.send('open-settings');
+  });
+
+  globalShortcut.register(appConfig.shortcuts.internalShortcuts.quitApp, () => {
+    isQuitting = true;
+    app.quit();
+  });
+
+  globalShortcut.register(appConfig.shortcuts.internalShortcuts.nextService, () => {
+    window.webContents.send('navigate-service', 'next');
+  });
+
+  globalShortcut.register(appConfig.shortcuts.internalShortcuts.previousService, () => {
+    window.webContents.send('navigate-service', 'previous');
+  });
+
+  const serviceShortcuts = appConfig.shortcuts.internalShortcuts.services;
+  Object.entries(serviceShortcuts).forEach(([id, accelerator]) => {
+    const index = parseInt(id.replace('service', ''), 10) - 1;
+    globalShortcut.register(accelerator, () => {
+      window.webContents.send('select-service', index);
+    });
+  });
+}
+
+function unregisterInternalShortcuts() {
+  globalShortcut.unregister(appConfig.shortcuts.internalShortcuts.openSettings);
+  globalShortcut.unregister(appConfig.shortcuts.internalShortcuts.quitApp);
+  globalShortcut.unregister(appConfig.shortcuts.internalShortcuts.nextService);
+  globalShortcut.unregister(appConfig.shortcuts.internalShortcuts.previousService);
+
+  const serviceShortcuts = appConfig.shortcuts.internalShortcuts.services;
+  Object.values(serviceShortcuts).forEach((accelerator) => {
+    globalShortcut.unregister(accelerator);
+  });
+}
+
+function setupShortcuts(window: BrowserWindow) {
+  registerGlobalShortcuts();
+
+  window.on('focus', () => {
+    registerInternalShortcuts(window);
+  });
+
+  window.on('blur', () => {
+    unregisterInternalShortcuts();
+  });
+
+  if (window.isFocused()) {
+    registerInternalShortcuts(window);
+  }
 }
 
 app.on('before-quit', () => {

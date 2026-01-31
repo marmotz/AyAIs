@@ -201,6 +201,32 @@ export class MyComponent {
 }
 ```
 
+#### Control Flow Statements
+
+```typescript
+// ALWAYS use braces for control flow statements
+// NEVER use single-line if statements without braces
+
+// ❌ NEVER - Single-line if without braces
+if (!currentService) return;
+
+// ✅ ALWAYS - Multi-line with braces
+if (!currentService) {
+  return;
+}
+
+// ❌ NEVER - Single-line if/else without braces
+if (condition) doSomething();
+else doSomethingElse();
+
+// ✅ ALWAYS - Multi-line with braces
+if (condition) {
+  doSomething();
+} else {
+  doSomethingElse();
+}
+```
+
 #### Control Flow Syntax
 
 ```typescript
@@ -245,6 +271,14 @@ this.http
 ```
 
 ### Testing Guidelines
+
+#### Mandatory Unit Testing Requirements for Angular
+
+- **Always create unit tests** for every new component, service, directive, pipe, or other Angular artifact
+- **Always update existing unit tests** when modifying any component, service, directive, pipe, or other Angular artifact
+- Test files must be created alongside the implementation file with the naming pattern: `artifact-name.spec.ts`
+- Tests must cover both success and error scenarios
+- All tests must pass before considering the work complete
 
 #### Unit Tests
 

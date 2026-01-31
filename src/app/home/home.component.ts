@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, effect, ElementRef, inject, NO_ERRORS_SCHEMA, signal, ViewChild } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Router, RouterOutlet } from '@angular/router';
 import { AI_SERVICES } from '@app/ai-services/constants';
 import { AIService } from '@app/ai-services/interfaces';
 import { NavigationService } from '@app/services/navigation.service';
@@ -17,6 +17,7 @@ import { WebviewTag } from 'electron';
 export class Home {
   private readonly navigationService = inject(NavigationService);
   private readonly webviewService = inject(WebviewService);
+  private readonly router = inject(Router);
 
   private services: AIService[] = AI_SERVICES;
 
@@ -34,6 +35,37 @@ export class Home {
           await this.onServiceSelected(service);
         }
       }
+    });
+
+    window.electronAPI.onNavigateService((direction: 'next' | 'previous') => {
+      const currentService = this.selectedService();
+      if (!currentService) {
+        return;
+      }
+
+      const currentIndex = this.services.findIndex((s) => s.name === currentService.name);
+      if (currentIndex === -1) {
+        return;
+      }
+
+      let nextIndex: number;
+      if (direction === 'previous') {
+        nextIndex = currentIndex === 0 ? this.services.length - 1 : currentIndex - 1;
+      } else {
+        nextIndex = currentIndex === this.services.length - 1 ? 0 : currentIndex + 1;
+      }
+
+      this.navigateToService(this.services[nextIndex]);
+    });
+
+    window.electronAPI.onSelectService((index: number) => {
+      if (index >= 0 && index < this.services.length) {
+        this.navigateToService(this.services[index]);
+      }
+    });
+
+    window.electronAPI.onOpenSettings(() => {
+      void this.router.navigate(['/app/settings']);
     });
 
     effect(() => {
@@ -68,6 +100,14 @@ export class Home {
     this.showWebview(webview);
 
     await window.electronAPI.saveLastService(service.name);
+  }
+
+  private async navigateToService(service: AIService) {
+    // Navigate to /app if we're not already there
+    if (!this.isAiServicesRoute()) {
+      await this.router.navigate(['/app']);
+    }
+    await this.onServiceSelected(service);
   }
 
   hideWebview(webview: WebviewTag) {

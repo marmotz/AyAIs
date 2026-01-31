@@ -5,9 +5,14 @@ export const AI_SERVICES: AIService[] = [
     name: 'ChatGPT',
     url: 'https://chat.openai.com',
     icon: 'assets/ai-services/chatgpt.svg',
-    internalDomains: ['chat.openai.com'],
+    internalDomains: ['chat.openai.com', 'chatgpt.com'],
   },
-  { name: 'Claude', url: 'https://claude.ai', icon: 'assets/ai-services/claude.svg', internalDomains: ['claude.ai'] },
+  {
+    name: 'Claude',
+    url: 'https://claude.ai',
+    icon: 'assets/ai-services/claude.svg',
+    internalDomains: ['claude.ai'],
+  },
   {
     name: 'Gemini',
     url: 'https://gemini.google.com',

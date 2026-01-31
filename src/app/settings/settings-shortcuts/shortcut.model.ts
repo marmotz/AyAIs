@@ -2,6 +2,11 @@ export interface Shortcut {
   id: string;
   label: string;
   value: string;
+  validation?: {
+    isValid: boolean;
+    error?: 'INVALID_FORMAT' | 'INTERNAL_CONFLICT' | 'EXTERNAL_CONFLICT';
+    conflictedShortcut?: string;
+  };
 }
 
 export const DEFAULT_SHORTCUTS = {

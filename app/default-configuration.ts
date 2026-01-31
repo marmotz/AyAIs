@@ -2,11 +2,11 @@ import { AppConfig, ShortcutConfig } from '@shared/types/app-config.interface';
 
 const DEFAULT_SHORTCUT_CONFIG: ShortcutConfig = {
   globalShortcuts: {
-    showHideApp: 'Super+I',
+    showHideApp: 'Meta+I',
   },
   internalShortcuts: {
     openSettings: process.platform === 'darwin' ? 'Command+,' : 'Ctrl+,',
-    quitApp: 'Ctrl+X',
+    quitApp: 'Ctrl+Q',
     previousService: 'Ctrl+Shift+Tab',
     nextService: 'Ctrl+Tab',
     services: {

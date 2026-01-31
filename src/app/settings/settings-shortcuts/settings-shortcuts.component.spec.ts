@@ -1,13 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { ShortcutManagerService } from '@app/services/shortcut-manager.service';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SettingsShortcutsComponent } from './settings-shortcuts.component';
 
 describe('SettingsShortcutsComponent', () => {
   let component: SettingsShortcutsComponent;
   let fixture: ComponentFixture<SettingsShortcutsComponent>;
+  let shortcutManagerService: ShortcutManagerService;
   const saveAppConfigSpy = vi.fn().mockResolvedValue(undefined);
-  const disableShortcutsSpy = vi.fn().mockResolvedValue(undefined);
-  const enableShortcutsSpy = vi.fn().mockResolvedValue(undefined);
+  const validateGlobalShortcutSpy = vi.fn().mockResolvedValue({ isValid: true });
+  const unregisterGlobalShortcutsSpy = vi.fn().mockResolvedValue(undefined);
+  const registerGlobalShortcutsSpy = vi.fn().mockResolvedValue(undefined);
 
   beforeEach(async () => {
     (window as any).electronAPI = {
@@ -15,7 +18,7 @@ describe('SettingsShortcutsComponent', () => {
         Promise.resolve({
           shortcuts: {
             globalShortcuts: {
-              showHideApp: 'Super+I',
+              showHideApp: 'Meta+I',
             },
             internalShortcuts: {
               openSettings: 'Ctrl+,',
@@ -38,8 +41,11 @@ describe('SettingsShortcutsComponent', () => {
           },
         }),
       saveAppConfig: saveAppConfigSpy,
-      disableShortcuts: disableShortcutsSpy,
-      enableShortcuts: enableShortcutsSpy,
+      validateGlobalShortcut: validateGlobalShortcutSpy,
+      getPlatform: () => Promise.resolve('linux'),
+      unregisterGlobalShortcuts: unregisterGlobalShortcutsSpy,
+      registerGlobalShortcuts: registerGlobalShortcutsSpy,
+      logDebug: vi.fn().mockResolvedValue(undefined),
     };
 
     await TestBed.configureTestingModule({
@@ -48,10 +54,16 @@ describe('SettingsShortcutsComponent', () => {
 
     fixture = TestBed.createComponent(SettingsShortcutsComponent);
     component = fixture.componentInstance;
+    shortcutManagerService = TestBed.inject(ShortcutManagerService);
     fixture.detectChanges();
 
     // Wait for ngOnInit to complete
     await fixture.whenStable();
+  });
+
+  afterEach(() => {
+    // Clear any pending timers to prevent logDebug errors after tests
+    vi.clearAllTimers();
   });
 
   it('should create', () => {
@@ -74,16 +86,15 @@ describe('SettingsShortcutsComponent', () => {
 
   it('should start editing when startEditing is called', async () => {
     const shortcut = component.globalShortcuts()[0];
-    component.startEditing(shortcut);
+    await component.startEditing(shortcut);
     expect(component.isEditing(shortcut.id)).toBe(true);
-    expect(component.tempShortcutValue()).toBe(shortcut.value);
+    expect(shortcutManagerService.tempShortcutValue()).toBe(shortcut.value);
     await fixture.whenStable();
-    expect(disableShortcutsSpy).toHaveBeenCalled();
   });
 
-  it('should update temp value on keydown', () => {
+  it('should update temp value on keydown', async () => {
     const shortcut = component.globalShortcuts()[0];
-    component.startEditing(shortcut);
+    await component.startEditing(shortcut);
 
     const event = new KeyboardEvent('keydown', {
       key: 'A',
@@ -91,13 +102,13 @@ describe('SettingsShortcutsComponent', () => {
     });
     component.handleKeydown(event);
 
-    expect(component.tempShortcutValue()).toBe('Ctrl+A');
+    expect(shortcutManagerService.tempShortcutValue()).toBe('Ctrl+A');
   });
 
   it('should cancel editing on Escape key without saving', async () => {
     const shortcut = component.globalShortcuts()[0];
     const originalValue = shortcut.value;
-    component.startEditing(shortcut);
+    await component.startEditing(shortcut);
 
     const ctrlAEvent = new KeyboardEvent('keydown', {
       key: 'A',
@@ -115,13 +126,12 @@ describe('SettingsShortcutsComponent', () => {
     expect(updatedShortcut?.value).toBe(originalValue);
 
     await fixture.whenStable();
-    expect(enableShortcutsSpy).toHaveBeenCalled();
     expect(saveAppConfigSpy).not.toHaveBeenCalled();
   });
 
-  it('should save shortcut on Enter key', async () => {
+  it('should save shortcut on Enter key when valid', async () => {
     const shortcut = component.globalShortcuts()[0];
-    component.startEditing(shortcut);
+    await component.startEditing(shortcut);
 
     const ctrlAEvent = new KeyboardEvent('keydown', {
       key: 'A',
@@ -134,13 +144,71 @@ describe('SettingsShortcutsComponent', () => {
     });
     component.handleKeydown(enterEvent);
 
+    await fixture.whenStable();
     expect(component.isEditing(shortcut.id)).toBe(false);
     const updatedShortcut = component.globalShortcuts().find((s) => s.id === shortcut.id);
     expect(updatedShortcut?.value).toBe('Ctrl+A');
 
-    await fixture.whenStable();
-    expect(enableShortcutsSpy).toHaveBeenCalled();
     expect(saveAppConfigSpy).toHaveBeenCalled();
+    expect(validateGlobalShortcutSpy).toHaveBeenCalledWith('Ctrl+A', 'showHideApp');
+  });
+
+  it('should not save shortcut on Enter key when invalid', async () => {
+    saveAppConfigSpy.mockClear();
+    validateGlobalShortcutSpy.mockResolvedValueOnce({
+      isValid: false,
+      error: 'EXTERNAL_CONFLICT',
+    });
+
+    const shortcut = component.globalShortcuts()[0];
+    await component.startEditing(shortcut);
+
+    const ctrlAEvent = new KeyboardEvent('keydown', {
+      key: 'A',
+      ctrlKey: true,
+    });
+    component.handleKeydown(ctrlAEvent);
+
+    const enterEvent = new KeyboardEvent('keydown', {
+      key: 'Enter',
+    });
+    component.handleKeydown(enterEvent);
+
+    await fixture.whenStable();
+    expect(component.isEditing(shortcut.id)).toBe(false);
+    const updatedShortcut = component.globalShortcuts().find((s) => s.id === shortcut.id);
+    expect(updatedShortcut?.value).toBe('Ctrl+A');
+    expect(updatedShortcut?.validation?.isValid).toBe(false);
+
+    expect(saveAppConfigSpy).not.toHaveBeenCalled();
+  });
+
+  it('should display validation error for invalid shortcut', async () => {
+    validateGlobalShortcutSpy.mockResolvedValueOnce({
+      isValid: false,
+      error: 'INTERNAL_CONFLICT',
+      conflictedShortcut: 'openSettings',
+    });
+
+    const shortcut = component.globalShortcuts()[0];
+    await component.startEditing(shortcut);
+
+    const ctrlCommaEvent = new KeyboardEvent('keydown', {
+      key: ',',
+      ctrlKey: true,
+    });
+    component.handleKeydown(ctrlCommaEvent);
+
+    const enterEvent = new KeyboardEvent('keydown', {
+      key: 'Enter',
+    });
+    component.handleKeydown(enterEvent);
+
+    await fixture.whenStable();
+
+    const updatedShortcut = component.globalShortcuts().find((s) => s.id === shortcut.id);
+    expect(component.hasValidationError(updatedShortcut!)).toBe(true);
+    expect(shortcutManagerService.getValidationErrorMessage(updatedShortcut!)).toBe('Conflicts with: openSettings');
   });
 
   it('should not handle keydown when not editing', () => {
@@ -149,12 +217,12 @@ describe('SettingsShortcutsComponent', () => {
       ctrlKey: true,
     });
     component.handleKeydown(event);
-    expect(component.tempShortcutValue()).toBe('');
+    expect(shortcutManagerService.tempShortcutValue()).toBe('');
   });
 
-  it('should use physical key code for digits (AZERTY fix)', () => {
+  it('should use physical key code for digits (AZERTY fix)', async () => {
     const shortcut = component.internalShortcuts()[4];
-    component.startEditing(shortcut);
+    await component.startEditing(shortcut);
 
     const event = new KeyboardEvent('keydown', {
       key: '&',
@@ -166,12 +234,12 @@ describe('SettingsShortcutsComponent', () => {
     });
     component.handleKeydown(event);
 
-    expect(component.tempShortcutValue()).toBe('Ctrl+1');
+    expect(shortcutManagerService.tempShortcutValue()).toBe('Ctrl+1');
   });
 
-  it('should use physical key code for letters', () => {
+  it('should use physical key code for letters', async () => {
     const shortcut = component.globalShortcuts()[0];
-    component.startEditing(shortcut);
+    await component.startEditing(shortcut);
 
     const event = new KeyboardEvent('keydown', {
       key: 'a',
@@ -183,6 +251,6 @@ describe('SettingsShortcutsComponent', () => {
     });
     component.handleKeydown(event);
 
-    expect(component.tempShortcutValue()).toBe('Ctrl+A');
+    expect(shortcutManagerService.tempShortcutValue()).toBe('Ctrl+A');
   });
 });

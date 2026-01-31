@@ -8,12 +8,20 @@ declare global {
       getLastService: () => Promise<string | undefined>;
       saveLastService: (service: string) => Promise<void>;
       openExternal: (url: string) => Promise<void>;
-      onNavigateService: (callback: (direction: 'next' | 'previous') => void) => void;
-      onSelectService: (callback: (index: number) => void) => void;
       onOpenSettings: (callback: () => void) => void;
-      disableShortcuts: () => Promise<void>;
-      enableShortcuts: () => Promise<void>;
       quitApp: () => Promise<void>;
+      validateGlobalShortcut: (
+        shortcut: string,
+        excludeId?: string
+      ) => Promise<{
+        isValid: boolean;
+        error?: 'INVALID_FORMAT' | 'INTERNAL_CONFLICT' | 'EXTERNAL_CONFLICT';
+        conflictedShortcut?: string;
+      }>;
+      getPlatform: () => Promise<string>;
+      unregisterGlobalShortcuts: () => Promise<void>;
+      registerGlobalShortcuts: () => Promise<void>;
+      logDebug: (message: string) => Promise<void>;
     };
   }
 }

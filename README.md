@@ -251,8 +251,8 @@ Configuration file: `config.json`
 ## Keyboard Shortcuts
 
 | Action                | Win/Linux Default Shortcut | Mac Default Shortcut |
-|-----------------------|----------------------------|----------------------|
-| Show/Hide Application | `Super+I` (Win/Linux)      | `Cmd+I` (Mac)        |
+| --------------------- | -------------------------- | -------------------- |
+| Show/Hide Application | `Meta+I` (Win/Linux)       | `Cmd+I` (Mac)        |
 
 ## Tech Stack
 

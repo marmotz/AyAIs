@@ -1,12 +1,13 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AppConfig } from '@shared/types/app-config.interface';
+import { ToggleSwitch } from 'primeng/toggleswitch';
 
 @Component({
   selector: 'app-settings-startup',
   standalone: true,
   templateUrl: './settings-startup.component.html',
-  imports: [FormsModule],
+  imports: [FormsModule, ToggleSwitch],
 })
 export class SettingsStartupComponent implements OnInit {
   startupOnBoot = signal(false);

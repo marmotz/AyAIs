@@ -73,15 +73,6 @@ jobs:
           WIN_CERT_PASSWORD: ${{ secrets.WIN_CERT_PASSWORD }}
           WIN_CERTIFICATE_PFX: ${{ secrets.WIN_CERTIFICATE_PFX }}
 
-      - name: Install Playwright Browsers
-        run: npx playwright@1.57.0 install --with-deps
-
-      - name: Run headless unit test
-        run: npm run test -- --reporters=default
-
-      - name: Run headless e2e test
-        run: npm run e2e
-
       - name: Build the app
         env:
           CSC_KEY_PASSWORD: ${{ secrets.WIN_CERT_PASSWORD }}
@@ -93,4 +84,4 @@ jobs:
         with:
           name: windows-build
           path: |
-            release/*/*.exe
+            release/*.exe

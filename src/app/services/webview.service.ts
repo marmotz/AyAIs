@@ -1,11 +1,28 @@
 import { Injectable } from '@angular/core';
 import { AIService } from '@app/ai-services/interfaces';
 import { WebviewTag } from 'electron';
+import { Subject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
 export class WebviewService {
+  private lastShortcutTime = 0;
+  private readonly SHORTCUT_DEBOUNCE_MS = 100;
+  private isMac = false;
+
+  private shortcutCapturedSubject = new Subject<string>();
+  readonly shortcutCaptured = this.shortcutCapturedSubject.asObservable();
+
+  constructor() {
+    void this.initializePlatform();
+  }
+
+  private async initializePlatform(): Promise<void> {
+    const platform = await window.electronAPI.getPlatform();
+    this.isMac = platform === 'darwin';
+  }
+
   async createWebview(service: AIService) {
     const webview: WebviewTag = document.createElement('webview') as any;
     webview.style.display = 'flex';
@@ -20,6 +37,9 @@ export class WebviewService {
       if (msg.startsWith('AYAIS_FORCE_EXTERNAL_OPEN:')) {
         const url = msg.replace('AYAIS_FORCE_EXTERNAL_OPEN:', '');
         window.electronAPI.openExternal(url);
+      } else if (msg.startsWith('AYAIS_SHORTCUT:')) {
+        const shortcut = msg.replace('AYAIS_SHORTCUT:', '');
+        this.handleShortcutFromWebview(shortcut);
       }
     });
 
@@ -52,7 +72,66 @@ export class WebviewService {
             console.log('AYAIS_FORCE_EXTERNAL_OPEN:' + url);
           }
         }
-      }, true); // The “true” is crucial: we capture the event before anyone else
+      }, true); // The "true" is crucial: we capture the event before anyone else
+
+      // Capture keyboard shortcuts to prevent them from being handled by the webview
+      document.addEventListener('keydown', (e) => {
+        const keys = [];
+        const isMac = ${this.isMac};
+
+        if (e.ctrlKey) {
+          keys.push('Ctrl');
+        }
+        if (e.altKey) {
+          keys.push(isMac ? 'Opt' : 'Alt');
+        }
+        if (e.shiftKey) {
+          keys.push('Shift');
+        }
+        if (e.metaKey) {
+          keys.push(isMac ? 'Cmd' : 'Meta');
+        }
+
+        // Get the main key
+        let mainKey = e.key;
+        if (e.code.startsWith('Digit')) {
+          mainKey = e.code.replace('Digit', '');
+        } else if (e.code.startsWith('Key')) {
+          mainKey = e.key.toUpperCase();
+        } else if (e.code.startsWith('Numpad')) {
+          mainKey = 'Num' + e.key;
+        } else if (e.code.startsWith('F') && e.code.length <= 3) {
+          mainKey = e.code;
+        }
+
+        // Only process if we have modifier keys or special keys
+        if (keys.length > 0 || ['Escape', 'Tab', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12'].includes(mainKey)) {
+          if (mainKey && !['Control', 'Alt', 'Shift', 'Meta'].includes(mainKey)) {
+            keys.push(mainKey.length === 1 ? mainKey.toUpperCase() : mainKey);
+          }
+
+          if (keys.length > 0) {
+            const shortcut = keys.join('+');
+
+            // Prevent the webview from handling the shortcut
+            e.preventDefault();
+            e.stopPropagation();
+
+            // Send the shortcut to the main process
+            console.log('AYAIS_SHORTCUT:' + shortcut);
+          }
+        }
+      }, true);
     `);
+  }
+
+  private handleShortcutFromWebview(shortcut: string) {
+    const now = Date.now();
+    if (now - this.lastShortcutTime < this.SHORTCUT_DEBOUNCE_MS) {
+      return;
+    }
+    this.lastShortcutTime = now;
+
+    this.shortcutCapturedSubject.next(shortcut);
   }
 }

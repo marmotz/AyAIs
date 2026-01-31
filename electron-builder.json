@@ -22,7 +22,7 @@
     "cscLink": "build/certificate.pfx"
   },
   "nsis": {
-    "artifactName": "AyAis-Setup-${version}.${ext}",
+    "artifactName": "AyAis-setup-${version}.${ext}",
     "oneClick": false,
     "allowToChangeInstallationDirectory": true
   },

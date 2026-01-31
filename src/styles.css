@@ -1,1 +1,8 @@
 @import 'tailwindcss';
+@import "tailwindcss-primeui";
+
+@layer utilities {
+  .text-danger {
+    color: var(--p-danger-color);
+  }
+}

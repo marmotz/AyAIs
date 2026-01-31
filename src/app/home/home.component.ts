@@ -1,12 +1,22 @@
 import { CommonModule } from '@angular/common';
-import { Component, effect, ElementRef, inject, NO_ERRORS_SCHEMA, signal, ViewChild } from '@angular/core';
+import {
+  Component,
+  effect,
+  ElementRef,
+  HostListener,
+  inject,
+  NO_ERRORS_SCHEMA,
+  signal,
+  ViewChild,
+} from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { AI_SERVICES } from '@app/ai-services/constants';
 import { AIService } from '@app/ai-services/interfaces';
 import { NavigationService } from '@app/services/navigation.service';
+import { ShortcutActionEvent, ShortcutManagerService } from '@app/services/shortcut-manager.service';
 import { WebviewService } from '@app/services/webview.service';
 import { SidebarComponent } from '@app/sidebar/sidebar.component';
-import { WebviewTag } from 'electron';
+import type { WebviewTag } from 'electron';
 
 @Component({
   selector: 'app-home',
@@ -18,6 +28,7 @@ export class Home {
   private readonly navigationService = inject(NavigationService);
   private readonly webviewService = inject(WebviewService);
   private readonly router = inject(Router);
+  private readonly shortcutManager = inject(ShortcutManagerService);
 
   private services: AIService[] = AI_SERVICES;
 
@@ -28,44 +39,20 @@ export class Home {
   protected readonly isAiServicesRoute = this.navigationService.isAiServicesRoute;
 
   constructor() {
-    window.electronAPI.getLastService().then(async (lastServiceName: string | undefined) => {
-      if (lastServiceName) {
-        const service = this.services.find((s) => s.name === lastServiceName);
-        if (service) {
-          await this.onServiceSelected(service);
-        }
-      }
-    });
-
-    window.electronAPI.onNavigateService((direction: 'next' | 'previous') => {
-      const currentService = this.selectedService();
-      if (!currentService) {
-        return;
-      }
-
-      const currentIndex = this.services.findIndex((s) => s.name === currentService.name);
-      if (currentIndex === -1) {
-        return;
-      }
-
-      let nextIndex: number;
-      if (direction === 'previous') {
-        nextIndex = currentIndex === 0 ? this.services.length - 1 : currentIndex - 1;
-      } else {
-        nextIndex = currentIndex === this.services.length - 1 ? 0 : currentIndex + 1;
-      }
-
-      this.navigateToService(this.services[nextIndex]);
-    });
-
-    window.electronAPI.onSelectService((index: number) => {
-      if (index >= 0 && index < this.services.length) {
-        this.navigateToService(this.services[index]);
-      }
-    });
+    this.loadLastService();
 
     window.electronAPI.onOpenSettings(() => {
       void this.router.navigate(['/app/settings']);
+    });
+
+    this.webviewService.shortcutCaptured.subscribe(async (shortcut) => {
+      if (this.shortcutManager.canExecuteInternalShortcuts()) {
+        const action = await this.shortcutManager.executeShortcut(shortcut);
+
+        if (action) {
+          await this.handleShortcutAction(action);
+        }
+      }
     });
 
     effect(() => {
@@ -126,6 +113,81 @@ export class Home {
   hideAllWebviews() {
     this.webviews.forEach((webview: WebviewTag) => {
       this.hideWebview(webview);
+    });
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  async handleKeydown(event: KeyboardEvent): Promise<void> {
+    const shortcut = this.shortcutManager.buildShortcutFromEvent(event);
+
+    if (shortcut && this.shortcutManager.canExecuteInternalShortcuts()) {
+      const action = await this.shortcutManager.executeShortcut(shortcut);
+
+      if (action) {
+        await this.handleShortcutAction(action);
+      }
+    }
+  }
+
+  private async handleShortcutAction(actionEvent: ShortcutActionEvent): Promise<void> {
+    const { action, serviceIndex } = actionEvent;
+
+    if (action === 'openSettings') {
+      void this.router.navigate(['/app/settings']);
+    } else if (action === 'quitApp') {
+      await window.electronAPI.quitApp();
+    } else if (action === 'nextService') {
+      void this.router.navigate(['/app']);
+      this.navigateToNextService();
+    } else if (action === 'previousService') {
+      void this.router.navigate(['/app']);
+      this.navigateToPreviousService();
+    } else if (action === 'selectService' && serviceIndex !== undefined) {
+      if (serviceIndex >= 0 && serviceIndex < this.services.length) {
+        void this.router.navigate(['/app']);
+        await this.onServiceSelected(this.services[serviceIndex]);
+      }
+    }
+  }
+
+  public navigateToNextService() {
+    const currentService = this.selectedService();
+    if (!currentService) {
+      return;
+    }
+
+    const currentIndex = this.services.findIndex((s) => s.name === currentService.name);
+    if (currentIndex === -1) {
+      return;
+    }
+
+    const nextIndex = currentIndex === this.services.length - 1 ? 0 : currentIndex + 1;
+    void this.navigateToService(this.services[nextIndex]);
+  }
+
+  public navigateToPreviousService() {
+    const currentService = this.selectedService();
+    if (!currentService) {
+      return;
+    }
+
+    const currentIndex = this.services.findIndex((s) => s.name === currentService.name);
+    if (currentIndex === -1) {
+      return;
+    }
+
+    const previousIndex = currentIndex === 0 ? this.services.length - 1 : currentIndex - 1;
+    void this.navigateToService(this.services[previousIndex]);
+  }
+
+  private loadLastService() {
+    window.electronAPI.getLastService().then(async (lastServiceName: string | undefined) => {
+      if (lastServiceName) {
+        const service = this.services.find((s) => s.name === lastServiceName);
+        if (service) {
+          await this.onServiceSelected(service);
+        }
+      }
     });
   }
 }

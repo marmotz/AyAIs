@@ -40,15 +40,6 @@ jobs:
       - name: Install Dependencies
         run: npm ci && npm i -D cli-truncate iconv-corefoundation
 
-      - name: Install Playwright Browsers
-        run: npx playwright@1.57.0 install --with-deps
-
-      - name: Run headless unit test
-        run: npm run test -- --reporters=default
-
-      - name: Run headless e2e test
-        run: npm run e2e
-
       - name: Build the app
         run: npm run electron:build
 

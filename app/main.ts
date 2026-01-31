@@ -140,6 +140,56 @@ function showWindow(): void {
   }
 }
 
+function validateGlobalShortcut(
+  shortcut: string,
+  excludeId?: string
+): {
+  isValid: boolean;
+  error?: 'INVALID_FORMAT' | 'INTERNAL_CONFLICT' | 'EXTERNAL_CONFLICT';
+  conflictedShortcut?: string;
+} {
+  if (!shortcut || shortcut.trim() === '') {
+    return {
+      isValid: true,
+    };
+  }
+
+  try {
+    const registered = globalShortcut.register(shortcut, () => {
+      // Temporary empty callback for testing
+    });
+
+    if (!registered) {
+      return {
+        isValid: false,
+        error: 'EXTERNAL_CONFLICT',
+      };
+    }
+
+    globalShortcut.unregister(shortcut);
+  } catch (e) {
+    console.error('Invalid shortcut format:', shortcut, e);
+
+    return {
+      isValid: false,
+      error: 'INVALID_FORMAT',
+    };
+  }
+
+  // Only check global shortcuts conflict (currently only showHideApp)
+  if (shortcut === appConfig.shortcuts.globalShortcuts.showHideApp && excludeId !== 'showHideApp') {
+    return {
+      isValid: false,
+      error: 'INTERNAL_CONFLICT',
+      conflictedShortcut: 'showHideApp',
+    };
+  }
+
+  return {
+    isValid: true,
+  };
+}
+
 function hideWindow(): void {
   if (win) {
     if (process.platform === 'win32' || process.platform === 'darwin') {
@@ -206,7 +256,7 @@ function createWindow(): BrowserWindow {
       reloaderFn(module);
     });
     window.loadURL('http://localhost:4213');
-    // window.webContents.openDevTools();
+    window.webContents.openDevTools();
   } else {
     let pathIndex = './browser/index.html';
     if (fs.existsSync(path.join(__dirname, '../dist/browser/index.html'))) {
@@ -275,23 +325,11 @@ ipcMain.handle('save-app-config', (_event, newAppConfig: Partial<AppConfig>) => 
       ...newAppConfig,
     };
     saveAppConfig();
-    if (newAppConfig.shortcuts && win) {
-      refreshShortcuts(win);
+    if (newAppConfig.shortcuts) {
+      refreshGlobalShortcuts();
     }
   } catch (e) {
     console.error('Failed to save app config', e);
-  }
-});
-
-ipcMain.handle('disable-shortcuts', () => {
-  if (win) {
-    disableInternalShortcuts();
-  }
-});
-
-ipcMain.handle('enable-shortcuts', () => {
-  if (win) {
-    enableInternalShortcuts(win);
   }
 });
 
@@ -313,11 +351,58 @@ ipcMain.handle('is-startup-enabled', () => {
 ipcMain.handle('open-external', async (_event, url: string) => {
   try {
     await shell.openExternal(url);
+
     return true;
   } catch (e) {
     console.error('Failed to open external URL', url, e);
+
     return false;
   }
+});
+
+ipcMain.handle('validate-global-shortcut', async (_event, shortcut: string, excludeId?: string) => {
+  try {
+    return validateGlobalShortcut(shortcut, excludeId);
+  } catch (e) {
+    console.error('Failed to validate shortcut', shortcut, e);
+
+    return {
+      isValid: false,
+      error: 'INVALID_FORMAT',
+    };
+  }
+});
+
+ipcMain.handle('handle-shortcut', async (_event, shortcut: string) => {
+  try {
+    if (!win) {
+      return;
+    }
+
+    const config = appConfig.shortcuts;
+
+    if (shortcut === config.globalShortcuts.showHideApp) {
+      if (win.isVisible() && win.isFocused()) {
+        hideWindow();
+      } else {
+        showWindow();
+      }
+    }
+  } catch (e) {
+    console.error('Failed to handle shortcut', shortcut, e);
+  }
+});
+
+ipcMain.handle('get-platform', () => {
+  return process.platform;
+});
+
+ipcMain.handle('unregister-global-shortcuts', () => {
+  unregisterGlobalShortcuts();
+});
+
+ipcMain.handle('register-global-shortcuts', () => {
+  registerGlobalShortcuts();
 });
 
 try {
@@ -348,15 +433,17 @@ try {
       if (appConfig.launchHidden) {
         hideWindow();
       }
-      setupShortcuts(win);
+      setupShortcuts();
     }, 400);
     Menu.setApplicationMenu(null);
     const trayMenu = Menu.buildFromTemplate([
       {
         label: 'Preferences',
         click: () => {
-          showWindow()
-          win.webContents.send('open-settings');
+          showWindow();
+          if (win) {
+            win.webContents.send('open-settings');
+          }
         },
       },
       {
@@ -385,9 +472,8 @@ try {
   // ignore
 }
 
-function refreshShortcuts(window: BrowserWindow) {
+function refreshShortcuts() {
   refreshGlobalShortcuts();
-  refreshInternalShortcuts(window);
 }
 
 function refreshGlobalShortcuts() {
@@ -395,88 +481,37 @@ function refreshGlobalShortcuts() {
   registerGlobalShortcuts();
 }
 
-function refreshInternalShortcuts(window: BrowserWindow) {
-  unregisterInternalShortcuts();
-  registerInternalShortcuts(window);
-}
-
-function disableInternalShortcuts() {
-  unregisterInternalShortcuts();
-}
-
-function enableInternalShortcuts(window: BrowserWindow) {
-  registerInternalShortcuts(window);
-}
-
 function registerGlobalShortcuts() {
-  globalShortcut.register(appConfig.shortcuts.globalShortcuts.showHideApp, () => {
-    if (win) {
-      if (win.isVisible() && win.isFocused()) {
-        hideWindow();
-      } else {
-        showWindow();
+  const shortcut = appConfig.shortcuts.globalShortcuts.showHideApp;
+  if (!shortcut) {
+    return;
+  }
+
+  try {
+    const registered = globalShortcut.register(shortcut, () => {
+      if (win) {
+        if (win.isVisible() && win.isFocused()) {
+          hideWindow();
+        } else {
+          showWindow();
+        }
       }
+    });
+
+    if (!registered) {
+      console.warn(`Failed to register global shortcut: ${shortcut} (already in use by another application)`);
     }
-  });
+  } catch (e) {
+    console.error(`Invalid global shortcut format: ${shortcut}`, e);
+  }
 }
 
 function unregisterGlobalShortcuts() {
   globalShortcut.unregister(appConfig.shortcuts.globalShortcuts.showHideApp);
 }
 
-function registerInternalShortcuts(window: BrowserWindow) {
-  globalShortcut.register(appConfig.shortcuts.internalShortcuts.openSettings, () => {
-    window.webContents.send('open-settings');
-  });
-
-  globalShortcut.register(appConfig.shortcuts.internalShortcuts.quitApp, () => {
-    isQuitting = true;
-    app.quit();
-  });
-
-  globalShortcut.register(appConfig.shortcuts.internalShortcuts.nextService, () => {
-    window.webContents.send('navigate-service', 'next');
-  });
-
-  globalShortcut.register(appConfig.shortcuts.internalShortcuts.previousService, () => {
-    window.webContents.send('navigate-service', 'previous');
-  });
-
-  const serviceShortcuts = appConfig.shortcuts.internalShortcuts.services;
-  Object.entries(serviceShortcuts).forEach(([id, accelerator]) => {
-    const index = parseInt(id.replace('service', ''), 10) - 1;
-    globalShortcut.register(accelerator, () => {
-      window.webContents.send('select-service', index);
-    });
-  });
-}
-
-function unregisterInternalShortcuts() {
-  globalShortcut.unregister(appConfig.shortcuts.internalShortcuts.openSettings);
-  globalShortcut.unregister(appConfig.shortcuts.internalShortcuts.quitApp);
-  globalShortcut.unregister(appConfig.shortcuts.internalShortcuts.nextService);
-  globalShortcut.unregister(appConfig.shortcuts.internalShortcuts.previousService);
-
-  const serviceShortcuts = appConfig.shortcuts.internalShortcuts.services;
-  Object.values(serviceShortcuts).forEach((accelerator) => {
-    globalShortcut.unregister(accelerator);
-  });
-}
-
-function setupShortcuts(window: BrowserWindow) {
+function setupShortcuts() {
   registerGlobalShortcuts();
-
-  window.on('focus', () => {
-    registerInternalShortcuts(window);
-  });
-
-  window.on('blur', () => {
-    unregisterInternalShortcuts();
-  });
-
-  if (window.isFocused()) {
-    registerInternalShortcuts(window);
-  }
 }
 
 app.on('before-quit', () => {

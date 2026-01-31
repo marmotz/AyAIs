@@ -21,6 +21,7 @@ declare global {
       getPlatform: () => Promise<string>;
       unregisterGlobalShortcuts: () => Promise<void>;
       registerGlobalShortcuts: () => Promise<void>;
+      logDebug: (message: string) => Promise<void>;
     };
   }
 }

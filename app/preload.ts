@@ -16,4 +16,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getPlatform: () => ipcRenderer.invoke('get-platform'),
   unregisterGlobalShortcuts: () => ipcRenderer.invoke('unregister-global-shortcuts'),
   registerGlobalShortcuts: () => ipcRenderer.invoke('register-global-shortcuts'),
+  logDebug: (message: string) => ipcRenderer.invoke('log-debug', message),
 });

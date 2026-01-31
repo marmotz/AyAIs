@@ -5,4 +5,31 @@
   .text-danger {
     color: var(--p-danger-color);
   }
+
+  .bg-danger-50 {
+    background-color: var(--p-danger-50);
+  }
+  .dark\:bg-danger-950 {
+    @media (prefers-color-scheme: dark) {
+      background-color: var(--p-danger-950);
+    }
+  }
+
+  .bg-primary-100 {
+    background-color: var(--p-primary-100);
+  }
+  .dark\:bg-primary-900 {
+    @media (prefers-color-scheme: dark) {
+      background-color: var(--p-primary-900);
+    }
+  }
+
+  .bg-secondary-50 {
+    background-color: var(--p-secondary-50);
+  }
+  .dark\:bg-secondary-950 {
+    @media (prefers-color-scheme: dark) {
+      background-color: var(--p-secondary-950);
+    }
+  }
 }

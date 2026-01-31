@@ -10,7 +10,15 @@ let tray: Tray | null = null;
 const args = process.argv.slice(1);
 const serve = args.some((val) => val === '--serve');
 const configPath = path.join(app.getPath('userData'), 'config.json');
+const debugPath = path.join(app.getPath('userData'), 'debugs');
+
+console.log(`Config path : ${configPath}`);
+console.log(`Debug path : ${debugPath}`);
+
 let appConfig = loadAppConfig();
+
+// Clean old debug logs at startup
+cleanOldDebugLogs();
 
 function loadAppConfig() {
   let rawConfig = '{}';
@@ -48,6 +56,58 @@ function loadAppConfig() {
   };
 
   return mergedConfig;
+}
+
+function logDebug(message: string): void {
+  try {
+    // Create debug directory if it doesn't exist
+    if (!fs.existsSync(debugPath)) {
+      fs.mkdirSync(debugPath, { recursive: true });
+    }
+
+    // Create log filename with current date
+    const today = new Date();
+    const dateStr = today.toISOString().split('T')[0]; // YYYY-MM-DD
+    const logFileName = `debug-${dateStr}.log`;
+    const logPath = path.join(debugPath, logFileName);
+
+    // Create timestamp
+    const timestamp = today.toISOString();
+
+    // Append to log file
+    const logEntry = `[${timestamp}] ${message}\n`;
+    fs.appendFileSync(logPath, logEntry, 'utf8');
+  } catch (e) {
+    console.error('Failed to write debug log:', e);
+  }
+}
+
+function cleanOldDebugLogs(): void {
+  try {
+    if (!fs.existsSync(debugPath)) {
+      return;
+    }
+
+    const files = fs.readdirSync(debugPath);
+    const now = Date.now();
+    const oneWeekMs = 7 * 24 * 60 * 60 * 1000;
+
+    files.forEach((file) => {
+      if (!file.startsWith('debug-') || !file.endsWith('.log')) {
+        return;
+      }
+
+      const filePath = path.join(debugPath, file);
+      const stats = fs.statSync(filePath);
+      const fileAge = now - stats.mtimeMs;
+
+      if (fileAge > oneWeekMs) {
+        fs.unlinkSync(filePath);
+      }
+    });
+  } catch (e) {
+    console.error('Failed to clean old debug logs:', e);
+  }
 }
 
 function isStartupEnabled(): boolean {
@@ -405,6 +465,10 @@ ipcMain.handle('register-global-shortcuts', () => {
   registerGlobalShortcuts();
 });
 
+ipcMain.handle('log-debug', async (_event, message: string) => {
+  logDebug(message);
+});
+
 try {
   app.on('ready', () => {
     try {
@@ -470,10 +534,6 @@ try {
   });
 } catch (e) {
   // ignore
-}
-
-function refreshShortcuts() {
-  refreshGlobalShortcuts();
 }
 
 function refreshGlobalShortcuts() {

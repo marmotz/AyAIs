@@ -1,0 +1,29 @@
+<div class="flex flex-col gap-1">
+  <input
+    pInputText
+    type="text"
+    readonly
+    [value]="getDisplayValue()"
+    (click)="startEditing.emit(shortcut())"
+    [class.ring-2]="isEditing() || hasValidationError()"
+    [class.ring-danger-500]="hasValidationError()"
+    [class.bg-danger-50]="hasValidationError()"
+    [class.text-danger-600]="hasValidationError()"
+    class="w-48 text-center font-mono text-sm transition-colors"
+  />
+  @if (isEditing()) {
+    <div class="bg-primary-100 dark:bg-primary-900 text-primary rounded-xl px-4 py-2 text-center text-xs font-medium">
+      <div>Press Enter to save</div>
+      <div>Press Escape to cancel</div>
+    </div>
+  }
+  @if (hasValidationError()) {
+    <div
+      [class]="
+        isEditing() ? 'text-danger text-center text-xs font-medium' : 'text-danger text-center text-xs font-medium'
+      "
+    >
+      {{ getValidationErrorMessage() }}
+    </div>
+  }
+</div>

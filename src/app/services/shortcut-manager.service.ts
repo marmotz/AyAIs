@@ -16,6 +16,8 @@ export class ShortcutManagerService {
   private isMac = false;
   private lastShortcutTime = 0;
   private readonly SHORTCUT_DEBOUNCE_MS = 100;
+  private debugLogTimer: ReturnType<typeof setTimeout> | null = null;
+  private readonly DEBUG_LOG_DEBOUNCE_MS = 300;
 
   globalShortcuts = signal<Shortcut[]>([]);
   internalShortcuts = signal<Shortcut[]>([]);
@@ -108,6 +110,12 @@ export class ShortcutManagerService {
   async cancelEditing(): Promise<void> {
     const wasEditingGlobalShortcut = this.editingShortcutId() === 'showHideApp';
 
+    // Clear any pending debug log
+    if (this.debugLogTimer) {
+      clearTimeout(this.debugLogTimer);
+      this.debugLogTimer = null;
+    }
+
     this.editingShortcutId.set(null);
     this.tempShortcutValue.set('');
 
@@ -195,8 +203,29 @@ export class ShortcutManagerService {
     const shortcut = this.buildShortcutString(event);
 
     if (shortcut) {
+      // Debounced debug log to avoid logging short/incomplete shortcuts
+      this.debouncedDebugLog(event, shortcut, editingId);
+
       this.tempShortcutValue.set(shortcut);
     }
+  }
+
+  private debouncedDebugLog(event: KeyboardEvent, shortcut: string, editingId: string): void {
+    // Clear existing timer if any
+    if (this.debugLogTimer) {
+      clearTimeout(this.debugLogTimer);
+    }
+
+    // Set new timer
+    this.debugLogTimer = setTimeout(() => {
+      void window.electronAPI.logDebug(
+        `Shortcut editing event caught - ctrlKey: ${event.ctrlKey}, ` +
+          `altKey: ${event.altKey}, shiftKey: ${event.shiftKey}, ` +
+          `metaKey: ${event.metaKey}, code: "${event.code}", key: "${event.key}", ` +
+          `generated shortcut: "${shortcut}", editing shortcut ID: ${editingId}`
+      );
+      this.debugLogTimer = null;
+    }, this.DEBUG_LOG_DEBOUNCE_MS);
   }
 
   buildShortcutFromEvent(event: KeyboardEvent): string | null {
@@ -230,6 +259,12 @@ export class ShortcutManagerService {
   }
 
   async saveShortcut(shortcutId: string): Promise<void> {
+    // Clear any pending debug log
+    if (this.debugLogTimer) {
+      clearTimeout(this.debugLogTimer);
+      this.debugLogTimer = null;
+    }
+
     const newValue = this.tempShortcutValue();
     const isGlobalShortcut = shortcutId === 'showHideApp';
 

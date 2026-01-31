@@ -5,7 +5,7 @@
     "name": "Marmotz",
     "email": "contact@marmotz.dev"
   },
-  "version": "0.1.2",
+  "version": "0.2.0",
   "main": "main.js",
   "private": true,
   "dependencies": {}

@@ -84,4 +84,4 @@ jobs:
         with:
           name: windows-build
           path: |
-            release/*/*.exe
+            release/*.exe

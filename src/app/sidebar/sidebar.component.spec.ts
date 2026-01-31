@@ -48,6 +48,8 @@ describe('SidebarComponent', () => {
     (window as any).electronAPI = {
       getAppConfig: vi.fn().mockResolvedValue(mockAppConfig),
       quitApp: vi.fn().mockResolvedValue(undefined),
+      getPlatform: () => Promise.resolve('linux'),
+      logDebug: vi.fn().mockResolvedValue(undefined),
     };
 
     await TestBed.configureTestingModule({
@@ -64,6 +66,8 @@ describe('SidebarComponent', () => {
 
   afterEach(() => {
     delete (window as any).electronAPI;
+    // Clear any pending timers to prevent logDebug errors after tests
+    vi.clearAllTimers();
   });
 
   it('should create', () => {

@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { AIService } from '@app/ai-services/interfaces';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { WebviewService } from './webview.service';
 
 describe('WebviewService', () => {
@@ -14,6 +14,7 @@ describe('WebviewService', () => {
     (window as any).electronAPI = {
       ...mockElectronAPI,
       getPlatform: () => Promise.resolve('linux'),
+      logDebug: vi.fn().mockResolvedValue(undefined),
     };
 
     TestBed.configureTestingModule({
@@ -22,6 +23,11 @@ describe('WebviewService', () => {
 
     service = TestBed.inject(WebviewService);
     await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+
+  afterEach(() => {
+    // Clear any pending timers to prevent logDebug errors after tests
+    vi.clearAllTimers();
   });
 
   it('should be created', () => {

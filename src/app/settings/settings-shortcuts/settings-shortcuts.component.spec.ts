@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ShortcutManagerService } from '@app/services/shortcut-manager.service';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SettingsShortcutsComponent } from './settings-shortcuts.component';
 
 describe('SettingsShortcutsComponent', () => {
@@ -45,6 +45,7 @@ describe('SettingsShortcutsComponent', () => {
       getPlatform: () => Promise.resolve('linux'),
       unregisterGlobalShortcuts: unregisterGlobalShortcutsSpy,
       registerGlobalShortcuts: registerGlobalShortcutsSpy,
+      logDebug: vi.fn().mockResolvedValue(undefined),
     };
 
     await TestBed.configureTestingModule({
@@ -58,6 +59,11 @@ describe('SettingsShortcutsComponent', () => {
 
     // Wait for ngOnInit to complete
     await fixture.whenStable();
+  });
+
+  afterEach(() => {
+    // Clear any pending timers to prevent logDebug errors after tests
+    vi.clearAllTimers();
   });
 
   it('should create', () => {
@@ -202,7 +208,7 @@ describe('SettingsShortcutsComponent', () => {
 
     const updatedShortcut = component.globalShortcuts().find((s) => s.id === shortcut.id);
     expect(component.hasValidationError(updatedShortcut!)).toBe(true);
-    expect(component.getValidationErrorMessage(updatedShortcut!)).toBe('Conflicts with: openSettings');
+    expect(shortcutManagerService.getValidationErrorMessage(updatedShortcut!)).toBe('Conflicts with: openSettings');
   });
 
   it('should not handle keydown when not editing', () => {

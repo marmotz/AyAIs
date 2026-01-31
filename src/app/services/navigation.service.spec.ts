@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { NavigationEnd, Router } from '@angular/router';
 import { Subject } from 'rxjs';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { NavigationService } from './navigation.service';
 
 describe('NavigationService', () => {
@@ -10,6 +10,12 @@ describe('NavigationService', () => {
   let routerEventsSubject: Subject<NavigationEnd>;
 
   beforeEach(() => {
+    // Mock window.electronAPI
+    (window as any).electronAPI = {
+      getPlatform: () => Promise.resolve('linux'),
+      logDebug: vi.fn().mockResolvedValue(undefined),
+    };
+
     routerEventsSubject = new Subject<NavigationEnd>();
 
     const routerMock = {
@@ -28,6 +34,12 @@ describe('NavigationService', () => {
 
     service = TestBed.inject(NavigationService);
     router = TestBed.inject(Router);
+  });
+
+  afterEach(() => {
+    delete (window as any).electronAPI;
+    // Clear any pending timers to prevent logDebug errors after tests
+    vi.clearAllTimers();
   });
 
   it('should be created', () => {

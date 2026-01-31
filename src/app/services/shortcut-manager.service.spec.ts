@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { Shortcut } from '@app/settings/settings-shortcuts/shortcut.model';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ShortcutManagerService } from './shortcut-manager.service';
 
 describe('ShortcutManagerService', () => {
@@ -43,10 +43,16 @@ describe('ShortcutManagerService', () => {
       getPlatform: () => Promise.resolve('linux'),
       unregisterGlobalShortcuts: unregisterGlobalShortcutsSpy,
       registerGlobalShortcuts: registerGlobalShortcutsSpy,
+      logDebug: vi.fn().mockResolvedValue(undefined),
     };
 
     TestBed.configureTestingModule({});
     service = TestBed.inject(ShortcutManagerService);
+  });
+
+  afterEach(() => {
+    // Clear any pending timers to prevent logDebug errors after tests
+    vi.clearAllTimers();
   });
 
   it('should be created', () => {

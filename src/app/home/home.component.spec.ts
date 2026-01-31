@@ -1,10 +1,13 @@
 import { TestBed } from '@angular/core/testing';
+import { Router } from '@angular/router';
 import { provideRouter } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Home } from './home.component';
 
 describe('Home', () => {
+  let router: Router;
+
   beforeEach(async () => {
     (window as any).electronAPI = {
       getLastService: vi.fn().mockResolvedValue(undefined),
@@ -32,6 +35,7 @@ describe('Home', () => {
       }),
       quitApp: vi.fn().mockResolvedValue(undefined),
       getPlatform: () => Promise.resolve('linux'),
+      logDebug: vi.fn().mockResolvedValue(undefined),
     };
 
     await TestBed.configureTestingModule({
@@ -39,10 +43,15 @@ describe('Home', () => {
       imports: [Home, TranslateModule.forRoot()],
       providers: [provideRouter([])],
     }).compileComponents();
+
+    router = TestBed.inject(Router);
+    vi.spyOn(router, 'navigate').mockResolvedValue(true);
   });
 
   afterEach(() => {
     delete (window as any).electronAPI;
+    // Clear any pending timers to prevent logDebug errors after tests
+    vi.clearAllTimers();
   });
 
   it('should create the component', () => {

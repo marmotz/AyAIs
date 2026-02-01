@@ -2,6 +2,7 @@ import { BrowserWindow } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AutoUpdaterService } from './auto-updater.service';
+import { ConfigManagerService } from './config-manager.service';
 
 vi.mock('electron-updater', () => ({
   autoUpdater: {
@@ -23,6 +24,7 @@ vi.mock('electron', () => ({
 describe('AutoUpdaterService', () => {
   let autoUpdaterService: AutoUpdaterService;
   let mockWindow: BrowserWindow;
+  let mockConfigManager: ConfigManagerService;
   const eventCallbacks: Map<string, Function> = new Map();
 
   beforeEach(() => {
@@ -35,11 +37,17 @@ describe('AutoUpdaterService', () => {
       },
     } as any;
 
+    mockConfigManager = {
+      getConfig: vi.fn(() => ({
+        updateChannel: 'stable',
+      })),
+    } as any;
+
     (autoUpdater.on as any).mockImplementation((event: string, callback: Function) => {
       eventCallbacks.set(event, callback);
     });
 
-    autoUpdaterService = new AutoUpdaterService();
+    autoUpdaterService = new AutoUpdaterService(mockConfigManager);
   });
 
   it('should set autoDownload to false', () => {

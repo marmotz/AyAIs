@@ -102,6 +102,14 @@ export class WindowManagerService {
     }
   }
 
+  public toggleWindow(): void {
+    if (this.isVisible()) {
+      this.hideWindow();
+    } else {
+      this.showWindow();
+    }
+  }
+
   public updateConfig(appConfig: AppConfig, saveCallback: () => void): void {
     this.appConfig = appConfig;
     this.saveConfigCallback = saveCallback;

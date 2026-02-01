@@ -1,0 +1,17 @@
+<div class="updates-content space-y-4">
+  <p class="text-sm">Choose which update channel you want to receive.</p>
+  <label class="flex flex-col gap-2">
+    <span class="text-sm font-medium">Update Channel</span>
+    <p-select
+      (ngModelChange)="updateChannel.set($event); onChange()"
+      [ngModel]="updateChannel()"
+      [options]="channels"
+      optionLabel="label"
+      optionValue="value"
+      placeholder="Select an update channel"
+    />
+  </label>
+  @if (updateChannel() === 'beta') {
+    <p class="text-danger text-xs">Beta versions may contain bugs and unstable features. Use at your own risk.</p>
+  }
+</div>

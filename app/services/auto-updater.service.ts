@@ -1,15 +1,18 @@
 import { app, BrowserWindow } from 'electron';
 import { autoUpdater } from 'electron-updater';
+import { ConfigManagerService } from './config-manager.service';
 
 export class AutoUpdaterService {
-  constructor() {
-    this.setupAutoUpdater();
+  constructor(private readonly configManager: ConfigManagerService) {
+    this.setupChannel();
   }
 
   public async checkForUpdates(): Promise<void> {
     if (!this.isUpdaterEnabled()) {
       return;
     }
+
+    this.updateChannel();
 
     try {
       await autoUpdater.checkForUpdatesAndNotify();
@@ -34,6 +37,7 @@ export class AutoUpdaterService {
   }
 
   public setupAutoUpdater(win?: BrowserWindow): void {
+    this.updateChannel();
     autoUpdater.autoDownload = false;
 
     autoUpdater.on('update-available', () => {
@@ -70,5 +74,20 @@ export class AutoUpdaterService {
     }
 
     return true;
+  }
+
+  private setupChannel(): void {
+    this.updateChannel();
+  }
+
+  private updateChannel(): void {
+    const config = this.configManager.getConfig();
+    const channel = config.updateChannel;
+
+    if (channel === 'beta') {
+      autoUpdater.channel = 'beta';
+    } else {
+      autoUpdater.channel = 'latest';
+    }
   }
 }

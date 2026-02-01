@@ -16,7 +16,7 @@ export function bootstrapApplication(serve: boolean): void {
   const windowManager = new WindowManagerService(configManager.getConfig());
   const shortcutManager = new ShortcutManagerService(configManager.getConfig(), windowManager);
   const trayManager = new TrayManagerService(windowManager);
-  const autoUpdater = new AutoUpdaterService();
+  const autoUpdater = new AutoUpdaterService(configManager);
 
   app.on('ready', () => {
     initializeApp(

@@ -11,6 +11,8 @@ export interface ShortcutConfig {
   };
 }
 
+export type UpdateChannel = 'stable' | 'beta';
+
 export interface AppConfig {
   position: {
     x: number;
@@ -22,4 +24,5 @@ export interface AppConfig {
   launchAtStartup: boolean;
   launchHidden: boolean;
   shortcuts: ShortcutConfig;
+  updateChannel: UpdateChannel;
 }

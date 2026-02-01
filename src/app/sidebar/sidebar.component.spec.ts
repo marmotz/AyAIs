@@ -33,6 +33,7 @@ describe('SidebarComponent', () => {
         },
       },
     },
+    updateChannel: 'stable',
   };
 
   beforeEach(async () => {

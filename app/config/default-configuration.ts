@@ -35,4 +35,5 @@ export const DEFAULT_CONFIGURATION: AppConfig = {
     width: 800,
     height: 600,
   },
+  updateChannel: 'stable',
 };

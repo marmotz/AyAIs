@@ -37,6 +37,7 @@ describe('ConfigManagerService', () => {
     expect(config).toBeDefined();
     expect(config.launchAtStartup).toBe(false);
     expect(config.launchHidden).toBe(false);
+    expect(config.updateChannel).toBe('stable');
   });
 
   it('should load configuration from file when it exists', () => {
@@ -96,5 +97,29 @@ describe('ConfigManagerService', () => {
 
     expect(config.launchAtStartup).toBe(true);
     expect(config.launchHidden).toBe(false);
+  });
+
+  it('should update update channel', () => {
+    const newConfig: Partial<AppConfig> = {
+      updateChannel: 'beta',
+    };
+
+    configManager.updateConfig(newConfig);
+    const config = configManager.getConfig();
+
+    expect(config.updateChannel).toBe('beta');
+  });
+
+  it('should fallback to default update channel when not provided', () => {
+    const mockConfig: Partial<AppConfig> = {
+      launchAtStartup: true,
+    };
+
+    vi.spyOn(fs, 'readFileSync').mockReturnValue(JSON.stringify(mockConfig));
+
+    configManager = new ConfigManagerService();
+    const config = configManager.getConfig();
+
+    expect(config.updateChannel).toBe('stable');
   });
 });

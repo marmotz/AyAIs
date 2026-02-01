@@ -23,6 +23,12 @@ export class TrayManagerService {
   public setupTray(): void {
     const trayMenu = Menu.buildFromTemplate([
       {
+        label: 'Show/Hide',
+        click: () => {
+          this.windowManager.toggleWindow();
+        },
+      },
+      {
         label: 'Preferences',
         click: () => {
           this.onShowPreferences();
@@ -41,11 +47,7 @@ export class TrayManagerService {
     this.tray.setContextMenu(trayMenu);
 
     this.tray.on('click', () => {
-      if (this.windowManager.isVisible()) {
-        this.windowManager.hideWindow();
-      } else {
-        this.windowManager.showWindow();
-      }
+      this.windowManager.toggleWindow();
     });
   }
 }

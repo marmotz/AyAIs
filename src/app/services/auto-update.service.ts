@@ -15,7 +15,9 @@ export class AutoUpdateService {
   }
 
   public downloadUpdate(): void {
+    this.messageService.clear();
     this.updateStatus.set('downloading');
+    this.showDownloadingToast();
     window.electronAPI.startUpdateDownload();
   }
 
@@ -29,8 +31,6 @@ export class AutoUpdateService {
     }
 
     window.electronAPI.onUpdateAvailable(() => {
-      console.log('Update available 🥳');
-
       this.updateStatus.set('available');
       this.showUpdateAvailableConfirmation();
     });
@@ -38,6 +38,21 @@ export class AutoUpdateService {
     window.electronAPI.onUpdateDownloaded(() => {
       this.updateStatus.set('downloaded');
       this.showUpdateDownloadedConfirmation();
+    });
+  }
+
+  private showDownloadingToast(): void {
+    this.messageService.add({
+      severity: 'info',
+      summary: 'Downloading Update',
+      detail:
+        'The update is being downloaded. The application will restart automatically once the download is complete.',
+      life: 0,
+      sticky: true,
+      closable: false,
+      data: {
+        key: 'downloading-toast',
+      },
     });
   }
 
@@ -67,25 +82,26 @@ export class AutoUpdateService {
   }
 
   private showUpdateDownloadedConfirmation(): void {
+    this.messageService.clear();
     this.messageService.add({
       severity: 'success',
       summary: 'Update Ready to Install',
       detail: 'The update has been downloaded successfully. The application needs to restart to apply the update.',
       life: 0,
-      key: 'update-toast',
       sticky: true,
       data: {
+        key: 'downloaded-toast',
         primaryAction: {
           label: 'Restart & Install',
-          icon: 'fa-refresh',
+          icon: ['fas', 'refresh'],
           command: () => this.quitAndInstall(),
         },
         secondaryAction: {
           label: 'Later',
-          icon: 'fa-clock',
+          icon: ['fas', 'clock'],
           command: () => {
             this.updateStatus.set('idle');
-            this.messageService.clear('update-toast');
+            this.messageService.clear();
           },
         },
       },

@@ -22,6 +22,15 @@ declare global {
       unregisterGlobalShortcuts: () => Promise<void>;
       registerGlobalShortcuts: () => Promise<void>;
       logDebug: (message: string) => Promise<void>;
+      isDevMode: () => Promise<boolean>;
+      sendDevShortcut: () => void;
+      onOpenDevPage: (callback: () => void) => void;
+      onUpdateAvailable: (callback: () => void) => void;
+      onUpdateDownloaded: (callback: () => void) => void;
+      startUpdateDownload: () => void;
+      quitAndInstall: () => void;
+      simulateUpdateAvailable: () => void;
+      simulateUpdateDownloaded: () => void;
     };
   }
 }

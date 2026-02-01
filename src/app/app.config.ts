@@ -5,6 +5,7 @@ import { routes } from '@app/app.routes';
 import { AyAIsPreset } from '@app/app.theme';
 import { provideTranslateService } from '@ngx-translate/core';
 import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { providePrimeNG } from 'primeng/config';
 
 export const appConfig: ApplicationConfig = {
@@ -25,5 +26,7 @@ export const appConfig: ApplicationConfig = {
         preset: AyAIsPreset,
       },
     }),
+    ConfirmationService,
+    MessageService,
   ],
 };

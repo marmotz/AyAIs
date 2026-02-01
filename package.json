@@ -7,7 +7,7 @@
     "name": "Marmotz",
     "email": "contact@marmotz.dev"
   },
-  "main": "app/main.js",
+  "main": "./dist/app/main.js",
   "scripts": {
     "postinstall": "electron-builder install-app-deps",
     "ng": "ng",
@@ -17,32 +17,44 @@
     "web:dev": "npm run build",
     "web:prod": "npm run build -- -c production",
     "electron": "electron",
-    "electron:serve-tsc": "tsc -p tsconfig.serve.json",
+    "electron:serve-tsc": "tsc -p app/tsconfig.json && npm run electron:copy-assets",
+    "electron:copy-assets": "copyfiles -f \"app/*.png\" dist/app/",
     "electron:serve": "wait-on tcp:4213 && npm run electron:serve-tsc && electron . --serve",
     "electron:local": "npm run web:dev && electron .",
-    "electron:build": "npm run web:prod && electron-builder build -c electron-builder.json --publish=never",
-    "test": "ng test --watch=false",
-    "test:watch": "ng test",
+    "electron:build": "rimraf dist && npm run web:prod && electron-builder build -c electron-builder.json --publish=always",
+    "test": "npm run test:angular && npm run test:electron",
+    "test:angular": "ng test --watch=false",
+    "test:angular:watch": "ng test",
+    "test:electron": "vitest run",
+    "test:electron:watch": "vitest",
+    "test:watch": "npm-run-all -p test:angular:watch test:electron:watch",
     "e2e": "npm run web:prod && playwright test -c e2e/playwright.config.ts e2e/",
     "e2e:show-trace": "playwright show-trace e2e/tracing/trace.zip",
     "version": "conventional-changelog -i CHANGELOG.md -s -r 0 && git add CHANGELOG.md",
     "lint": "prettier --check .",
-    "icon:generate": "cp resources/icon.png app/ && npx electron-icon-builder --input=./resources/icon.png --output=./src/assets"
+    "icon:generate": "cp resources/icon.png app/ && npx electron-icon-builder --input=./resources/icon.png --output=./src/assets",
+    "update:minor": "npx npm-check-updates -i -t minor",
+    "update:latest": "npx npm-check-updates -i -t latest"
   },
   "dependencies": {
-    "@angular/common": "21.1.1",
-    "@angular/compiler": "21.1.1",
-    "@angular/core": "21.1.1",
-    "@angular/forms": "21.1.1",
-    "@angular/language-service": "21.1.1",
-    "@angular/platform-browser": "21.1.1",
-    "@angular/platform-browser-dynamic": "21.1.1",
-    "@angular/router": "21.1.1",
+    "@angular/common": "21.1.2",
+    "@angular/compiler": "21.1.2",
+    "@angular/core": "21.1.2",
+    "@angular/forms": "21.1.2",
+    "@angular/language-service": "21.1.2",
+    "@angular/platform-browser": "21.1.2",
+    "@angular/platform-browser-dynamic": "21.1.2",
+    "@angular/router": "21.1.2",
     "@fontsource/inter": "5.2.8",
+    "@fortawesome/angular-fontawesome": "4.0.0",
+    "@fortawesome/fontawesome-svg-core": "7.1.0",
+    "@fortawesome/free-brands-svg-icons": "7.1.0",
+    "@fortawesome/free-solid-svg-icons": "7.1.0",
     "@primeuix/themes": "2.0.3",
     "@tailwindcss/postcss": "4.1.18",
+    "electron-updater": "6.8.2",
     "postcss": "8.5.6",
-    "primeng": "21.0.4",
+    "primeng": "21.1.1",
     "rxjs": "7.8.2",
     "tailwindcss": "4.1.18",
     "tailwindcss-primeui": "0.6.1",
@@ -50,27 +62,29 @@
     "zone.js": "0.16.0"
   },
   "devDependencies": {
-    "@angular/build": "21.1.1",
-    "@angular/cli": "21.1.1",
-    "@angular/compiler-cli": "21.1.1",
+    "@angular/build": "21.1.2",
+    "@angular/cli": "21.1.2",
+    "@angular/compiler-cli": "21.1.2",
     "@ngx-translate/core": "17.0.0",
     "@ngx-translate/http-loader": "17.0.0",
-    "@playwright/test": "1.58.0",
-    "@types/node": "22.19.1",
+    "@playwright/test": "1.58.1",
+    "@types/node": "22.19.7",
     "@vitest/browser-playwright": "4.0.18",
     "@vitest/coverage-v8": "4.0.18",
     "@vitest/ui": "4.0.18",
     "conventional-changelog": "7.1.1",
-    "electron": "39.2.5",
-    "electron-builder": "26.4.0",
+    "copyfiles": "2.4.1",
+    "electron": "39.4.0",
+    "electron-builder": "26.7.0",
     "electron-debug": "4.1.0",
     "electron-reloader": "1.2.3",
     "jsdom": "27.4.0",
     "npm-run-all": "4.1.5",
-    "playwright": "1.58.0",
+    "playwright": "1.58.1",
     "prettier": "^3.8.1",
     "prettier-plugin-organize-imports": "^4.3.0",
     "prettier-plugin-tailwindcss": "^0.7.2",
+    "rimraf": "6.1.2",
     "ts-node": "10.9.2",
     "typescript": "5.9.3",
     "vitest": "4.0.18",
@@ -83,5 +97,33 @@
   },
   "browserslist": [
     "chrome 140"
-  ]
+  ],
+  "build": {
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "marmotz",
+        "repo": "AyAIs"
+      }
+    ],
+    "linux": {
+      "target": [
+        "AppImage"
+      ]
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "publish": [
+        "github"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "deleteAppDataOnUninstall": false,
+      "perMachine": false
+    }
+  }
 }

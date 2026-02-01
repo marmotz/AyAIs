@@ -2,16 +2,16 @@
   <p class="text-sm">Configure how AyAIs starts on your computer.</p>
   <label class="flex items-center gap-3">
     <p-toggleswitch
-      [ngModel]="startupOnBoot()"
       (ngModelChange)="startupOnBoot.set($event); onToggle()"
+      [ngModel]="startupOnBoot()"
     />
 
     <span>Open AyAIs on startup</span>
   </label>
   <label class="flex items-center gap-3">
     <p-toggleswitch
-      [ngModel]="launchHidden()"
       (ngModelChange)="launchHidden.set($event); onToggle()"
+      [ngModel]="launchHidden()"
     />
     <span>Launch AyAIs minimized</span>
   </label>

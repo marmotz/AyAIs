@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "outDir": "./dist",
     "sourceMap": true,
     "declaration": false,
     "moduleResolution": "node",
@@ -15,6 +16,6 @@
       "@shared/*": ["shared/*"]
     }
   },
-  "include": ["app/*.ts"],
+  "include": ["app/**/*.ts", "shared/**/*.ts"],
   "exclude": ["node_modules", "**/*.spec.ts"]
 }

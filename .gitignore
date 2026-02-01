@@ -1,6 +1,6 @@
 /.angular
 /coverage
 /dist
-/e2e
 /node_modules
 /release
+/app/dist

@@ -10,25 +10,23 @@ import { Shortcut } from '../shortcut.model';
   templateUrl: './shortcut-input.component.html',
 })
 export class ShortcutInputComponent {
-  private readonly shortcutManager = inject(ShortcutManagerService);
-
   readonly shortcut = input.required<Shortcut>();
-
   readonly startEditing = output<Shortcut>();
+  private readonly shortcutManager = inject(ShortcutManagerService);
 
   getDisplayValue(): string {
     return this.shortcutManager.getDisplayValue(this.shortcut());
   }
 
-  isEditing(): boolean {
-    return this.shortcutManager.isEditing(this.shortcut().id);
+  getValidationErrorMessage(): string {
+    return this.shortcutManager.getValidationErrorMessage(this.shortcut());
   }
 
   hasValidationError(): boolean {
     return this.shortcutManager.hasValidationError(this.shortcut());
   }
 
-  getValidationErrorMessage(): string {
-    return this.shortcutManager.getValidationErrorMessage(this.shortcut());
+  isEditing(): boolean {
+    return this.shortcutManager.isEditing(this.shortcut().id);
   }
 }

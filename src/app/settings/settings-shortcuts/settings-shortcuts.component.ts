@@ -12,12 +12,8 @@ import { ShortcutInputComponent } from './shortcut-input/shortcut-input.componen
   imports: [CommonModule, FormsModule, ShortcutInputComponent],
 })
 export class SettingsShortcutsComponent implements OnInit {
-  private readonly elementRef = inject(ElementRef);
   protected readonly shortcutManager = inject(ShortcutManagerService);
-
-  ngOnInit(): void {
-    this.shortcutManager.loadShortcuts();
-  }
+  private readonly elementRef = inject(ElementRef);
 
   get globalShortcuts() {
     return this.shortcutManager.globalShortcuts;
@@ -25,23 +21,6 @@ export class SettingsShortcutsComponent implements OnInit {
 
   get internalShortcuts() {
     return this.shortcutManager.internalShortcuts;
-  }
-
-  async startEditing(shortcut: Shortcut): Promise<void> {
-    await this.shortcutManager.startEditing(shortcut);
-  }
-
-  isEditing(shortcutId: string): boolean {
-    return this.shortcutManager.isEditing(shortcutId);
-  }
-
-  hasValidationError(shortcut: Shortcut): boolean {
-    return this.shortcutManager.hasValidationError(shortcut);
-  }
-
-  @HostListener('document:keydown', ['$event'])
-  handleKeydown(event: KeyboardEvent): void {
-    this.shortcutManager.handleEditingKeydown(event);
   }
 
   @HostListener('document:click', ['$event'])
@@ -55,5 +34,26 @@ export class SettingsShortcutsComponent implements OnInit {
     if (!clickedInside) {
       this.shortcutManager.cancelEditing();
     }
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  handleKeydown(event: KeyboardEvent): void {
+    this.shortcutManager.handleEditingKeydown(event);
+  }
+
+  hasValidationError(shortcut: Shortcut): boolean {
+    return this.shortcutManager.hasValidationError(shortcut);
+  }
+
+  isEditing(shortcutId: string): boolean {
+    return this.shortcutManager.isEditing(shortcutId);
+  }
+
+  ngOnInit(): void {
+    this.shortcutManager.loadShortcuts();
+  }
+
+  async startEditing(shortcut: Shortcut): Promise<void> {
+    await this.shortcutManager.startEditing(shortcut);
   }
 }

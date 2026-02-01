@@ -39,11 +39,11 @@ describe('NavigationService', () => {
   });
 
   afterEach(() => {
+    // Clean up timers to prevent pending timers from firing after tests
     vi.runOnlyPendingTimers();
     vi.clearAllTimers();
     vi.useRealTimers();
-
-    delete (window as any).electronAPI;
+    // Don't delete the mock - the setup file will maintain it
   });
 
   it('should be created', () => {

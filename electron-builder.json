@@ -23,7 +23,7 @@
     }
   ],
   "win": {
-    "icon": "dist/renderer/assets/icons/win/icon.ico",
+    "icon": "dist/renderer/browser/assets/icons/win/icon.ico",
     "target": ["nsis"],
     "cscLink": "build/certificate.pfx"
   },
@@ -33,11 +33,11 @@
     "allowToChangeInstallationDirectory": true
   },
   "mac": {
-    "icon": "dist/renderer/assets/icons/mac/icon.icns",
+    "icon": "dist/renderer/browser/assets/icons/mac/icon.icns",
     "target": ["dmg"]
   },
   "linux": {
-    "icon": "dist/renderer/assets/icons/png/512x512.png",
+    "icon": "dist/renderer/browser/assets/icons/png/512x512.png",
     "target": ["AppImage"]
   }
 }

@@ -30,6 +30,8 @@ describe('SettingsStartupComponent', () => {
           },
         }),
       saveAppConfig: () => Promise.resolve(),
+      getPlatform: () => Promise.resolve('linux'),
+      logDebug: vi.fn().mockResolvedValue(undefined),
     };
 
     await TestBed.configureTestingModule({
@@ -43,5 +45,9 @@ describe('SettingsStartupComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  afterEach(() => {
+    // Don't delete the mock - the setup file will maintain it
   });
 });

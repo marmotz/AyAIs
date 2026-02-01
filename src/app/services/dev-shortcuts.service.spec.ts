@@ -34,6 +34,7 @@ describe('DevShortcutsService', () => {
 
     vi.clearAllMocks();
     mockElectronAPI.isDevMode.mockReset();
+    // Don't delete the mock - the setup file will maintain it
   });
 
   it('should be created', () => {

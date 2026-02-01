@@ -160,7 +160,7 @@ export class WindowManagerService {
       window.loadURL('http://localhost:4213');
       // window.webContents.openDevTools();
     } else {
-      let pathIndex = '../../../renderer/browser/index.html';
+      let pathIndex = '../../renderer/browser/index.html';
 
       if (fs.existsSync(path.join(__dirname, '../../../dist/renderer/browser/index.html'))) {
         pathIndex = '../../../dist/renderer/browser/index.html';

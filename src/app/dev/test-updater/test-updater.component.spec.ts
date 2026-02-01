@@ -12,6 +12,8 @@ describe('TestUpdaterComponent', () => {
   let fixture: ComponentFixture<TestUpdaterComponent>;
 
   const mockElectronAPI = {
+    getPlatform: () => Promise.resolve('linux'),
+    logDebug: vi.fn().mockResolvedValue(undefined),
     onUpdateAvailable: vi.fn(),
     onUpdateDownloaded: vi.fn(),
     startUpdateDownload: vi.fn(),
@@ -93,5 +95,9 @@ describe('TestUpdaterComponent', () => {
 
     newComponent.simulateUpdateAvailable();
     expect(mockAPI.simulateUpdateAvailable).not.toHaveBeenCalled();
+  });
+
+  afterEach(() => {
+    // Don't delete the mock - the setup file will maintain it
   });
 });

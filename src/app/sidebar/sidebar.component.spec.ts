@@ -72,8 +72,7 @@ describe('SidebarComponent', () => {
     vi.runAllTimers();
     vi.clearAllTimers();
     vi.useRealTimers();
-
-    delete (window as any).electronAPI;
+    // Don't delete the mock - the setup file will maintain it
   });
 
   it('should create', () => {

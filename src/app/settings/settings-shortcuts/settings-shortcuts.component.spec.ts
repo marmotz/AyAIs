@@ -64,6 +64,7 @@ describe('SettingsShortcutsComponent', () => {
   afterEach(() => {
     // Clear any pending timers to prevent logDebug errors after tests
     vi.clearAllTimers();
+    // Don't delete the mock - the setup file will maintain it
   });
 
   it('should create', () => {

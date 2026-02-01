@@ -7,6 +7,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from './app.component';
 
 const mockElectronAPI = {
+  getPlatform: () => Promise.resolve('linux'),
+  logDebug: vi.fn().mockResolvedValue(undefined),
   isDevMode: vi.fn().mockResolvedValue(false),
   onOpenDevPage: vi.fn(),
   sendDevShortcut: vi.fn(),
@@ -46,5 +48,6 @@ describe('AppComponent', () => {
   afterEach(() => {
     vi.clearAllMocks();
     mockElectronAPI.isDevMode.mockReset();
+    // Don't delete the mock - the setup file will maintain it
   });
 });

@@ -27,6 +27,7 @@ describe('WhatsnewComponent', () => {
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
 
+    expect(compiled.textContent).toContain('Version 0.3.0');
     expect(compiled.textContent).toContain('Version 0.2.0');
     expect(compiled.textContent).toContain('Version 0.1.2');
     expect(compiled.textContent).toContain('Version 0.1.1');
@@ -38,11 +39,12 @@ describe('WhatsnewComponent', () => {
     const compiled = fixture.nativeElement as HTMLElement;
 
     const versionHeaders = compiled.querySelectorAll('h3');
-    expect(versionHeaders.length).toBe(4);
-    expect(versionHeaders[0].textContent).toContain('0.2.0');
-    expect(versionHeaders[1].textContent).toContain('0.1.2');
-    expect(versionHeaders[2].textContent).toContain('0.1.1');
-    expect(versionHeaders[3].textContent).toContain('0.1.0');
+    expect(versionHeaders.length).toBe(5);
+    expect(versionHeaders[0].textContent).toContain('0.3.0');
+    expect(versionHeaders[1].textContent).toContain('0.2.0');
+    expect(versionHeaders[2].textContent).toContain('0.1.2');
+    expect(versionHeaders[3].textContent).toContain('0.1.1');
+    expect(versionHeaders[4].textContent).toContain('0.1.0');
   });
 
   it('should render category sections', () => {

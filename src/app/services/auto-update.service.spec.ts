@@ -16,6 +16,8 @@ describe('AutoUpdateService', () => {
     global.window = {
       ...global.window,
       electronAPI: {
+        getPlatform: () => Promise.resolve('linux'),
+        logDebug: vi.fn().mockResolvedValue(undefined),
         onUpdateAvailable: vi.fn(),
         onUpdateDownloaded: vi.fn(),
         startUpdateDownload: vi.fn(),
@@ -34,6 +36,7 @@ describe('AutoUpdateService', () => {
 
   afterEach(() => {
     vi.clearAllMocks();
+    // Don't delete the mock - the setup file will maintain it
   });
 
   it('should be created', () => {

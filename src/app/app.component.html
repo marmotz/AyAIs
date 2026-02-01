@@ -1,0 +1,55 @@
+<router-outlet />
+
+<p-toast
+  [baseZIndex]="10000"
+  position="bottom-right"
+>
+  <ng-template
+    let-message
+    pTemplate="message"
+  >
+    @if (message.data?.key === 'update-toast' || message.data?.key === 'downloaded-toast') {
+      <div class="flex flex-col gap-3">
+        <div class="align-items-center flex gap-3">
+          <div class="align-items-center flex gap-2">
+            <i [class]="'text-2xl ' + message.severity"></i>
+            <div class="flex flex-col">
+              <span class="text-lg font-semibold">{{ message.summary }}</span>
+              <span class="text-sm">{{ message.detail }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="flex w-full justify-center gap-10">
+          <p-button
+            (onClick)="message.data?.secondaryAction?.command()"
+            [label]="message.data?.secondaryAction?.label"
+            severity="secondary"
+            size="small"
+          >
+            @if (message.data?.secondaryAction?.icon) {
+              <fa-icon [icon]="message.data.secondaryAction.icon" />
+            }
+          </p-button>
+          <p-button
+            (onClick)="message.data?.primaryAction?.command()"
+            [label]="message.data?.primaryAction?.label"
+            [severity]="message.severity === 'success' ? 'success' : 'info'"
+            size="small"
+          >
+            @if (message.data?.primaryAction?.icon) {
+              <fa-icon [icon]="message.data.primaryAction.icon" />
+            }
+          </p-button>
+        </div>
+      </div>
+    } @else {
+      <div class="align-items-center flex gap-3">
+        <i [class]="'text-2xl ' + message.severity"></i>
+        <div class="flex flex-col">
+          <span class="font-semibold">{{ message.summary }}</span>
+          <span class="text-sm">{{ message.detail }}</span>
+        </div>
+      </div>
+    }
+  </ng-template>
+</p-toast>

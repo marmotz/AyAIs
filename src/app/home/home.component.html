@@ -1,14 +1,14 @@
 <div class="flex h-screen overflow-hidden">
   <app-sidebar
-    [selectedService]="selectedService()"
     (serviceSelected)="onServiceSelected($event)"
+    [selectedService]="selectedService()"
   />
-  <div class="relative flex flex-1 flex-col">
+  <div class="relative flex flex-1 flex-col bg-slate-50 dark:bg-slate-950">
     <div
       #webviewsContainer
-      class="absolute inset-0 h-full w-full"
       [class.invisible]="!isAiServicesRoute()"
       [class.size-0]="!isAiServicesRoute()"
+      class="absolute inset-0 h-full w-full"
     ></div>
 
     @if (isAiServicesRoute()) {

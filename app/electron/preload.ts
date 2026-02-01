@@ -17,4 +17,19 @@ contextBridge.exposeInMainWorld('electronAPI', {
   unregisterGlobalShortcuts: () => ipcRenderer.invoke('unregister-global-shortcuts'),
   registerGlobalShortcuts: () => ipcRenderer.invoke('register-global-shortcuts'),
   logDebug: (message: string) => ipcRenderer.invoke('log-debug', message),
+  isDevMode: () => ipcRenderer.invoke('is-dev-mode'),
+  sendDevShortcut: () => ipcRenderer.send('dev-shortcut'),
+  onOpenDevPage: (callback: () => void) => {
+    ipcRenderer.on('open-dev-page', () => callback());
+  },
+  onUpdateAvailable: (callback: () => void) => {
+    ipcRenderer.on('update_available', () => callback());
+  },
+  onUpdateDownloaded: (callback: () => void) => {
+    ipcRenderer.on('update_downloaded', () => callback());
+  },
+  startUpdateDownload: () => ipcRenderer.send('start_download'),
+  quitAndInstall: () => ipcRenderer.send('restart_app'),
+  simulateUpdateAvailable: () => ipcRenderer.send('simulate-update-available'),
+  simulateUpdateDownloaded: () => ipcRenderer.send('simulate-update-downloaded'),
 });

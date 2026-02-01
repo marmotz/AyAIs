@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import * as PATH from 'path';
-import { _electron as electron, BrowserContext, ElectronApplication, Page } from 'playwright';
+import { BrowserContext, _electron as electron, ElectronApplication, Page } from 'playwright';
 
 test.describe('Check Home Page', () => {
   let app: ElectronApplication;
@@ -9,7 +9,7 @@ test.describe('Check Home Page', () => {
 
   test.beforeAll(async () => {
     app = await electron.launch({
-      args: [PATH.join(__dirname, '../app/main.js'), PATH.join(__dirname, '../app/package.json')],
+      args: [PATH.join(__dirname, '../dist/app/main.js'), PATH.join(__dirname, '../app/package.json')],
     });
     context = app.context();
     await context.tracing.start({ screenshots: true, snapshots: true });
@@ -39,15 +39,8 @@ test.describe('Check Home Page', () => {
     );
 
     expect(windowState.isVisible).toBeTruthy();
-    // expect(windowState.isDevToolsOpened).toBeFalsy();
     expect(windowState.isCrashed).toBeFalsy();
   });
-
-  // test('Check Home Page design', async ({ browserName}) => {
-  //   // Uncomment if you change the design of Home Page in order to create a new screenshot
-  //   const screenshot = await firstWindow.screenshot({ path: '/tmp/home.png' });
-  //   expect(screenshot).toMatchSnapshot(`home-${browserName}.png`);
-  // });
 
   test.afterAll(async () => {
     await context.tracing.stop({ path: 'e2e/tracing/trace.zip' });

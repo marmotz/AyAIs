@@ -25,7 +25,7 @@
           "builder": "@angular/build:application",
           "options": {
             "outputPath": {
-              "base": "dist"
+              "base": "dist/renderer"
             },
             "index": "src/index.html",
             "polyfills": ["zone.js"],

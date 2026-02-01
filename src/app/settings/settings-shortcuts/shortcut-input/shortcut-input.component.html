@@ -1,15 +1,15 @@
 <div class="flex flex-col gap-1">
   <input
-    pInputText
-    type="text"
-    readonly
-    [value]="getDisplayValue()"
     (click)="startEditing.emit(shortcut())"
+    [class.bg-danger-50]="hasValidationError()"
     [class.ring-2]="isEditing() || hasValidationError()"
     [class.ring-danger-500]="hasValidationError()"
-    [class.bg-danger-50]="hasValidationError()"
     [class.text-danger-600]="hasValidationError()"
+    [value]="getDisplayValue()"
     class="w-48 text-center font-mono text-sm transition-colors"
+    pInputText
+    readonly
+    type="text"
   />
   @if (isEditing()) {
     <div class="bg-primary-100 dark:bg-primary-900 text-primary rounded-xl px-4 py-2 text-center text-xs font-medium">

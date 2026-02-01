@@ -1,0 +1,23 @@
+<div class="flex h-full items-center p-4">
+  <p-card
+    header="Developer Tools"
+    styleClass="mx-auto w-full max-w-2xl"
+  >
+    <div class="flex flex-col gap-4">
+      <div class="text-surface-600 dark:text-surface-400 text-sm">
+        <p class="mb-2 font-semibold">Development Mode</p>
+        <p>This page contains tools for development and testing.</p>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <p-button
+          (onClick)="goToUpdaterTest()"
+          severity="info"
+        >
+          <fa-icon [icon]="['fas', 'refresh']" />
+          Auto-Updater Test
+        </p-button>
+      </div>
+    </div>
+  </p-card>
+</div>

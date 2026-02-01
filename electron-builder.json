@@ -2,6 +2,11 @@
   "asar": true,
   "productName": "AyAIs",
   "appId": "dev.marmotz.ayais",
+  "publish": {
+    "provider": "github",
+    "owner": "marmotz",
+    "repo": "AyAIs"
+  },
   "directories": {
     "output": "release/"
   },
@@ -11,27 +16,28 @@
     "!*.map",
     "!package.json",
     "!package-lock.json",
+    "dist/**/*",
     {
       "from": "../dist",
       "filter": ["**/*"]
     }
   ],
   "win": {
-    "icon": "dist/browser/assets/icons/win/icon.ico",
+    "icon": "dist/renderer/assets/icons/win/icon.ico",
     "target": ["nsis"],
     "cscLink": "build/certificate.pfx"
   },
   "nsis": {
-    "artifactName": "AyAis-setup-${version}.${ext}",
+    "artifactName": "Ayais-setup-${version}.${ext}",
     "oneClick": false,
     "allowToChangeInstallationDirectory": true
   },
   "mac": {
-    "icon": "dist/browser/assets/icons/mac/icon.icns",
+    "icon": "dist/renderer/assets/icons/mac/icon.icns",
     "target": ["dmg"]
   },
   "linux": {
-    "icon": "dist/browser/assets/icons/png/512x512.png",
+    "icon": "dist/renderer/assets/icons/png/512x512.png",
     "target": ["AppImage"]
   }
 }

@@ -18,13 +18,9 @@ export class WebviewService {
     void this.initializePlatform();
   }
 
-  private async initializePlatform(): Promise<void> {
-    const platform = await window.electronAPI.getPlatform();
-    this.isMac = platform === 'darwin';
-  }
-
   async createWebview(service: AIService) {
     const webview: WebviewTag = document.createElement('webview') as any;
+    webview.id = `webview-${service.name.toLowerCase()}`;
     webview.style.display = 'flex';
     webview.partition = `persist:${service.name}`;
     webview.spellcheck = true;
@@ -133,5 +129,10 @@ export class WebviewService {
     this.lastShortcutTime = now;
 
     this.shortcutCapturedSubject.next(shortcut);
+  }
+
+  private async initializePlatform(): Promise<void> {
+    const platform = await window.electronAPI.getPlatform();
+    this.isMac = platform === 'darwin';
   }
 }

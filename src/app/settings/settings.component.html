@@ -1,19 +1,25 @@
-<p-card
-  class="dark:bg-primary mx-auto mt-6 max-w-2xl"
-  header="Settings"
->
-  <p-tabs value="shortcuts">
-    <p-tablist>
-      <p-tab value="startup">Startup</p-tab>
-      <p-tab value="shortcuts">Shortcuts</p-tab>
-    </p-tablist>
-    <p-tabpanels class="max-h-[calc(100vh-12rem)] overflow-y-auto">
-      <p-tabpanel value="startup">
-        <app-settings-startup />
-      </p-tabpanel>
-      <p-tabpanel value="shortcuts">
-        <app-settings-shortcuts />
-      </p-tabpanel>
-    </p-tabpanels>
-  </p-tabs>
-</p-card>
+<div class="h-screen overflow-y-auto">
+  <p-card
+    class="dark:bg-primary mx-auto mt-6 max-w-2xl"
+    header="Settings"
+  >
+    <p-tabs value="startup">
+      <p-tablist>
+        <p-tab value="startup">Startup</p-tab>
+        <p-tab value="shortcuts">Shortcuts</p-tab>
+        <p-tab value="updates">Updates</p-tab>
+      </p-tablist>
+      <p-tabpanels>
+        <p-tabpanel value="startup">
+          <app-settings-startup />
+        </p-tabpanel>
+        <p-tabpanel value="shortcuts">
+          <app-settings-shortcuts />
+        </p-tabpanel>
+        <p-tabpanel value="updates">
+          <app-settings-updates />
+        </p-tabpanel>
+      </p-tabpanels>
+    </p-tabs>
+  </p-card>
+</div>

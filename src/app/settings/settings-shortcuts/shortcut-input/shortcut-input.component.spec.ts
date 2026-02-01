@@ -1,9 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { ShortcutInputComponent } from './shortcut-input.component';
-import { Shortcut } from '../shortcut.model';
 import { ShortcutManagerService } from '@app/services/shortcut-manager.service';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { Shortcut } from '../shortcut.model';
+import { ShortcutInputComponent } from './shortcut-input.component';
 
 describe('ShortcutInputComponent', () => {
   let component: ShortcutInputComponent;

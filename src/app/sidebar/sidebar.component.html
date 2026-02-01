@@ -3,9 +3,9 @@
     class="flex flex-col items-center rounded-b-xl border-blue-300 bg-radial from-blue-100 via-blue-100 to-blue-300 pb-2 shadow-lg"
   >
     <img
-      src="assets/icons/png/64x64.png"
       alt="Logo"
       class="size-16"
+      src="assets/icons/png/64x64.png"
     />
     <div
       class="w-full cursor-default text-center text-xl font-bold text-slate-600"
@@ -17,16 +17,16 @@
   <nav class="flex flex-1 flex-col gap-3 p-3">
     @for (service of services; track service.name; let i = $index) {
       <button
-        class="group relative size-16 cursor-pointer rounded-2xl border-none p-2 text-white transition-colors duration-200 hover:bg-slate-500/10 focus:outline-none"
         (click)="onServiceClick(service)"
         [title]="getServiceTitle(service, i)"
+        class="group relative size-16 cursor-pointer rounded-2xl border-none p-2 text-white transition-colors duration-200 hover:bg-slate-500/10 focus:outline-none"
       >
         <img
-          [src]="service.icon"
           [alt]="service.name"
-          class="size-12 group-hover:opacity-100 group-hover:grayscale-0"
           [class.grayscale]="selectedService()?.name !== service.name"
           [class.opacity-50]="selectedService()?.name !== service.name"
+          [src]="service.icon"
+          class="size-12 group-hover:opacity-100 group-hover:grayscale-0"
         />
         @if (appConfig()?.shortcuts?.internalShortcuts?.services?.[service.name]) {
           <span class="absolute right-0 bottom-0 rounded bg-slate-600 px-1 text-xs text-white">
@@ -38,48 +38,48 @@
 
     @if (isAiServicesRoute() && selectedIndex() !== -1) {
       <div
-        class="absolute h-16 w-1 translate-x-18 rounded bg-slate-500 text-sm whitespace-nowrap text-white transition-transform duration-500"
         [style]="{
           transform: `translateY(calc(var(--spacing) * 19 * ${selectedIndex()})`,
         }"
+        class="absolute h-16 w-1 translate-x-18 rounded bg-slate-500 text-sm whitespace-nowrap text-white transition-transform duration-500"
       ></div>
     }
   </nav>
 
   <div class="mb-3 flex w-full flex-col items-center gap-3">
     <button
-      class="group relative size-12 cursor-pointer rounded-2xl border-none p-2 text-white transition-colors duration-200 hover:bg-slate-500/10 focus:outline-none"
       (click)="openWhatsNew()"
+      class="group relative size-12 cursor-pointer rounded-2xl border-none p-2 text-white transition-colors duration-200 hover:bg-slate-500/10 focus:outline-none"
       title="What's new"
     >
       <img
-        src="assets/icons/whatsnew.svg"
         alt="What's new"
         class="size-8 group-hover:opacity-100"
+        src="assets/icons/whatsnew.svg"
       />
     </button>
 
     <button
-      class="group relative mt-auto size-12 cursor-pointer rounded-2xl border-none p-2 text-white transition-colors duration-200 hover:bg-slate-500/10 focus:outline-none"
       (click)="isAiServicesRoute() ? openSettings() : openAiServices()"
       [title]="getSettingsTitle()"
+      class="group relative mt-auto size-12 cursor-pointer rounded-2xl border-none p-2 text-white transition-colors duration-200 hover:bg-slate-500/10 focus:outline-none"
     >
       <img
-        src="assets/icons/settings.svg"
         alt="Settings"
         class="size-8 group-hover:opacity-100"
+        src="assets/icons/settings.svg"
       />
     </button>
 
     <button
-      class="group relative size-12 cursor-pointer rounded-2xl border-none p-2 text-white transition-colors duration-200 hover:bg-slate-500/10 focus:outline-none"
       (click)="quitApp()"
       [title]="getQuitTitle()"
+      class="group relative size-12 cursor-pointer rounded-2xl border-none p-2 text-white transition-colors duration-200 hover:bg-slate-500/10 focus:outline-none"
     >
       <img
-        src="assets/icons/exit.svg"
         alt="Quit"
         class="size-8 group-hover:opacity-100"
+        src="assets/icons/exit.svg"
       />
     </button>
 
@@ -91,12 +91,12 @@
   </div>
 
   <p-dialog
-    [visible]="whatsNewVisible()"
     (visibleChange)="whatsNewVisible.set($event)"
     [modal]="true"
     [style]="{ width: '50vw' }"
-    dismissableMask
+    [visible]="whatsNewVisible()"
     closeOnEscape
+    dismissableMask
   >
     <ng-template pTemplate="header">
       <h2 class="m-0 text-xl font-semibold">What's new</h2>

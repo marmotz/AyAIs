@@ -9,6 +9,14 @@ export const routes: Routes = [
         path: 'settings',
         loadComponent: () => import('@app/settings/settings.component').then((m) => m.SettingsComponent),
       },
+      {
+        path: 'dev',
+        loadComponent: () => import('@app/dev/dev-page.component').then((m) => m.DevPageComponent),
+      },
+      {
+        path: 'dev/test-updater',
+        loadComponent: () => import('@app/dev/test-updater/test-updater.component').then((m) => m.TestUpdaterComponent),
+      },
     ],
   },
   { path: '', redirectTo: '/app', pathMatch: 'full' },

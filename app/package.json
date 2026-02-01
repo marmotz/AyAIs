@@ -6,7 +6,7 @@
     "email": "contact@marmotz.dev"
   },
   "version": "0.2.0",
-  "main": "main.js",
+  "main": "./app/main.js",
   "private": true,
   "dependencies": {}
 }

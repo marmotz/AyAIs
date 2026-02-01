@@ -1,11 +1,11 @@
 {
   "name": "ayais-electron",
+  "version": "0.3.0-beta.0",
   "description": "AyAIs (All your AIs) is a cross-platform desktop app with Electron for AI website integration",
   "author": {
     "name": "Marmotz",
     "email": "contact@marmotz.dev"
   },
-  "version": "0.2.0",
   "main": "./app/main.js",
   "private": true,
   "dependencies": {}

@@ -1,5 +1,5 @@
 import { AppConfig } from '@shared/types/app-config.interface';
-import { app, BrowserWindow, screen } from 'electron';
+import { BrowserWindow, screen } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
 import { IconService } from './icon.service';
@@ -158,22 +158,22 @@ export class WindowManagerService {
       });
 
       window.loadURL('http://localhost:4213');
-      window.webContents.openDevTools();
+      // window.webContents.openDevTools();
     } else {
-      let pathIndex = './renderer/browser/index.html';
+      let pathIndex = '../../../renderer/browser/index.html';
 
-      if (fs.existsSync(path.join(__dirname, '../../dist/renderer/browser/index.html'))) {
-        pathIndex = '../../dist/renderer/browser/index.html';
+      if (fs.existsSync(path.join(__dirname, '../../../dist/renderer/browser/index.html'))) {
+        pathIndex = '../../../dist/renderer/browser/index.html';
       }
 
-      const fullPath = path.join(__dirname, '../..', pathIndex);
+      const fullPath = path.join(__dirname, pathIndex);
       const url = `file://${path.resolve(fullPath).replace(/\\/g, '/')}`;
 
       window.loadURL(url);
 
-      if (!app.isPackaged) {
-        window.webContents.openDevTools();
-      }
+      // if (!app.isPackaged) {
+      //   window.webContents.openDevTools();
+      // }
     }
   }
 }

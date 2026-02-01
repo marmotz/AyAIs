@@ -10,9 +10,12 @@ describe('DevShortcutsService', () => {
     isDevMode: vi.fn().mockResolvedValue(false),
     onOpenDevPage: vi.fn(),
     sendDevShortcut: vi.fn(),
+    logDebug: vi.fn().mockResolvedValue(undefined),
   };
 
   beforeEach(() => {
+    vi.useFakeTimers();
+
     global.window = {
       ...global.window,
       electronAPI: mockElectronAPI,
@@ -25,6 +28,10 @@ describe('DevShortcutsService', () => {
   });
 
   afterEach(() => {
+    vi.runAllTimers();
+    vi.clearAllTimers();
+    vi.useRealTimers();
+
     vi.clearAllMocks();
     mockElectronAPI.isDevMode.mockReset();
   });

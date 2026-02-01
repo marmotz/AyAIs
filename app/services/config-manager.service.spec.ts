@@ -1,5 +1,7 @@
 import { AppConfig } from '@shared/types/app-config.interface';
 import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConfigManagerService } from './config-manager.service';
 
@@ -14,13 +16,13 @@ vi.mock('fs', async (importOriginal) => {
 
 vi.mock('electron', () => ({
   app: {
-    getPath: vi.fn(() => '/tmp/test'),
+    getPath: vi.fn(() => path.join(os.tmpdir(), 'test')),
   },
 }));
 
 describe('ConfigManagerService', () => {
   let configManager: ConfigManagerService;
-  const mockConfigPath = '/tmp/test/config.json';
+  const mockConfigPath = path.join(os.tmpdir(), 'test', 'config.json');
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -83,7 +85,11 @@ describe('ConfigManagerService', () => {
 
     configManager.saveConfig();
 
-    expect(writeFileSyncSpy).toHaveBeenCalledWith(mockConfigPath, JSON.stringify(configManager.getConfig(), null, 2));
+    const expectedPath = path.normalize(mockConfigPath);
+    const actualPath = path.normalize(writeFileSyncSpy.mock.calls[0][0] as string);
+
+    expect(actualPath).toBe(expectedPath);
+    expect(writeFileSyncSpy).toHaveBeenCalledWith(expectedPath, JSON.stringify(configManager.getConfig(), null, 2));
   });
 
   it('should update configuration', () => {

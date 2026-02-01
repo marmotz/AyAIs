@@ -20,6 +20,7 @@ export class WebviewService {
 
   async createWebview(service: AIService) {
     const webview: WebviewTag = document.createElement('webview') as any;
+    webview.id = `webview-${service.name.toLowerCase()}`;
     webview.style.display = 'flex';
     webview.partition = `persist:${service.name}`;
     webview.spellcheck = true;

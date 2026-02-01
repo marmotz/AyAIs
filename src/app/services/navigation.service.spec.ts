@@ -10,6 +10,8 @@ describe('NavigationService', () => {
   let routerEventsSubject: Subject<NavigationEnd>;
 
   beforeEach(() => {
+    vi.useFakeTimers();
+
     // Mock window.electronAPI
     (window as any).electronAPI = {
       getPlatform: () => Promise.resolve('linux'),
@@ -37,9 +39,11 @@ describe('NavigationService', () => {
   });
 
   afterEach(() => {
-    delete (window as any).electronAPI;
-    // Clear any pending timers to prevent logDebug errors after tests
+    vi.runOnlyPendingTimers();
     vi.clearAllTimers();
+    vi.useRealTimers();
+
+    delete (window as any).electronAPI;
   });
 
   it('should be created', () => {

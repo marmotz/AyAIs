@@ -41,6 +41,7 @@ vi.mock('./window-manager.service', () => ({
     isVisible: vi.fn(),
     hideWindow: vi.fn(),
     setQuitting: vi.fn(),
+    toggleWindow: vi.fn(),
   })),
 }));
 
@@ -51,13 +52,13 @@ describe('TrayManagerService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    // Create mock window manager directly
     windowManager = {
       showWindow: vi.fn(),
       getWindow: vi.fn(),
       isVisible: vi.fn(),
       hideWindow: vi.fn(),
       setQuitting: vi.fn(),
+      toggleWindow: vi.fn(),
     };
 
     trayManager = new TrayManagerService(windowManager as any);
@@ -67,6 +68,10 @@ describe('TrayManagerService', () => {
     trayManager.setupTray();
 
     expect(Menu.buildFromTemplate).toHaveBeenCalledWith([
+      {
+        label: 'Show/Hide',
+        click: expect.any(Function),
+      },
       {
         label: 'Preferences',
         click: expect.any(Function),
@@ -80,11 +85,20 @@ describe('TrayManagerService', () => {
     expect(globalMockTray.setContextMenu).toHaveBeenCalledWith([]);
   });
 
-  it('should call onShowPreferences when preferences is clicked', () => {
+  it('should call toggleWindow when Show/Hide is clicked', () => {
     trayManager.setupTray();
 
     const menuTemplate = (Menu.buildFromTemplate as any).mock.calls[0][0];
     menuTemplate[0].click();
+
+    expect(windowManager.toggleWindow).toHaveBeenCalled();
+  });
+
+  it('should call onShowPreferences when preferences is clicked', () => {
+    trayManager.setupTray();
+
+    const menuTemplate = (Menu.buildFromTemplate as any).mock.calls[0][0];
+    menuTemplate[1].click();
 
     expect(windowManager.showWindow).toHaveBeenCalled();
   });
@@ -93,29 +107,18 @@ describe('TrayManagerService', () => {
     trayManager.setupTray();
 
     const menuTemplate = (Menu.buildFromTemplate as any).mock.calls[0][0];
-    menuTemplate[1].click();
+    menuTemplate[2].click();
 
     expect(windowManager.setQuitting).toHaveBeenCalledWith(true);
     expect(app.quit).toHaveBeenCalled();
   });
 
-  it('should show window when tray is clicked and window is hidden', () => {
-    vi.mocked(windowManager.isVisible).mockReturnValue(false);
+  it('should call toggleWindow when tray is clicked', () => {
     trayManager.setupTray();
 
     const clickHandler = globalMockTray.on.mock.calls[0][1];
     clickHandler();
 
-    expect(windowManager.showWindow).toHaveBeenCalled();
-  });
-
-  it('should hide window when tray is clicked and window is visible', () => {
-    vi.mocked(windowManager.isVisible).mockReturnValue(true);
-    trayManager.setupTray();
-
-    const clickHandler = globalMockTray.on.mock.calls[0][1];
-    clickHandler();
-
-    expect(windowManager.hideWindow).toHaveBeenCalled();
+    expect(windowManager.toggleWindow).toHaveBeenCalled();
   });
 });

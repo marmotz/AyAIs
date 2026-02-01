@@ -37,6 +37,8 @@ describe('SidebarComponent', () => {
   };
 
   beforeEach(async () => {
+    vi.useFakeTimers();
+
     mockRouter = {
       navigate: vi.fn(),
     } as unknown as Router;
@@ -66,9 +68,12 @@ describe('SidebarComponent', () => {
   });
 
   afterEach(() => {
-    delete (window as any).electronAPI;
-    // Clear any pending timers to prevent logDebug errors after tests
+    // Run all timers including future ones to clean up debounced debug logs
+    vi.runAllTimers();
     vi.clearAllTimers();
+    vi.useRealTimers();
+
+    delete (window as any).electronAPI;
   });
 
   it('should create', () => {

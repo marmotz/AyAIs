@@ -1,4 +1,6 @@
 import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { DebugLoggerService } from './debug-logger.service';
 
@@ -17,7 +19,7 @@ vi.mock('fs', async (importOriginal) => {
 
 vi.mock('electron', () => ({
   app: {
-    getPath: vi.fn(() => '/tmp/test'),
+    getPath: vi.fn(() => path.join(os.tmpdir(), 'test')),
   },
 }));
 
@@ -35,7 +37,11 @@ describe('DebugLoggerService', () => {
 
     debugLogger.log('Test message');
 
-    expect(mkdirSpy).toHaveBeenCalledWith('/tmp/test/debugs', { recursive: true });
+    const expectedPath = path.join(os.tmpdir(), 'test', 'debugs');
+    const actualPath = path.normalize(mkdirSpy.mock.calls[0][0] as string);
+
+    expect(actualPath).toBe(expectedPath);
+    expect(mkdirSpy).toHaveBeenCalledWith(expectedPath, { recursive: true });
   });
 
   it('should append log entry to file', () => {

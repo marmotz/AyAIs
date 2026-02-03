@@ -109,10 +109,6 @@ export class WebviewService {
           if (keys.length > 0) {
             const shortcut = keys.join('+');
 
-            // Prevent the webview from handling the shortcut
-            e.preventDefault();
-            e.stopPropagation();
-
             // Send the shortcut to the main process
             console.log('AYAIS_SHORTCUT:' + shortcut);
           }

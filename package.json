@@ -21,7 +21,7 @@
     "electron:copy-assets": "copyfiles -f \"app/*.png\" dist/app/",
     "electron:serve": "wait-on tcp:4213 && npm run electron:serve-tsc && electron . --serve",
     "electron:local": "npm run web:dev && electron .",
-    "electron:build": "rimraf dist && npm run web:prod && electron-builder build -c electron-builder.json --publish=never",
+    "electron:build": "rimraf dist && npm run web:prod && node build-electron.js",
     "test": "npm run test:angular && npm run test:electron",
     "test:angular": "ng test --watch=false",
     "test:angular:watch": "ng test",

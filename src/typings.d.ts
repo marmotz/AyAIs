@@ -31,6 +31,7 @@ declare global {
       quitAndInstall: () => void;
       simulateUpdateAvailable: () => void;
       simulateUpdateDownloaded: () => void;
+      notifyRendererReady: () => void;
     };
   }
 }

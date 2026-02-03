@@ -20,6 +20,7 @@ describe('TestUpdaterComponent', () => {
     quitAndInstall: vi.fn(),
     simulateUpdateAvailable: vi.fn(),
     simulateUpdateDownloaded: vi.fn(),
+    notifyRendererReady: vi.fn(),
   };
 
   beforeEach(async () => {

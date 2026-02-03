@@ -12,6 +12,9 @@ const mockElectronAPI = {
   isDevMode: vi.fn().mockResolvedValue(false),
   onOpenDevPage: vi.fn(),
   sendDevShortcut: vi.fn(),
+  onUpdateAvailable: vi.fn(),
+  onUpdateDownloaded: vi.fn(),
+  notifyRendererReady: vi.fn(),
 };
 
 describe('AppComponent', () => {

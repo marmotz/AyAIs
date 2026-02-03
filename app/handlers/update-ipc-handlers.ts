@@ -11,6 +11,10 @@ export function setupUpdateIPCHandlers(autoUpdater: AutoUpdaterService, windowMa
     autoUpdater.quitAndInstall();
   });
 
+  ipcMain.on('renderer-ready', async () => {
+    await autoUpdater.checkForUpdates();
+  });
+
   ipcMain.on('simulate-update-available', () => {
     console.log('Simulate an "update available" event');
 

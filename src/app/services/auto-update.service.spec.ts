@@ -24,6 +24,7 @@ describe('AutoUpdateService', () => {
         quitAndInstall: vi.fn(),
         simulateUpdateAvailable: vi.fn(),
         simulateUpdateDownloaded: vi.fn(),
+        notifyRendererReady: vi.fn(),
       },
     } as any;
 

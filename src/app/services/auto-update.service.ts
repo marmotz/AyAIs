@@ -39,6 +39,8 @@ export class AutoUpdateService {
       this.updateStatus.set('downloaded');
       this.showUpdateDownloadedConfirmation();
     });
+
+    window.electronAPI.notifyRendererReady();
   }
 
   private showDownloadingToast(): void {

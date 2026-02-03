@@ -49,7 +49,6 @@ export function initializeApp(
 
     shortcutManager.setupShortcuts();
     autoUpdater.setupAutoUpdater(win);
-    await autoUpdater.checkForUpdates();
   }, 400);
 
   Menu.setApplicationMenu(null);

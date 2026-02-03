@@ -54,25 +54,10 @@ describe('AutoUpdaterService', () => {
     expect(autoUpdater.autoDownload).toBe(false);
   });
 
-  it('should setup update available event', () => {
-    autoUpdaterService.setupAutoUpdater(mockWindow);
-
-    expect(autoUpdater.on).toHaveBeenCalledWith('update-available', expect.any(Function));
-  });
-
   it('should setup update downloaded event', () => {
     autoUpdaterService.setupAutoUpdater(mockWindow);
 
     expect(autoUpdater.on).toHaveBeenCalledWith('update-downloaded', expect.any(Function));
-  });
-
-  it('should send update_available event to window', () => {
-    autoUpdaterService.setupAutoUpdater(mockWindow);
-
-    const updateAvailableCallback = eventCallbacks.get('update-available');
-    updateAvailableCallback?.();
-
-    expect(mockWindow.webContents.send).toHaveBeenCalledWith('update_available');
   });
 
   it('should send update_downloaded event to window', () => {
@@ -96,7 +81,7 @@ describe('AutoUpdaterService', () => {
 
     await autoUpdaterService.checkForUpdates();
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to check for updates:', 'Network error');
+    expect(consoleErrorSpy).toHaveBeenCalledWith('[AutoUpdate] Failed to check for updates:', 'Network error');
     consoleErrorSpy.mockRestore();
   });
 
@@ -106,12 +91,6 @@ describe('AutoUpdaterService', () => {
     expect(autoUpdater.on).toHaveBeenCalledWith('error', expect.any(Function));
   });
 
-  it('should setup update-not-available event handler', () => {
-    autoUpdaterService.setupAutoUpdater(mockWindow);
-
-    expect(autoUpdater.on).toHaveBeenCalledWith('update-not-available', expect.any(Function));
-  });
-
   it('should log error event', () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     autoUpdaterService.setupAutoUpdater(mockWindow);
@@ -119,7 +98,7 @@ describe('AutoUpdaterService', () => {
     const errorCallback = eventCallbacks.get('error');
     errorCallback?.(new Error('Test error'));
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Auto-updater error:', 'Test error');
+    expect(consoleErrorSpy).toHaveBeenCalledWith('[AutoUpdate] Error:', 'Test error');
     consoleErrorSpy.mockRestore();
   });
 

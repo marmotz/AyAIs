@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { AutoUpdateService } from '@app/services/auto-update.service';
 import { DevShortcutsService } from '@app/services/dev-shortcuts.service';
 import { FaIconComponent, FaIconLibrary } from '@fortawesome/angular-fontawesome';
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons/faArrowLeft';
@@ -24,6 +25,9 @@ export class App {
   constructor() {
     // init dev shortcuts if in dev mode
     void inject(DevShortcutsService);
+
+    // init auto update listeners
+    void inject(AutoUpdateService);
 
     // init font awesome icons
     this.fortAwesomeIconlibrary.addIcons(faRefresh, faArrowLeft, faDownload, faTimes, faClock);

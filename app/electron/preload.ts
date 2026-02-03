@@ -32,4 +32,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   quitAndInstall: () => ipcRenderer.send('restart_app'),
   simulateUpdateAvailable: () => ipcRenderer.send('simulate-update-available'),
   simulateUpdateDownloaded: () => ipcRenderer.send('simulate-update-downloaded'),
+  notifyRendererReady: () => ipcRenderer.send('renderer-ready'),
 });

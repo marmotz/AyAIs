@@ -12,11 +12,12 @@ import { faTimes } from '@fortawesome/free-solid-svg-icons/faTimes';
 import { PrimeTemplate } from 'primeng/api';
 import { Button } from 'primeng/button';
 import { Toast } from 'primeng/toast';
+import { DownloadProgressComponent } from './shared/components/download-progress/download-progress.component';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  imports: [CommonModule, RouterOutlet, Toast, Button, FaIconComponent, PrimeTemplate],
+  imports: [CommonModule, RouterOutlet, Toast, Button, FaIconComponent, PrimeTemplate, DownloadProgressComponent],
   providers: [DevShortcutsService],
 })
 export class App {

@@ -23,7 +23,10 @@ export class AutoUpdaterService {
 
       if (this.currentWindow) {
         if (updateInfo?.isUpdateAvailable) {
-          this.currentWindow.webContents.send('update_available');
+          this.currentWindow.webContents.send('update_available', {
+            version: updateInfo.updateInfo.version,
+            releaseDate: updateInfo.updateInfo.releaseDate,
+          });
         } else {
           this.currentWindow.webContents.send('update_not_available');
         }

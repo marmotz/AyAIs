@@ -14,7 +14,7 @@ describe('TestUpdaterComponent', () => {
   const mockElectronAPI = {
     getPlatform: () => Promise.resolve('linux'),
     logDebug: vi.fn().mockResolvedValue(undefined),
-    onUpdateAvailable: vi.fn(),
+    onUpdateAvailable: vi.fn((callback) => callback({ version: '0.4.0', releaseDate: '2025-01-15' })),
     onUpdateNotAvailable: vi.fn(),
     onUpdateDownloaded: vi.fn(),
     onUpdateDownloadProgress: vi.fn(),

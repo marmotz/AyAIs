@@ -1,0 +1,17 @@
+@if (progress()) {
+  <div
+    class="fixed right-4 bottom-4 z-50 w-96 rounded-lg border border-gray-200 bg-white p-4 shadow-lg dark:border-gray-700 dark:bg-gray-800"
+  >
+    <div class="mb-2 flex items-center justify-between">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Downloading Update</h3>
+      <span class="text-sm text-gray-600 dark:text-gray-400">{{ progress()?.percent | number: '1.0-0' }}%</span>
+    </div>
+    <p-progressBar
+      [showValue]="false"
+      [value]="progress()?.percent"
+    />
+    <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+      {{ formatBytes(progress()?.transferred || 0) }} / {{ formatBytes(progress()?.total || 0) }}
+    </p>
+  </div>
+}

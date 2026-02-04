@@ -26,7 +26,7 @@ declare global {
       isDevMode: () => Promise<boolean>;
       sendDevShortcut: () => void;
       onOpenDevPage: (callback: () => void) => void;
-      onUpdateAvailable: (callback: () => void) => void;
+      onUpdateAvailable: (callback: (updateInfo: { version: string; releaseDate: string }) => void) => void;
       onUpdateNotAvailable: (callback: () => void) => void;
       onUpdateDownloaded: (callback: () => void) => void;
       onUpdateDownloadProgress: (

@@ -113,12 +113,22 @@ describe('AutoUpdaterService', () => {
   });
 
   it('should send update_available when update is available', async () => {
-    (autoUpdater.checkForUpdates as any).mockResolvedValue({ isUpdateAvailable: true });
+    const mockUpdateInfo = {
+      isUpdateAvailable: true,
+      updateInfo: {
+        version: '0.4.0',
+        releaseDate: '2025-01-15',
+      },
+    };
+    (autoUpdater.checkForUpdates as any).mockResolvedValue(mockUpdateInfo);
     autoUpdaterService.setupAutoUpdater(mockWindow);
 
     await autoUpdaterService.checkForUpdates();
 
-    expect(mockWindow.webContents.send).toHaveBeenCalledWith('update_available');
+    expect(mockWindow.webContents.send).toHaveBeenCalledWith('update_available', {
+      version: '0.4.0',
+      releaseDate: '2025-01-15',
+    });
   });
 
   it('should handle check for updates error', async () => {

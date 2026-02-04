@@ -2,6 +2,12 @@ import { inject, Injectable, signal } from '@angular/core';
 import { MessageService } from 'primeng/api';
 
 export type UpdateStatus = 'idle' | 'available' | 'downloading' | 'downloaded' | 'error';
+
+export interface UpdateInfo {
+  version: string;
+  releaseDate: string;
+}
+
 export interface DownloadProgress {
   percent: number;
   bytesPerSecond: number;
@@ -14,7 +20,10 @@ export interface DownloadProgress {
 })
 export class AutoUpdateService {
   public readonly updateStatus = signal<UpdateStatus>('idle');
+  public readonly updateInfo = signal<UpdateInfo | null>(null);
+  public readonly downloadProgress = signal<DownloadProgress | null>(null);
   private readonly messageService = inject(MessageService);
+  private lastDisplayedPercent = 0;
 
   constructor() {
     this.initializeListeners();
@@ -23,7 +32,8 @@ export class AutoUpdateService {
   public downloadUpdate(): void {
     this.messageService.clear();
     this.updateStatus.set('downloading');
-    this.showDownloadingToast();
+    this.lastDisplayedPercent = 0;
+    this.downloadProgress.set(null);
     window.electronAPI.startUpdateDownload();
   }
 
@@ -31,17 +41,30 @@ export class AutoUpdateService {
     window.electronAPI.quitAndInstall();
   }
 
+  private formatBytes(bytes: number): string {
+    if (bytes === 0) {
+      return '0 B';
+    }
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+  }
+
   private initializeListeners(): void {
     if (!window.electronAPI) {
       return;
     }
 
-    window.electronAPI.onUpdateAvailable(() => {
+    window.electronAPI.onUpdateAvailable((info: UpdateInfo) => {
+      this.updateInfo.set(info);
       this.updateStatus.set('available');
       this.showUpdateAvailableConfirmation();
     });
 
     window.electronAPI.onUpdateDownloaded(() => {
+      this.downloadProgress.set(null);
       this.updateStatus.set('downloaded');
       this.showUpdateDownloadedConfirmation();
     });
@@ -53,58 +76,13 @@ export class AutoUpdateService {
 
     window.electronAPI.onUpdateDownloadFailed((error: string) => {
       console.error('[AutoUpdate] Download failed:', error);
+      this.downloadProgress.set(null);
       this.updateStatus.set('error');
       this.messageService.clear();
       this.showDownloadErrorToast(error);
     });
 
     window.electronAPI.notifyRendererReady();
-  }
-
-  private showDownloadingToast(): void {
-    this.messageService.add({
-      severity: 'info',
-      summary: 'Downloading Update',
-      detail:
-        'The update is being downloaded. The application will restart automatically once the download is complete.',
-      life: 0,
-      sticky: true,
-      closable: false,
-      data: {
-        key: 'downloading-toast',
-      },
-    });
-  }
-
-  private showUpdateAvailableConfirmation(): void {
-    this.messageService.clear();
-    this.messageService.add({
-      severity: 'info',
-      summary: 'Update Available',
-      detail: 'A new version of AyAIs is available. Would you like to download it now?',
-      sticky: true,
-      data: {
-        key: 'update-toast',
-        primaryAction: {
-          label: 'Download',
-          icon: ['fas', 'download'],
-          command: () => this.downloadUpdate(),
-        },
-        secondaryAction: {
-          label: 'Ignore',
-          icon: ['fas', 'times'],
-          command: () => {
-            this.updateStatus.set('idle');
-            this.messageService.clear();
-          },
-        },
-      },
-    });
-  }
-
-  private updateDownloadingProgress(progress: DownloadProgress): void {
-    this.messageService.clear();
-    this.showDownloadingToast();
   }
 
   private showDownloadErrorToast(error: string): void {
@@ -124,6 +102,36 @@ export class AutoUpdateService {
           label: 'Close',
           icon: ['fas', 'times'],
           command: () => {
+            this.downloadProgress.set(null);
+            this.updateStatus.set('idle');
+            this.messageService.clear();
+          },
+        },
+      },
+    });
+  }
+
+  private showUpdateAvailableConfirmation(): void {
+    const info = this.updateInfo();
+    const versionText = info ? `version ${info.version}` : 'version';
+    this.messageService.clear();
+    this.messageService.add({
+      severity: 'info',
+      summary: 'Update Available',
+      detail: `A new ${versionText} of AyAIs is available. Would you like to download it now?`,
+      sticky: true,
+      data: {
+        key: 'update-toast',
+        primaryAction: {
+          label: 'Download',
+          icon: ['fas', 'download'],
+          command: () => this.downloadUpdate(),
+        },
+        secondaryAction: {
+          label: 'Ignore',
+          icon: ['fas', 'times'],
+          command: () => {
+            this.downloadProgress.set(null);
             this.updateStatus.set('idle');
             this.messageService.clear();
           },
@@ -151,11 +159,16 @@ export class AutoUpdateService {
           label: 'Later',
           icon: ['fas', 'clock'],
           command: () => {
+            this.downloadProgress.set(null);
             this.updateStatus.set('idle');
             this.messageService.clear();
           },
         },
       },
     });
+  }
+
+  private updateDownloadingProgress(progress: DownloadProgress): void {
+    this.downloadProgress.set(progress);
   }
 }

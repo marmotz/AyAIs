@@ -36,6 +36,7 @@ describe('AppListeners', () => {
 
     autoUpdater = {
       setupAutoUpdater: vi.fn(),
+      destroy: vi.fn(),
     } as any;
 
     configManager = {
@@ -128,5 +129,6 @@ describe('AppListeners', () => {
     willQuitCallback();
 
     expect(globalShortcut.unregisterAll).toHaveBeenCalled();
+    expect(autoUpdater.destroy).toHaveBeenCalled();
   });
 });

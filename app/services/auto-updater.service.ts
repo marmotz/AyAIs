@@ -4,6 +4,9 @@ import { ConfigManagerService } from './config-manager.service';
 
 export class AutoUpdaterService {
   private currentWindow: BrowserWindow | undefined;
+  private updateCheckInterval: NodeJS.Timeout | undefined;
+  // private readonly UPDATE_CHECK_INTERVAL_MS = 60 * 60 * 1000; // 1 hour in milliseconds
+  private readonly UPDATE_CHECK_INTERVAL_MS = 60 * 1000; // 1 hour in milliseconds
 
   constructor(private readonly configManager: ConfigManagerService) {
     this.setupChannel();
@@ -31,6 +34,13 @@ export class AutoUpdaterService {
       if (!errorMessage.includes('Cannot find latest-')) {
         console.error('[AutoUpdate] Failed to check for updates:', errorMessage);
       }
+    }
+  }
+
+  public destroy(): void {
+    if (this.updateCheckInterval) {
+      clearInterval(this.updateCheckInterval);
+      this.updateCheckInterval = undefined;
     }
   }
 
@@ -63,6 +73,8 @@ export class AutoUpdaterService {
         console.error('[AutoUpdate] Error:', errorMessage);
       }
     });
+
+    this.startPeriodicUpdateCheck();
   }
 
   private isUpdaterEnabled(): boolean {
@@ -79,6 +91,18 @@ export class AutoUpdaterService {
 
   private setupChannel(): void {
     this.updateChannel();
+  }
+
+  private startPeriodicUpdateCheck(): void {
+    if (!this.isUpdaterEnabled()) {
+      return;
+    }
+
+    this.checkForUpdates();
+
+    this.updateCheckInterval = setInterval(() => {
+      void this.checkForUpdates();
+    }, this.UPDATE_CHECK_INTERVAL_MS);
   }
 
   private updateChannel(): void {

@@ -35,5 +35,6 @@ export function registerAppEventListeners(
 
   app.on('will-quit', () => {
     globalShortcut.unregisterAll();
+    autoUpdater.destroy();
   });
 }

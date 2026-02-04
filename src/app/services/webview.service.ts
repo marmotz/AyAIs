@@ -7,8 +7,6 @@ import { Subject } from 'rxjs';
   providedIn: 'root',
 })
 export class WebviewService {
-  private lastShortcutTime = 0;
-  private readonly SHORTCUT_DEBOUNCE_MS = 100;
   private isMac = false;
 
   private shortcutCapturedSubject = new Subject<string>();
@@ -28,11 +26,15 @@ export class WebviewService {
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chromium/142.0.0.0 Safari/537.36';
 
     webview.addEventListener('dom-ready', () => this.injectScript(webview, service));
-    webview.addEventListener('console-message', (e: any) => {
+    webview.addEventListener('console-message', async (e: any) => {
       const msg = e.message;
+      if (msg.startsWith('AYAIS_')) {
+        await window.electronAPI.logDebug(`webview message: ${e.message}`);
+      }
+
       if (msg.startsWith('AYAIS_FORCE_EXTERNAL_OPEN:')) {
         const url = msg.replace('AYAIS_FORCE_EXTERNAL_OPEN:', '');
-        window.electronAPI.openExternal(url);
+        await window.electronAPI.openExternal(url);
       } else if (msg.startsWith('AYAIS_SHORTCUT:')) {
         const shortcut = msg.replace('AYAIS_SHORTCUT:', '');
         this.handleShortcutFromWebview(shortcut);
@@ -118,12 +120,6 @@ export class WebviewService {
   }
 
   private handleShortcutFromWebview(shortcut: string) {
-    const now = Date.now();
-    if (now - this.lastShortcutTime < this.SHORTCUT_DEBOUNCE_MS) {
-      return;
-    }
-    this.lastShortcutTime = now;
-
     this.shortcutCapturedSubject.next(shortcut);
   }
 

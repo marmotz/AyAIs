@@ -18,10 +18,6 @@ export class ShortcutManagerService {
   editingShortcutId = signal<string | null>(null);
   tempShortcutValue = signal<string>('');
   private isMac = false;
-  private lastShortcutTime = 0;
-  private readonly SHORTCUT_DEBOUNCE_MS = 100;
-  private debugLogTimer: ReturnType<typeof setTimeout> | null = null;
-  private readonly DEBUG_LOG_DEBOUNCE_MS = 300;
 
   constructor() {
     void this.initializePlatform();
@@ -45,12 +41,6 @@ export class ShortcutManagerService {
   async cancelEditing(): Promise<void> {
     const wasEditingGlobalShortcut = this.editingShortcutId() === 'showHideApp';
 
-    // Clear any pending debug log
-    if (this.debugLogTimer) {
-      clearTimeout(this.debugLogTimer);
-      this.debugLogTimer = null;
-    }
-
     this.editingShortcutId.set(null);
     this.tempShortcutValue.set('');
 
@@ -60,10 +50,6 @@ export class ShortcutManagerService {
   }
 
   async executeShortcut(shortcut: string): Promise<ShortcutActionEvent | null> {
-    if (!this.shouldExecuteShortcut()) {
-      return null;
-    }
-
     const appConfig = await window.electronAPI.getAppConfig();
     const config = appConfig.shortcuts;
 
@@ -136,8 +122,12 @@ export class ShortcutManagerService {
     const shortcut = this.buildShortcutString(event);
 
     if (shortcut) {
-      // Debounced debug log to avoid logging short/incomplete shortcuts
-      this.debouncedDebugLog(event, shortcut, editingId);
+      void window.electronAPI.logDebug(
+        `Shortcut editing event caught - ctrlKey: ${event.ctrlKey}, ` +
+          `altKey: ${event.altKey}, shiftKey: ${event.shiftKey}, ` +
+          `metaKey: ${event.metaKey}, code: "${event.code}", key: "${event.key}", ` +
+          `generated shortcut: "${shortcut}", editing shortcut ID: ${editingId}`
+      );
 
       this.tempShortcutValue.set(shortcut);
     }
@@ -227,12 +217,6 @@ export class ShortcutManagerService {
   }
 
   async saveShortcut(shortcutId: string): Promise<void> {
-    // Clear any pending debug log
-    if (this.debugLogTimer) {
-      clearTimeout(this.debugLogTimer);
-      this.debugLogTimer = null;
-    }
-
     const newValue = this.tempShortcutValue();
     const isGlobalShortcut = shortcutId === 'showHideApp';
 
@@ -309,24 +293,6 @@ export class ShortcutManagerService {
     return modifiers.join('+');
   }
 
-  private debouncedDebugLog(event: KeyboardEvent, shortcut: string, editingId: string): void {
-    // Clear existing timer if any
-    if (this.debugLogTimer) {
-      clearTimeout(this.debugLogTimer);
-    }
-
-    // Set new timer
-    this.debugLogTimer = setTimeout(() => {
-      void window.electronAPI.logDebug(
-        `Shortcut editing event caught - ctrlKey: ${event.ctrlKey}, ` +
-          `altKey: ${event.altKey}, shiftKey: ${event.shiftKey}, ` +
-          `metaKey: ${event.metaKey}, code: "${event.code}", key: "${event.key}", ` +
-          `generated shortcut: "${shortcut}", editing shortcut ID: ${editingId}`
-      );
-      this.debugLogTimer = null;
-    }, this.DEBUG_LOG_DEBOUNCE_MS);
-  }
-
   private getMainKeyDisplayName(event: KeyboardEvent): string {
     if (event.code.startsWith('Digit')) {
       return event.code.replace('Digit', '');
@@ -369,15 +335,6 @@ export class ShortcutManagerService {
   private async initializePlatform(): Promise<void> {
     const platform = await window.electronAPI.getPlatform();
     this.isMac = platform === 'darwin';
-  }
-
-  private shouldExecuteShortcut(): boolean {
-    const now = Date.now();
-    if (now - this.lastShortcutTime < this.SHORTCUT_DEBOUNCE_MS) {
-      return false;
-    }
-    this.lastShortcutTime = now;
-    return true;
   }
 
   private updateShortcutValue(shortcutId: string, value: string, validation?: ValidationResult): void {

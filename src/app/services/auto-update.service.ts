@@ -2,6 +2,12 @@ import { inject, Injectable, signal } from '@angular/core';
 import { MessageService } from 'primeng/api';
 
 export type UpdateStatus = 'idle' | 'available' | 'downloading' | 'downloaded' | 'error';
+export interface DownloadProgress {
+  percent: number;
+  bytesPerSecond: number;
+  transferred: number;
+  total: number;
+}
 
 @Injectable({
   providedIn: 'root',
@@ -40,6 +46,18 @@ export class AutoUpdateService {
       this.showUpdateDownloadedConfirmation();
     });
 
+    window.electronAPI.onUpdateDownloadProgress((progress: DownloadProgress) => {
+      console.log(`[AutoUpdate] Download progress: ${Math.floor(progress.percent)}%`);
+      this.updateDownloadingProgress(progress);
+    });
+
+    window.electronAPI.onUpdateDownloadFailed((error: string) => {
+      console.error('[AutoUpdate] Download failed:', error);
+      this.updateStatus.set('error');
+      this.messageService.clear();
+      this.showDownloadErrorToast(error);
+    });
+
     window.electronAPI.notifyRendererReady();
   }
 
@@ -74,6 +92,36 @@ export class AutoUpdateService {
         },
         secondaryAction: {
           label: 'Ignore',
+          icon: ['fas', 'times'],
+          command: () => {
+            this.updateStatus.set('idle');
+            this.messageService.clear();
+          },
+        },
+      },
+    });
+  }
+
+  private updateDownloadingProgress(progress: DownloadProgress): void {
+    this.messageService.clear();
+    this.showDownloadingToast();
+  }
+
+  private showDownloadErrorToast(error: string): void {
+    this.messageService.add({
+      severity: 'error',
+      summary: 'Download Failed',
+      detail: `Failed to download the update: ${error}`,
+      sticky: true,
+      data: {
+        key: 'download-error-toast',
+        primaryAction: {
+          label: 'Retry',
+          icon: ['fas', 'redo'],
+          command: () => this.downloadUpdate(),
+        },
+        secondaryAction: {
+          label: 'Close',
           icon: ['fas', 'times'],
           command: () => {
             this.updateStatus.set('idle');

@@ -37,7 +37,7 @@ describe('ConfigManagerService', () => {
     const config = configManager.getConfig();
 
     expect(config).toBeDefined();
-    expect(config.launchAtStartup).toBe(false);
+    expect(config.launchAtStartup).toBe(true);
     expect(config.launchHidden).toBe(false);
     expect(config.updateChannel).toBe('stable');
   });

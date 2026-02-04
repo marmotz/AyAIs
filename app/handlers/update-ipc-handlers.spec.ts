@@ -38,13 +38,29 @@ describe('Update IPC Handlers', () => {
       expect(ipcMain.on).toHaveBeenCalledWith('start_download', expect.any(Function));
     });
 
-    it('should call downloadUpdate', () => {
+    it('should call downloadUpdate', async () => {
       setupUpdateIPCHandlers(autoUpdater, windowManager);
 
       const listener = vi.mocked(ipcMain.on).mock.calls.find((call) => call[0] === 'start_download')?.[1] as any;
       if (listener) {
-        listener();
+        await listener();
         expect(autoUpdater.downloadUpdate).toHaveBeenCalled();
+      }
+    });
+
+    it('should handle download errors', async () => {
+      const mockError = new Error('Download failed');
+      vi.mocked(autoUpdater.downloadUpdate).mockRejectedValue(mockError);
+      const mockWebContents = { send: vi.fn() };
+      const mockWindow = { webContents: mockWebContents };
+      vi.mocked(windowManager.getWindow).mockReturnValue(mockWindow as any);
+
+      setupUpdateIPCHandlers(autoUpdater, windowManager);
+
+      const listener = vi.mocked(ipcMain.on).mock.calls.find((call) => call[0] === 'start_download')?.[1] as any;
+      if (listener) {
+        await listener();
+        expect(mockWebContents.send).toHaveBeenCalledWith('update_download_failed', 'Download failed');
       }
     });
   });

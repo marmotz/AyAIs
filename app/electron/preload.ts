@@ -32,6 +32,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onUpdateDownloaded: (callback: () => void) => {
     ipcRenderer.on('update_downloaded', () => callback());
   },
+  onUpdateDownloadProgress: (
+    callback: (progress: { percent: number; bytesPerSecond: number; transferred: number; total: number }) => void
+  ) => {
+    ipcRenderer.on('update_download_progress', (_event, progress) => callback(progress));
+  },
+  onUpdateDownloadFailed: (callback: (error: string) => void) => {
+    ipcRenderer.on('update_download_failed', (_event, error) => callback(error));
+  },
   startUpdateDownload: () => ipcRenderer.send('start_download'),
   quitAndInstall: () => ipcRenderer.send('restart_app'),
   simulateUpdateAvailable: () => ipcRenderer.send('simulate-update-available'),

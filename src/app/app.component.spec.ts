@@ -13,7 +13,10 @@ const mockElectronAPI = {
   onOpenDevPage: vi.fn(),
   sendDevShortcut: vi.fn(),
   onUpdateAvailable: vi.fn(),
+  onUpdateNotAvailable: vi.fn(),
   onUpdateDownloaded: vi.fn(),
+  onUpdateDownloadProgress: vi.fn(),
+  onUpdateDownloadFailed: vi.fn(),
   notifyRendererReady: vi.fn(),
 };
 

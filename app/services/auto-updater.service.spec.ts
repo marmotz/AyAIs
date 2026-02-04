@@ -11,6 +11,7 @@ vi.mock('electron-updater', () => ({
     downloadUpdate: vi.fn(),
     quitAndInstall: vi.fn(),
     on: vi.fn(),
+    getFeedURL: vi.fn(() => 'https://github.com/marmotz/AyAis/releases/latest'),
   },
 }));
 
@@ -19,6 +20,7 @@ vi.mock('electron', () => ({
     get isPackaged() {
       return mockIsPackaged;
     },
+    getVersion: vi.fn(() => '0.3.0-beta.3'),
   },
   BrowserWindow: vi.fn(),
 }));
@@ -72,6 +74,27 @@ describe('AutoUpdaterService', () => {
     updateDownloadedCallback?.();
 
     expect(mockWindow.webContents.send).toHaveBeenCalledWith('update_downloaded');
+  });
+
+  it('should setup download progress event handler', () => {
+    autoUpdaterService.setupAutoUpdater(mockWindow);
+
+    expect(autoUpdater.on).toHaveBeenCalledWith('download-progress', expect.any(Function));
+  });
+
+  it('should send update_download_progress event to window', () => {
+    const mockProgress = {
+      percent: 45,
+      bytesPerSecond: 1000000,
+      transferred: 45000000,
+      total: 100000000,
+    };
+    autoUpdaterService.setupAutoUpdater(mockWindow);
+
+    const progressCallback = eventCallbacks.get('download-progress');
+    progressCallback?.(mockProgress);
+
+    expect(mockWindow.webContents.send).toHaveBeenCalledWith('update_download_progress', mockProgress);
   });
 
   it('should send update_not_available when no update available', async () => {

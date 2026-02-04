@@ -29,6 +29,10 @@ declare global {
       onUpdateAvailable: (callback: () => void) => void;
       onUpdateNotAvailable: (callback: () => void) => void;
       onUpdateDownloaded: (callback: () => void) => void;
+      onUpdateDownloadProgress: (
+        callback: (progress: { percent: number; bytesPerSecond: number; transferred: number; total: number }) => void
+      ) => void;
+      onUpdateDownloadFailed: (callback: (error: string) => void) => void;
       startUpdateDownload: () => void;
       quitAndInstall: () => void;
       simulateUpdateAvailable: () => void;

@@ -3,6 +3,11 @@ import { afterEach, beforeEach, vi } from 'vitest';
 const DEFAULT_ELECTRON_API_MOCK = {
   getPlatform: () => Promise.resolve('linux'),
   logDebug: vi.fn().mockResolvedValue(undefined),
+  onUpdateAvailable: vi.fn(),
+  onUpdateNotAvailable: vi.fn(),
+  onUpdateDownloaded: vi.fn(),
+  onUpdateDownloadProgress: vi.fn(),
+  onUpdateDownloadFailed: vi.fn(),
 };
 
 beforeEach(() => {

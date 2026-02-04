@@ -44,10 +44,23 @@ export class AutoUpdaterService {
   }
 
   public async downloadUpdate(): Promise<void> {
+    if (!this.isUpdaterEnabled()) {
+      console.warn('[AutoUpdate] Download skipped - updater is disabled');
+      return;
+    }
+
     try {
+      console.log('[AutoUpdate] Starting download...');
+      console.log('[AutoUpdate] Platform:', process.platform);
+      console.log('[AutoUpdate] App version:', app.getVersion());
+      console.log('[AutoUpdate] Update URL:', autoUpdater.getFeedURL());
       await autoUpdater.downloadUpdate();
+      console.log('[AutoUpdate] Download completed successfully');
     } catch (error) {
-      console.error('[AutoUpdate] Failed to download update:', (error as Error).message);
+      const errorMessage = (error as Error).message;
+      console.error('[AutoUpdate] Failed to download update:', errorMessage);
+      console.error('[AutoUpdate] Error stack:', (error as Error).stack);
+      throw error;
     }
   }
 
@@ -61,8 +74,16 @@ export class AutoUpdaterService {
     autoUpdater.autoDownload = false;
 
     autoUpdater.on('update-downloaded', () => {
+      console.log('[AutoUpdate] Update downloaded successfully');
       if (this.currentWindow) {
         this.currentWindow.webContents.send('update_downloaded');
+      }
+    });
+
+    autoUpdater.on('download-progress', (progress) => {
+      console.log(`[AutoUpdate] Download progress: ${Math.floor(progress.percent)}%`);
+      if (this.currentWindow) {
+        this.currentWindow.webContents.send('update_download_progress', progress);
       }
     });
 

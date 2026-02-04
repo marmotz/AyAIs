@@ -4,6 +4,7 @@ import { ConfigManagerService } from '../services/config-manager.service';
 import { ShortcutManagerService } from '../services/shortcut-manager.service';
 import { StartupManagerService } from '../services/startup-manager.service';
 import { WindowManagerService } from '../services/window-manager.service';
+import { MOCK_CONFIG } from '../tests/test-config';
 import { setupConfigIPCHandlers } from './config-ipc-handlers';
 
 vi.mock('electron', () => ({
@@ -26,28 +27,11 @@ describe('Config IPC Handlers', () => {
   let shortcutManager: ShortcutManagerService;
   let startupManager: StartupManagerService;
 
-  const mockConfig = {
-    launchAtStartup: false,
-    launchHidden: false,
-    lastService: 'chatgpt',
-    position: { x: 0, y: 0, width: 800, height: 600 },
-    shortcuts: {
-      globalShortcuts: { showHideApp: 'Meta+I' },
-      internalShortcuts: {
-        openSettings: 'Ctrl+,',
-        quitApp: 'Ctrl+Q',
-        previousService: 'Ctrl+Shift+Tab',
-        nextService: 'Ctrl+Tab',
-        services: {},
-      },
-    },
-  };
-
   beforeEach(() => {
     vi.clearAllMocks();
 
     configManager = {
-      getConfig: vi.fn(() => ({ ...mockConfig })),
+      getConfig: vi.fn(() => ({ ...MOCK_CONFIG })),
       updateConfig: vi.fn(),
       saveConfig: vi.fn(),
     } as any;
@@ -147,7 +131,7 @@ describe('Config IPC Handlers', () => {
 
       const handler = vi.mocked(ipcMain.handle).mock.calls.find((call) => call[0] === 'get-app-config')?.[1] as any;
       const result = handler();
-      expect(result).toEqual(mockConfig);
+      expect(result).toEqual(MOCK_CONFIG);
     });
   });
 
@@ -175,7 +159,7 @@ describe('Config IPC Handlers', () => {
       const newConfig = {
         shortcuts: {
           globalShortcuts: { showHideApp: 'Meta+J' },
-          internalShortcuts: mockConfig.shortcuts.internalShortcuts,
+          internalShortcuts: MOCK_CONFIG.shortcuts.internalShortcuts,
         },
       };
       handler({}, newConfig);

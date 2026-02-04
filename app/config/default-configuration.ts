@@ -2,7 +2,7 @@ import { AppConfig, ShortcutConfig } from '@shared/types/app-config.interface';
 
 const DEFAULT_SHORTCUT_CONFIG: ShortcutConfig = {
   globalShortcuts: {
-    showHideApp: 'Meta+I',
+    showHideApp: process.platform === 'darwin' ? 'Meta+I' : 'Ctrl+Shift+I',
   },
   internalShortcuts: {
     openSettings: process.platform === 'darwin' ? 'Command+,' : 'Ctrl+,',

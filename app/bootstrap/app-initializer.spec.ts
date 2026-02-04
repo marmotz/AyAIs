@@ -7,6 +7,7 @@ import { ShortcutManagerService } from '../services/shortcut-manager.service';
 import { StartupManagerService } from '../services/startup-manager.service';
 import { TrayManagerService } from '../services/tray-manager.service';
 import { WindowManagerService } from '../services/window-manager.service';
+import { MOCK_CONFIG } from '../tests/test-config';
 import { initializeApp } from './app-initializer';
 
 vi.mock('electron', () => ({
@@ -50,21 +51,7 @@ describe('AppInitializer', () => {
     (app.requestSingleInstanceLock as any).mockReturnValue(true);
 
     configManager = {
-      getConfig: vi.fn(() => ({
-        launchAtStartup: false,
-        launchHidden: false,
-        position: { x: 0, y: 0, width: 800, height: 600 },
-        shortcuts: {
-          globalShortcuts: { showHideApp: 'Meta+I' },
-          internalShortcuts: {
-            openSettings: 'Ctrl+,',
-            quitApp: 'Ctrl+Q',
-            previousService: 'Ctrl+Shift+Tab',
-            nextService: 'Ctrl+Tab',
-            services: {},
-          },
-        },
-      })),
+      getConfig: vi.fn(() => ({ ...MOCK_CONFIG })),
     } as any;
 
     windowManager = {

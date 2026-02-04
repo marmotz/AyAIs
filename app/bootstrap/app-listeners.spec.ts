@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AutoUpdaterService } from '../services/auto-updater.service';
 import { ConfigManagerService } from '../services/config-manager.service';
 import { WindowManagerService } from '../services/window-manager.service';
+import { MOCK_CONFIG } from '../tests/test-config';
 import { registerAppEventListeners } from './app-listeners';
 
 vi.mock('electron', () => ({
@@ -40,20 +41,7 @@ describe('AppListeners', () => {
     } as any;
 
     configManager = {
-      getConfig: vi.fn(() => ({
-        launchHidden: false,
-        position: { x: 0, y: 0, width: 800, height: 600 },
-        shortcuts: {
-          globalShortcuts: { showHideApp: 'Meta+I' },
-          internalShortcuts: {
-            openSettings: 'Ctrl+,',
-            quitApp: 'Ctrl+Q',
-            previousService: 'Ctrl+Shift+Tab',
-            nextService: 'Ctrl+Tab',
-            services: {},
-          },
-        },
-      })),
+      getConfig: vi.fn(() => ({ ...MOCK_CONFIG })),
     } as any;
   });
 

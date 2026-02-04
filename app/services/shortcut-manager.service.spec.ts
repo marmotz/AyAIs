@@ -1,6 +1,7 @@
 import { AppConfig } from '@shared/types/app-config.interface';
 import { globalShortcut } from 'electron';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { MOCK_CONFIG_WITH_SERVICES } from '../tests/test-config';
 import { ShortcutManagerService } from './shortcut-manager.service';
 import { WindowManagerService } from './window-manager.service';
 
@@ -24,40 +25,12 @@ vi.mock('./window-manager.service', () => ({
 describe('ShortcutManagerService', () => {
   let shortcutManager: ShortcutManagerService;
   let windowManager: WindowManagerService;
-  let mockConfig: AppConfig;
 
   beforeEach(() => {
     vi.clearAllMocks();
 
-    mockConfig = {
-      launchAtStartup: false,
-      launchHidden: false,
-      lastService: undefined,
-      position: {
-        x: 0,
-        y: 0,
-        width: 800,
-        height: 600,
-      },
-      shortcuts: {
-        globalShortcuts: {
-          showHideApp: 'Meta+I',
-        },
-        internalShortcuts: {
-          openSettings: 'Ctrl+,',
-          quitApp: 'Ctrl+Q',
-          previousService: 'Ctrl+Shift+Tab',
-          nextService: 'Ctrl+Tab',
-          services: {
-            service1: 'Ctrl+1',
-            service2: 'Ctrl+2',
-          },
-        },
-      },
-    };
-
     windowManager = new MockWindowManagerService() as any;
-    shortcutManager = new ShortcutManagerService(mockConfig, windowManager);
+    shortcutManager = new ShortcutManagerService(MOCK_CONFIG_WITH_SERVICES, windowManager);
   });
 
   it('should validate empty shortcut', () => {
@@ -88,7 +61,8 @@ describe('ShortcutManagerService', () => {
     vi.spyOn(globalShortcut, 'register').mockReturnValue(true);
     vi.spyOn(globalShortcut, 'unregister').mockImplementation(() => {});
 
-    const result = shortcutManager.validateShortcut('Meta+I', 'otherId');
+    const defaultShortcut = process.platform === 'darwin' ? 'Meta+I' : 'Ctrl+Shift+I';
+    const result = shortcutManager.validateShortcut(defaultShortcut, 'otherId');
 
     expect(result.isValid).toBe(false);
     expect(result.error).toBe('INTERNAL_CONFLICT');
@@ -100,7 +74,8 @@ describe('ShortcutManagerService', () => {
 
     shortcutManager.setupShortcuts();
 
-    expect(globalShortcut.register).toHaveBeenCalledWith('Meta+I', expect.any(Function));
+    const defaultShortcut = process.platform === 'darwin' ? 'Meta+I' : 'Ctrl+Shift+I';
+    expect(globalShortcut.register).toHaveBeenCalledWith(defaultShortcut, expect.any(Function));
   });
 
   it('should unregister global shortcuts', () => {
@@ -108,7 +83,8 @@ describe('ShortcutManagerService', () => {
 
     shortcutManager.refreshShortcuts();
 
-    expect(globalShortcut.unregister).toHaveBeenCalledWith('Meta+I');
+    const defaultShortcut = process.platform === 'darwin' ? 'Meta+I' : 'Ctrl+Shift+I';
+    expect(globalShortcut.unregister).toHaveBeenCalledWith(defaultShortcut);
   });
 
   it('should handle show/hide app shortcut', () => {
@@ -121,7 +97,8 @@ describe('ShortcutManagerService', () => {
     vi.spyOn(windowManager, 'hideWindow');
     vi.spyOn(windowManager, 'showWindow');
 
-    shortcutManager.handleShortcut('Meta+I');
+    const defaultShortcut = process.platform === 'darwin' ? 'Meta+I' : 'Ctrl+Shift+I';
+    shortcutManager.handleShortcut(defaultShortcut);
 
     expect(windowManager.hideWindow).toHaveBeenCalled();
   });
@@ -135,7 +112,8 @@ describe('ShortcutManagerService', () => {
     vi.spyOn(windowManager, 'getWindow').mockReturnValue(mockWindow);
     vi.spyOn(windowManager, 'showWindow');
 
-    shortcutManager.handleShortcut('Meta+I');
+    const defaultShortcut = process.platform === 'darwin' ? 'Meta+I' : 'Ctrl+Shift+I';
+    shortcutManager.handleShortcut(defaultShortcut);
 
     expect(windowManager.showWindow).toHaveBeenCalled();
   });
@@ -143,14 +121,14 @@ describe('ShortcutManagerService', () => {
   it('should update config', () => {
     const newConfig: Partial<AppConfig> = {
       shortcuts: {
-        ...mockConfig.shortcuts,
+        ...MOCK_CONFIG_WITH_SERVICES.shortcuts,
         globalShortcuts: {
           showHideApp: 'CmdOrCtrl+U',
         },
       },
     };
 
-    shortcutManager.updateConfig({ ...mockConfig, ...newConfig } as AppConfig);
+    shortcutManager.updateConfig({ ...MOCK_CONFIG_WITH_SERVICES, ...newConfig } as AppConfig);
 
     expect(shortcutManager['appConfig'].shortcuts.globalShortcuts.showHideApp).toBe('CmdOrCtrl+U');
   });

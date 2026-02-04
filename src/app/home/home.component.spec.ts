@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
+import { MOCK_CONFIG_WITH_SERVICES } from '@app-tests/test-config';
 import { TranslateModule } from '@ngx-translate/core';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Home } from './home.component';
@@ -15,23 +16,7 @@ describe('Home', () => {
       onNavigateService: vi.fn(),
       onSelectService: vi.fn(),
       onOpenSettings: vi.fn(),
-      getAppConfig: vi.fn().mockResolvedValue({
-        shortcuts: {
-          globalShortcuts: {
-            showHideApp: 'Meta+I',
-          },
-          internalShortcuts: {
-            openSettings: 'Ctrl+,',
-            quitApp: 'Ctrl+X',
-            previousService: 'Ctrl+Shift+Tab',
-            nextService: 'Ctrl+Tab',
-            services: {
-              service1: 'Ctrl+1',
-              service2: 'Ctrl+2',
-            },
-          },
-        },
-      }),
+      getAppConfig: vi.fn().mockResolvedValue({ ...MOCK_CONFIG_WITH_SERVICES }),
       quitApp: vi.fn().mockResolvedValue(undefined),
       getPlatform: () => Promise.resolve('linux'),
       logDebug: vi.fn().mockResolvedValue(undefined),

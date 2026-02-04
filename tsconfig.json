@@ -7,7 +7,8 @@
     "paths": {
       "@app/*": ["src/app/*"],
       "@env": ["src/environments/environment.ts"],
-      "@shared/*": ["shared/*"]
+      "@shared/*": ["shared/*"],
+      "@app-tests/*": ["src/app/tests/*"]
     },
     "module": "es2022",
     "esModuleInterop": true,

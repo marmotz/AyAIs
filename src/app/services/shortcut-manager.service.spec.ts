@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { MOCK_CONFIG_WITH_SERVICES } from '@app-tests/test-config';
 import { Shortcut } from '@app/settings/settings-shortcuts/shortcut.model';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ShortcutManagerService } from './shortcut-manager.service';
@@ -12,32 +13,7 @@ describe('ShortcutManagerService', () => {
 
   beforeEach(async () => {
     (window as any).electronAPI = {
-      getAppConfig: () =>
-        Promise.resolve({
-          shortcuts: {
-            globalShortcuts: {
-              showHideApp: 'Super+I',
-            },
-            internalShortcuts: {
-              openSettings: 'Ctrl+,',
-              quitApp: 'Ctrl+Q',
-              previousService: 'Ctrl+Shift+Tab',
-              nextService: 'Ctrl+Tab',
-              services: {
-                service1: 'Ctrl+1',
-                service2: 'Ctrl+2',
-                service3: 'Ctrl+3',
-                service4: 'Ctrl+4',
-                service5: 'Ctrl+5',
-                service6: 'Ctrl+6',
-                service7: 'Ctrl+7',
-                service8: 'Ctrl+8',
-                service9: 'Ctrl+9',
-                service10: 'Ctrl+0',
-              },
-            },
-          },
-        }),
+      getAppConfig: () => Promise.resolve({ ...MOCK_CONFIG_WITH_SERVICES }),
       saveAppConfig: saveAppConfigSpy,
       validateGlobalShortcut: validateGlobalShortcutSpy,
       getPlatform: () => Promise.resolve('linux'),
@@ -70,7 +46,7 @@ describe('ShortcutManagerService', () => {
 
       expect(globalShortcuts.length).toBe(1);
       expect(globalShortcuts[0].id).toBe('showHideApp');
-      expect(globalShortcuts[0].value).toBe('Super+I');
+      expect(globalShortcuts[0].value).toBe('Ctrl+Shift+I');
 
       expect(internalShortcuts.length).toBe(14);
       expect(internalShortcuts[0].id).toBe('openSettings');
@@ -141,7 +117,7 @@ describe('ShortcutManagerService', () => {
       const shortcut: Shortcut = {
         id: 'showHideApp',
         label: 'Show/Hide App',
-        value: 'Super+I',
+        value: 'Ctrl+Shift+I',
       };
 
       await service.startEditing(shortcut);
@@ -176,7 +152,7 @@ describe('ShortcutManagerService', () => {
 
     it('should re-register global shortcuts when canceling global shortcut editing', async () => {
       service.editingShortcutId.set('showHideApp');
-      service.tempShortcutValue.set('Super+I');
+      service.tempShortcutValue.set('Ctrl+Shift+I');
 
       await service.cancelEditing();
 
@@ -629,7 +605,7 @@ describe('ShortcutManagerService', () => {
       expect(saveAppConfigSpy).toHaveBeenCalledWith({
         shortcuts: expect.objectContaining({
           globalShortcuts: {
-            showHideApp: 'Super+I',
+            showHideApp: 'Ctrl+Shift+I',
           },
           internalShortcuts: expect.objectContaining({
             openSettings: 'Ctrl+,',

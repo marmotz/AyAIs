@@ -7,7 +7,7 @@ import { ConfigManagerService } from './config-manager.service';
 vi.mock('electron-updater', () => ({
   autoUpdater: {
     autoDownload: false,
-    checkForUpdatesAndNotify: vi.fn(() => Promise.resolve()),
+    checkForUpdates: vi.fn(() => Promise.resolve({ isUpdateAvailable: false })),
     downloadUpdate: vi.fn(),
     quitAndInstall: vi.fn(),
     on: vi.fn(),
@@ -69,15 +69,33 @@ describe('AutoUpdaterService', () => {
     expect(mockWindow.webContents.send).toHaveBeenCalledWith('update_downloaded');
   });
 
+  it('should send update_not_available when no update available', async () => {
+    (autoUpdater.checkForUpdates as any).mockResolvedValue({ isUpdateAvailable: false });
+    autoUpdaterService.setupAutoUpdater(mockWindow);
+
+    await autoUpdaterService.checkForUpdates();
+
+    expect(mockWindow.webContents.send).toHaveBeenCalledWith('update_not_available');
+  });
+
   it('should check for updates', () => {
     autoUpdaterService.checkForUpdates();
 
-    expect(autoUpdater.checkForUpdatesAndNotify).toHaveBeenCalled();
+    expect(autoUpdater.checkForUpdates).toHaveBeenCalled();
+  });
+
+  it('should send update_available when update is available', async () => {
+    (autoUpdater.checkForUpdates as any).mockResolvedValue({ isUpdateAvailable: true });
+    autoUpdaterService.setupAutoUpdater(mockWindow);
+
+    await autoUpdaterService.checkForUpdates();
+
+    expect(mockWindow.webContents.send).toHaveBeenCalledWith('update_available');
   });
 
   it('should handle check for updates error', async () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    (autoUpdater.checkForUpdatesAndNotify as any).mockRejectedValueOnce(new Error('Network error'));
+    (autoUpdater.checkForUpdates as any).mockRejectedValueOnce(new Error('Network error'));
 
     await autoUpdaterService.checkForUpdates();
 

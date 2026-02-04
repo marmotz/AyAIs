@@ -17,10 +17,14 @@ export class AutoUpdaterService {
     this.updateChannel();
 
     try {
-      const updateInfo = await autoUpdater.checkForUpdatesAndNotify();
+      const updateInfo = await autoUpdater.checkForUpdates();
 
-      if (updateInfo?.isUpdateAvailable && this.currentWindow) {
-        this.currentWindow.webContents.send('update_available');
+      if (this.currentWindow) {
+        if (updateInfo?.isUpdateAvailable) {
+          this.currentWindow.webContents.send('update_available');
+        } else {
+          this.currentWindow.webContents.send('update_not_available');
+        }
       }
     } catch (error) {
       const errorMessage = (error as Error).message;

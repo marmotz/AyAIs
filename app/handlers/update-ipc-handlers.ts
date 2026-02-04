@@ -3,6 +3,10 @@ import { AutoUpdaterService } from '../services/auto-updater.service';
 import { WindowManagerService } from '../services/window-manager.service';
 
 export function setupUpdateIPCHandlers(autoUpdater: AutoUpdaterService, windowManager: WindowManagerService): void {
+  ipcMain.handle('check-for-updates', async () => {
+    await autoUpdater.checkForUpdates();
+  });
+
   ipcMain.on('start_download', () => {
     void autoUpdater.downloadUpdate();
   });

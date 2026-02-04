@@ -3,6 +3,7 @@ import { AppConfig } from '@shared/types/app-config.interface';
 declare global {
   interface Window {
     electronAPI: {
+      getAppVersion: () => Promise<string>;
       getAppConfig: () => Promise<AppConfig>;
       saveAppConfig: (config: Partial<AppConfig>) => Promise<void>;
       getLastService: () => Promise<string | undefined>;
@@ -26,12 +27,14 @@ declare global {
       sendDevShortcut: () => void;
       onOpenDevPage: (callback: () => void) => void;
       onUpdateAvailable: (callback: () => void) => void;
+      onUpdateNotAvailable: (callback: () => void) => void;
       onUpdateDownloaded: (callback: () => void) => void;
       startUpdateDownload: () => void;
       quitAndInstall: () => void;
       simulateUpdateAvailable: () => void;
       simulateUpdateDownloaded: () => void;
       notifyRendererReady: () => void;
+      checkForUpdates: () => Promise<void>;
     };
   }
 }

@@ -1,10 +1,10 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { SettingsAboutComponent } from '@app/settings/settings-about/settings-about.component';
 import { Card } from 'primeng/card';
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from 'primeng/tabs';
 import { SettingsShortcutsComponent } from './settings-shortcuts/settings-shortcuts.component';
 import { SettingsStartupComponent } from './settings-startup/settings-startup.component';
-import { SettingsUpdatesComponent } from './settings-updates/settings-updates.component';
 
 @Component({
   selector: 'app-settings',
@@ -14,7 +14,7 @@ import { SettingsUpdatesComponent } from './settings-updates/settings-updates.co
     FormsModule,
     SettingsStartupComponent,
     SettingsShortcutsComponent,
-    SettingsUpdatesComponent,
+    SettingsAboutComponent,
     Card,
     Tabs,
     Tab,

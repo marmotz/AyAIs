@@ -10,6 +10,9 @@ vi.mock('electron', () => ({
   ipcMain: {
     handle: vi.fn(),
   },
+  app: {
+    getVersion: vi.fn(() => '0.3.0-beta.1'),
+  },
 }));
 
 vi.mock('../services/config-manager.service');
@@ -86,6 +89,22 @@ describe('Config IPC Handlers', () => {
 
       const handler = vi.mocked(ipcMain.handle).mock.calls.find((call) => call[0] === 'get-last-service')?.[1] as any;
       expect(handler()).toBeNull();
+    });
+  });
+
+  describe('get-app-version handler', () => {
+    it('should setup get-app-version handler', () => {
+      setupConfigIPCHandlers(configManager, windowManager, shortcutManager, startupManager);
+
+      expect(ipcMain.handle).toHaveBeenCalledWith('get-app-version', expect.any(Function));
+    });
+
+    it('should return app version', () => {
+      setupConfigIPCHandlers(configManager, windowManager, shortcutManager, startupManager);
+
+      const handler = vi.mocked(ipcMain.handle).mock.calls.find((call) => call[0] === 'get-app-version')?.[1] as any;
+      const version = handler();
+      expect(version).toBe('0.3.0-beta.1');
     });
   });
 

@@ -59,6 +59,7 @@ export class AutoUpdateService {
   }
 
   private showUpdateAvailableConfirmation(): void {
+    this.messageService.clear();
     this.messageService.add({
       severity: 'info',
       summary: 'Update Available',

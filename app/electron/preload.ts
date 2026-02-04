@@ -2,6 +2,7 @@ import { AppConfig } from '@shared/types/app-config.interface';
 import { contextBridge, ipcRenderer } from 'electron';
 
 contextBridge.exposeInMainWorld('electronAPI', {
+  getAppVersion: () => ipcRenderer.invoke('get-app-version'),
   getAppConfig: () => ipcRenderer.invoke('get-app-config'),
   saveAppConfig: (config: Partial<AppConfig>) => ipcRenderer.invoke('save-app-config', config),
   getLastService: () => ipcRenderer.invoke('get-last-service'),
@@ -25,6 +26,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onUpdateAvailable: (callback: () => void) => {
     ipcRenderer.on('update_available', () => callback());
   },
+  onUpdateNotAvailable: (callback: () => void) => {
+    ipcRenderer.on('update_not_available', () => callback());
+  },
   onUpdateDownloaded: (callback: () => void) => {
     ipcRenderer.on('update_downloaded', () => callback());
   },
@@ -33,4 +37,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   simulateUpdateAvailable: () => ipcRenderer.send('simulate-update-available'),
   simulateUpdateDownloaded: () => ipcRenderer.send('simulate-update-downloaded'),
   notifyRendererReady: () => ipcRenderer.send('renderer-ready'),
+  checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
 });

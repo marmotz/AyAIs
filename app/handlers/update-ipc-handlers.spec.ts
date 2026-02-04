@@ -7,6 +7,7 @@ import { setupUpdateIPCHandlers } from './update-ipc-handlers';
 vi.mock('electron', () => ({
   ipcMain: {
     on: vi.fn(),
+    handle: vi.fn(),
   },
 }));
 
@@ -133,6 +134,27 @@ describe('Update IPC Handlers', () => {
         .mocked(ipcMain.on)
         .mock.calls.find((call) => call[0] === 'simulate-update-downloaded')?.[1] as any;
       expect(() => listener()).not.toThrow();
+    });
+  });
+
+  describe('check-for-updates handler', () => {
+    it('should setup check-for-updates handler', () => {
+      setupUpdateIPCHandlers(autoUpdater, windowManager);
+
+      expect(ipcMain.handle).toHaveBeenCalledWith('check-for-updates', expect.any(Function));
+    });
+
+    it('should call checkForUpdates', async () => {
+      const mockCheckForUpdates = vi.fn().mockResolvedValue(undefined);
+      (autoUpdater as any).checkForUpdates = mockCheckForUpdates;
+
+      setupUpdateIPCHandlers(autoUpdater, windowManager);
+
+      const handler = vi.mocked(ipcMain.handle).mock.calls.find((call) => call[0] === 'check-for-updates')?.[1] as any;
+      if (handler) {
+        await handler();
+        expect(mockCheckForUpdates).toHaveBeenCalled();
+      }
     });
   });
 });

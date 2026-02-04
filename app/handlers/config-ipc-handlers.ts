@@ -1,5 +1,5 @@
 import { AppConfig } from '@shared/types/app-config.interface';
-import { ipcMain } from 'electron';
+import { ipcMain, app } from 'electron';
 import { ConfigManagerService } from '../services/config-manager.service';
 import { ShortcutManagerService } from '../services/shortcut-manager.service';
 import { StartupManagerService } from '../services/startup-manager.service';
@@ -11,6 +11,10 @@ export function setupConfigIPCHandlers(
   shortcutManager: ShortcutManagerService,
   startupManager: StartupManagerService
 ): void {
+  ipcMain.handle('get-app-version', () => {
+    return app.getVersion();
+  });
+
   ipcMain.handle('get-last-service', () => {
     try {
       return configManager.getConfig().lastService;

@@ -1,0 +1,45 @@
+<div class="updates-content space-y-6">
+  <div class="space-y-4">
+    <h2 class="text-lg font-semibold">About</h2>
+    <div class="space-y-2">
+      <p class="text-sm">
+        <span class="font-medium">Application:</span> AyAIs
+      </p>
+      <p class="text-sm">
+        <span class="font-medium">Version:</span> {{ appVersion() }}
+      </p>
+    </div>
+  </div>
+
+  <hr class="border-surface-200 dark:border-surface-700" />
+
+  <div class="space-y-4">
+    <h2 class="text-lg font-semibold">Updates</h2>
+    <p class="text-sm">Choose which update channel you want to receive.</p>
+    <label class="flex flex-col gap-2">
+      <span class="text-sm font-medium">Update Channel</span>
+      <p-select
+        (ngModelChange)="updateChannel.set($event); onChange()"
+        [ngModel]="updateChannel()"
+        [options]="channels"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Select an update channel"
+      />
+    </label>
+    @if (updateChannel() === 'beta') {
+      <p class="text-danger text-xs">Beta versions may contain bugs and unstable features. Use at your own risk.</p>
+    }
+  </div>
+
+  <hr class="border-surface-200 dark:border-surface-700" />
+
+  <div class="space-y-4">
+    <p-button
+      (onClick)="checkForUpdates()"
+      [label]="'Check for Updates'"
+      [icon]="'pi pi-refresh'"
+      [loading]="isChecking()"
+    />
+  </div>
+</div>

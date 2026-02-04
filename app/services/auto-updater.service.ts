@@ -5,8 +5,7 @@ import { ConfigManagerService } from './config-manager.service';
 export class AutoUpdaterService {
   private currentWindow: BrowserWindow | undefined;
   private updateCheckInterval: NodeJS.Timeout | undefined;
-  // private readonly UPDATE_CHECK_INTERVAL_MS = 60 * 60 * 1000; // 1 hour in milliseconds
-  private readonly UPDATE_CHECK_INTERVAL_MS = 60 * 1000; // 1 hour in milliseconds
+  private readonly UPDATE_CHECK_INTERVAL_MS = 60 * 60 * 1000; // 1 hour in milliseconds
 
   constructor(private readonly configManager: ConfigManagerService) {
     this.setupChannel();

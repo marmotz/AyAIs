@@ -286,6 +286,39 @@ this.http
 
 ### Testing Guidelines
 
+#### Mandatory Testing Workflow for Every Code Change
+
+**CRITICAL: For EVERY code addition, modification, or deletion, you MUST systematically:**
+
+1. **Add Tests for New Features**
+   - Create comprehensive unit tests for any new functionality
+   - Test both success and error scenarios
+   - Ensure edge cases are covered
+
+2. **Update Tests for Modified Code**
+   - Review and update ALL existing tests affected by your changes
+   - Ensure tests still pass after modifications
+   - Add new test cases if behavior has changed
+
+3. **Remove Obsolete Tests**
+   - Delete tests that are no longer relevant after code removal
+   - Remove test cases for functionality that has been removed
+   - Keep test suite clean and focused on current code behavior
+
+4. **Run and Verify Tests**
+   - **ALWAYS run `npm test`** after making changes
+   - **DO NOT consider work complete** until ALL tests pass
+   - Fix both code and test failures until everything passes
+   - If tests fail, determine if it's a code issue or test issue and fix accordingly
+
+5. **Test Quality Standards**
+   - Test files must follow naming pattern: `artifact-name.spec.ts`
+   - Place test files alongside implementation files
+   - Tests must be meaningful and test actual behavior, not just coverage metrics
+   - Use appropriate mocking for external dependencies
+
+**This workflow is MANDATORY for EVERY code change, no matter how small.**
+
 #### Mandatory Unit Testing Requirements for Angular
 
 - **Always create unit tests** for every new component, service, directive, pipe, or other Angular artifact

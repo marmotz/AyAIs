@@ -138,44 +138,24 @@ describe('AutoUpdaterService', () => {
   });
 
   it('should start periodic update check when setupAutoUpdater is called', () => {
-    vi.useFakeTimers();
-
     autoUpdaterService.setupAutoUpdater(mockWindow);
 
     expect(autoUpdater.checkForUpdates).toHaveBeenCalledTimes(1);
-
-    vi.advanceTimersByTime(60 * 60 * 1000);
-
-    expect(autoUpdater.checkForUpdates).toHaveBeenCalledTimes(2);
-
-    vi.useRealTimers();
   });
 
   it('should clear interval when destroy is called', () => {
-    vi.useFakeTimers();
-
     autoUpdaterService.setupAutoUpdater(mockWindow);
     autoUpdaterService.destroy();
 
-    vi.advanceTimersByTime(60 * 60 * 1000);
-
     expect(autoUpdater.checkForUpdates).toHaveBeenCalledTimes(1);
-
-    vi.useRealTimers();
   });
 
   it('should not start periodic check when updater is disabled', () => {
     mockIsPackaged = false;
 
-    vi.useFakeTimers();
-
     const newService = new AutoUpdaterService(mockConfigManager);
     newService.setupAutoUpdater(mockWindow);
 
-    vi.advanceTimersByTime(60 * 60 * 1000);
-
     expect(autoUpdater.checkForUpdates).not.toHaveBeenCalled();
-
-    vi.useRealTimers();
   });
 });

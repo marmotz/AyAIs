@@ -9,6 +9,11 @@ export interface ShortcutActionEvent {
   serviceIndex?: number;
 }
 
+interface PendingShortcut {
+  shortcut: string;
+  resolve: (result: ShortcutActionEvent | null) => void;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -18,9 +23,52 @@ export class ShortcutManagerService {
   editingShortcutId = signal<string | null>(null);
   tempShortcutValue = signal<string>('');
   private isMac = false;
+  private pendingRequest: PendingShortcut | null = null;
+  private lastShortcutExecuted = 0;
+  private debounceTimer: ReturnType<typeof setTimeout> | null = null;
+  private readonly DEBOUNCE_MS = 100;
 
   constructor() {
     void this.initializePlatform();
+  }
+
+  private flushShortcut(): void {
+    if (this.pendingRequest) {
+      const request = this.pendingRequest;
+      this.pendingRequest = null;
+
+      this.executeShortcutInternal(request.shortcut).then((result) => {
+        if (result) {
+          this.lastShortcutExecuted = Date.now();
+        }
+        request.resolve(result);
+      });
+    }
+    this.debounceTimer = null;
+  }
+
+  private async executeShortcutInternal(shortcut: string): Promise<ShortcutActionEvent | null> {
+    const appConfig = await window.electronAPI.getAppConfig();
+    const config = appConfig.shortcuts;
+
+    if (shortcut === config.internalShortcuts.openSettings) {
+      return { action: 'openSettings' };
+    } else if (shortcut === config.internalShortcuts.quitApp) {
+      return { action: 'quitApp' };
+    } else if (shortcut === config.internalShortcuts.nextService) {
+      return { action: 'nextService' };
+    } else if (shortcut === config.internalShortcuts.previousService) {
+      return { action: 'previousService' };
+    } else {
+      for (const [id, serviceShortcut] of Object.entries(config.internalShortcuts.services)) {
+        if (shortcut === serviceShortcut) {
+          const index = parseInt(id.replace('service', ''), 10) - 1;
+          return { action: 'selectService', serviceIndex: index };
+        }
+      }
+    }
+
+    return null;
   }
 
   buildShortcutFromEvent(event: KeyboardEvent): string | null {
@@ -50,27 +98,16 @@ export class ShortcutManagerService {
   }
 
   async executeShortcut(shortcut: string): Promise<ShortcutActionEvent | null> {
-    const appConfig = await window.electronAPI.getAppConfig();
-    const config = appConfig.shortcuts;
+    const now = Date.now();
 
-    if (shortcut === config.internalShortcuts.openSettings) {
-      return { action: 'openSettings' };
-    } else if (shortcut === config.internalShortcuts.quitApp) {
-      return { action: 'quitApp' };
-    } else if (shortcut === config.internalShortcuts.nextService) {
-      return { action: 'nextService' };
-    } else if (shortcut === config.internalShortcuts.previousService) {
-      return { action: 'previousService' };
-    } else {
-      for (const [id, serviceShortcut] of Object.entries(config.internalShortcuts.services)) {
-        if (shortcut === serviceShortcut) {
-          const index = parseInt(id.replace('service', ''), 10) - 1;
-          return { action: 'selectService', serviceIndex: index };
-        }
-      }
+    if (this.pendingRequest || now - this.lastShortcutExecuted < this.DEBOUNCE_MS) {
+      return null;
     }
 
-    return null;
+    return new Promise((resolve) => {
+      this.pendingRequest = { shortcut, resolve };
+      this.debounceTimer = setTimeout(() => this.flushShortcut(), this.DEBOUNCE_MS);
+    });
   }
 
   getDisplayValue(shortcut: Shortcut): string {

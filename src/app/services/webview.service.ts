@@ -12,8 +12,21 @@ export class WebviewService {
   private shortcutCapturedSubject = new Subject<string>();
   readonly shortcutCaptured = this.shortcutCapturedSubject.asObservable();
 
+  private pendingShortcut: string | null = null;
+  private debounceTimer: ReturnType<typeof setTimeout> | null = null;
+  private readonly DEBOUNCE_MS = 100;
+
   constructor() {
     void this.initializePlatform();
+  }
+
+  private flushShortcut(): void {
+    if (this.pendingShortcut) {
+      const shortcutToSend = this.pendingShortcut;
+      this.pendingShortcut = null;
+      this.shortcutCapturedSubject.next(shortcutToSend);
+    }
+    this.debounceTimer = null;
   }
 
   async createWebview(service: AIService) {
@@ -120,7 +133,15 @@ export class WebviewService {
   }
 
   private handleShortcutFromWebview(shortcut: string) {
-    this.shortcutCapturedSubject.next(shortcut);
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+    }
+
+    if (!this.pendingShortcut) {
+      this.pendingShortcut = shortcut;
+    }
+
+    this.debounceTimer = setTimeout(() => this.flushShortcut(), this.DEBOUNCE_MS);
   }
 
   private async initializePlatform(): Promise<void> {

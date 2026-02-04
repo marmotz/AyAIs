@@ -25,7 +25,7 @@ const DEFAULT_SHORTCUT_CONFIG: ShortcutConfig = {
 };
 
 export const DEFAULT_CONFIGURATION: AppConfig = {
-  launchAtStartup: false,
+  launchAtStartup: true,
   launchHidden: false,
   lastService: undefined,
   shortcuts: DEFAULT_SHORTCUT_CONFIG,

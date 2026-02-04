@@ -15,7 +15,7 @@ export const MOCK_CONFIG: AppConfig = {
       showHideApp: process.platform === 'darwin' ? 'Meta+I' : 'Ctrl+Shift+I',
     },
     internalShortcuts: {
-      openSettings: 'Ctrl+,',
+      openSettings: process.platform === 'darwin' ? 'Command+,' : 'Ctrl+,',
       quitApp: 'Ctrl+Q',
       previousService: 'Ctrl+Shift+Tab',
       nextService: 'Ctrl+Tab',

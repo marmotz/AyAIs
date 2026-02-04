@@ -16,7 +16,7 @@ describe('ShortcutManagerService', () => {
       getAppConfig: () => Promise.resolve({ ...MOCK_CONFIG_WITH_SERVICES }),
       saveAppConfig: saveAppConfigSpy,
       validateGlobalShortcut: validateGlobalShortcutSpy,
-      getPlatform: () => Promise.resolve('linux'),
+      getPlatform: () => Promise.resolve(process.platform),
       unregisterGlobalShortcuts: unregisterGlobalShortcutsSpy,
       registerGlobalShortcuts: registerGlobalShortcutsSpy,
       logDebug: vi.fn().mockResolvedValue(undefined),
@@ -46,11 +46,11 @@ describe('ShortcutManagerService', () => {
 
       expect(globalShortcuts.length).toBe(1);
       expect(globalShortcuts[0].id).toBe('showHideApp');
-      expect(globalShortcuts[0].value).toBe('Ctrl+Shift+I');
+      expect(globalShortcuts[0].value).toBe(process.platform === 'darwin' ? 'Meta+I' : 'Ctrl+Shift+I');
 
       expect(internalShortcuts.length).toBe(14);
       expect(internalShortcuts[0].id).toBe('openSettings');
-      expect(internalShortcuts[0].value).toBe('Ctrl+,');
+      expect(internalShortcuts[0].value).toBe(process.platform === 'darwin' ? 'Command+,' : 'Ctrl+,');
     });
 
     it('should set empty shortcuts when config has no shortcuts', async () => {
@@ -605,10 +605,10 @@ describe('ShortcutManagerService', () => {
       expect(saveAppConfigSpy).toHaveBeenCalledWith({
         shortcuts: expect.objectContaining({
           globalShortcuts: {
-            showHideApp: 'Ctrl+Shift+I',
+            showHideApp: process.platform === 'darwin' ? 'Meta+I' : 'Ctrl+Shift+I',
           },
           internalShortcuts: expect.objectContaining({
-            openSettings: 'Ctrl+,',
+            openSettings: process.platform === 'darwin' ? 'Command+,' : 'Ctrl+,',
             quitApp: 'Ctrl+Q',
             previousService: 'Ctrl+Shift+Tab',
             nextService: 'Ctrl+Tab',
@@ -715,7 +715,7 @@ describe('ShortcutManagerService', () => {
     });
 
     it('should return openSettings action', async () => {
-      const action = await service.executeShortcut('Ctrl+,');
+      const action = await service.executeShortcut(process.platform === 'darwin' ? 'Command+,' : 'Ctrl+,');
 
       expect(action).toEqual({ action: 'openSettings' });
     });

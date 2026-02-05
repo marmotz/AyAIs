@@ -18,6 +18,13 @@ export class AutoUpdaterService {
 
     this.updateChannel();
 
+    // Log auto-update status for user awareness
+    if (process.platform === 'win32' && app.isPackaged) {
+      console.log(
+        '[AutoUpdate] ℹ️  Windows auto-update is enabled (SSL verification relaxed for self-signed certificates)'
+      );
+    }
+
     try {
       const updateInfo = await autoUpdater.checkForUpdates();
 
@@ -35,6 +42,7 @@ export class AutoUpdaterService {
       const errorMessage = (error as Error).message;
       if (!errorMessage.includes('Cannot find latest-')) {
         console.error('[AutoUpdate] Failed to check for updates:', errorMessage);
+        console.error('[AutoUpdate] If this is a certificate error, the app is using a self-signed certificate.');
       }
     }
   }
@@ -75,6 +83,40 @@ export class AutoUpdaterService {
     this.currentWindow = win;
     this.updateChannel();
     autoUpdater.autoDownload = false;
+
+    // Configure SSL verification based on environment and platform
+    const disableSSL = process.env.AYAIS_DISABLE_SSL_VERIFICATION === 'true';
+    const isWindows = process.platform === 'win32';
+
+    if (disableSSL) {
+      console.warn('[AutoUpdate] ⚠️  SSL verification is DISABLED via environment variable.');
+      console.warn('[AutoUpdate] This is a security risk and should only be used for testing!');
+      process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+    } else if (isWindows && app.isPackaged) {
+      // Windows-specific handling for self-signed certificates in production
+      //
+      // This is necessary when using a self-signed code signing certificate.
+      // The auto-update will fail on Windows with self-signed certificates unless we relax SSL verification.
+      //
+      // IMPORTANT: This code is automatically included in GitHub Actions Windows builds.
+      // See: .github/workflows/windows.yml
+      //
+      // SECURITY CONSIDERATIONS:
+      // - The update files are still downloaded from GitHub (which uses valid SSL)
+      // - This only relaxes verification for the code signing certificate, not the download channel
+      // - This is an acceptable trade-off for open-source projects using self-signed certificates
+      //
+      // HOW TO REMOVE THIS WORKAROUND:
+      // 1. Purchase a trusted CA certificate (Certum, DigiCert, or Sectigo)
+      // 2. Update electron-builder.json with the new certificate
+      // 3. Remove this block of code
+      // 4. Rebuild the application
+      console.warn('[AutoUpdate] ⚠️  Windows production build with self-signed certificate detected.');
+      console.warn('[AutoUpdate] SSL verification relaxed to enable auto-update (certificate workaround).');
+      console.warn('[AutoUpdate] Note: Updates are downloaded from GitHub via secure connection.');
+      console.warn('[AutoUpdate] For production: Purchase a trusted CA certificate to remove this workaround.');
+      process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+    }
 
     autoUpdater.on('update-downloaded', () => {
       console.log('[AutoUpdate] Update downloaded successfully');

@@ -86,6 +86,10 @@ jobs:
         env:
           CSC_KEY_PASSWORD: ${{ secrets.WIN_CERT_PASSWORD }}
         run: npm run electron:build
+        # Note: The Windows build includes SSL verification relaxation for auto-update
+        # This is necessary for self-signed certificates and is handled automatically in:
+        # app/services/auto-updater.service.ts (setupAutoUpdater method)
+        # See docs/WINDOWS_AUTO_UPDATE.md for details
 
       - name: Upload build artifacts
         if: github.event_name == 'workflow_call' || startsWith(github.ref, 'refs/tags/v')

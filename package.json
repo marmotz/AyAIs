@@ -115,6 +115,7 @@
       "target": [
         "nsis"
       ],
+      "verifyUpdateCodeSignature": false,
       "publish": [
         "github"
       ]

@@ -76,7 +76,12 @@ export class AutoUpdaterService {
   }
 
   public quitAndInstall(): void {
-    autoUpdater.quitAndInstall();
+    console.log('[AutoUpdate] quitAndInstall called');
+    console.log('[AutoUpdate] Current version:', app.getVersion());
+    console.log('[AutoUpdate] Is packaged:', app.isPackaged);
+    console.log('[AutoUpdate] Platform:', process.platform);
+
+    autoUpdater.quitAndInstall(false, true);
   }
 
   public setupAutoUpdater(win?: BrowserWindow): void {

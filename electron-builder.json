@@ -25,7 +25,8 @@
   "win": {
     "icon": "dist/renderer/browser/assets/icons/win/icon.ico",
     "target": ["nsis"],
-    "cscLink": "build/certificate.pfx"
+    "cscLink": "build/certificate.pfx",
+    "verifyUpdateCodeSignature": false
   },
   "nsis": {
     "artifactName": "Ayais-setup-${version}.${ext}",

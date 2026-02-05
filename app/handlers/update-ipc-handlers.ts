@@ -21,6 +21,7 @@ export function setupUpdateIPCHandlers(autoUpdater: AutoUpdaterService, windowMa
   });
 
   ipcMain.on('restart_app', () => {
+    console.log('[UpdateIPC] restart_app message received');
     autoUpdater.quitAndInstall();
   });
 

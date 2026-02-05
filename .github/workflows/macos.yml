@@ -59,5 +59,6 @@ jobs:
           name: macos-build
           path: |
             release/**/*.dmg
+            release/**/*.zip
             release/beta-mac.yml
             release/latest-mac.yml

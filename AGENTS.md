@@ -497,6 +497,29 @@ src/
 - Include proper app metadata and icons for each platform
 - Test builds on all target platforms (Windows, Mac, Linux)
 
+#### CRITICAL: Build Workflow Synchronization
+
+**When modifying build-related files, you MUST also update the corresponding GitHub Actions workflow files:**
+
+- **electron-builder.json changes** → Update `.github/workflows/{macos,linux,windows}.yml`
+- **New build artifacts** → Add artifact paths to workflow upload steps
+- **Platform-specific targets** → Verify all three platform workflows are consistent
+- **Build dependencies** → Update `build-electron.js` if needed
+
+**Common workflow modifications required:**
+
+- Adding new file types to artifacts (e.g., `.zip` for macOS updates)
+- Updating metadata file patterns (`latest-*.yml`)
+- Modifying build commands or flags
+- Changing electron-builder target configurations
+
+**Example**: When macOS was updated to include ZIP files for auto-updater:
+
+1. Modified `electron-builder.json`: `target: ["dmg", "zip"]`
+2. Updated `.github/workflows/macos.yml`: Added `release/**/*.zip` to upload artifacts
+
+**Verification step**: After modifying build configuration, always check if the corresponding workflow file needs updating to upload the new artifacts.
+
 ### Auto-Updater Configuration
 
 The app uses electron-updater for automatic updates. Key requirements:

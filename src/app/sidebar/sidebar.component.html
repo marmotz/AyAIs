@@ -30,11 +30,6 @@
           [src]="service.icon"
           class="size-12 group-hover:opacity-100 group-hover:grayscale-0"
         />
-        @if (appConfig()?.shortcuts?.internalShortcuts?.services?.['service' + (i + 1)]) {
-          <span class="absolute right-0 bottom-0 hidden rounded bg-slate-600 px-1 text-xs text-white group-hover:block">
-            {{ appConfig()?.shortcuts?.internalShortcuts?.services?.['service' + (i + 1)] }}
-          </span>
-        }
       </button>
     }
 
@@ -71,11 +66,6 @@
         class="size-8 group-hover:opacity-100"
         src="assets/icons/settings.svg"
       />
-      @if (appConfig()?.shortcuts?.internalShortcuts?.openSettings) {
-        <span class="absolute right-0 bottom-0 hidden rounded bg-slate-600 px-1 text-xs text-white group-hover:block">
-          {{ appConfig()?.shortcuts?.internalShortcuts?.openSettings }}
-        </span>
-      }
     </button>
 
     <button
@@ -88,11 +78,6 @@
         class="size-8 group-hover:opacity-100"
         src="assets/icons/exit.svg"
       />
-      @if (appConfig()?.shortcuts?.internalShortcuts?.quitApp) {
-        <span class="absolute right-0 bottom-0 hidden rounded bg-slate-600 px-1 text-xs text-white group-hover:block">
-          {{ appConfig()?.shortcuts?.internalShortcuts?.quitApp }}
-        </span>
-      }
     </button>
 
     @if (isSettingsRoute()) {

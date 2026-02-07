@@ -24,21 +24,40 @@ test.describe('Application State', () => {
     await expect(gemini).toBeVisible({ timeout: 5000 });
   });
 
-  test('should switch between services and settings', async () => {
-    const geminiButton = firstWindow.locator('app-sidebar button img[alt="Gemini"]');
-    await geminiButton.click();
-    await firstWindow.waitForTimeout(1000);
-
+  test('should navigate to settings page', async () => {
     const settingsButton = firstWindow.locator('app-sidebar button img[alt="Settings"]');
     await settingsButton.click();
-    await firstWindow.waitForTimeout(1000);
+    await firstWindow.waitForURL(/settings$/, { timeout: 5000 });
 
     const url = firstWindow.url();
     expect(url).toContain('/settings');
+  });
+
+  test('should navigate back to home from settings', async () => {
+    const settingsButton = firstWindow.locator('app-sidebar button img[alt="Settings"]');
+    await settingsButton.click();
+    await firstWindow.waitForTimeout(500);
 
     const chatgptButton = firstWindow.locator('app-sidebar button img[alt="ChatGPT"]');
     await chatgptButton.click();
-    await firstWindow.waitForTimeout(1000);
+    await firstWindow.waitForTimeout(500);
+
+    const url = firstWindow.url();
+    expect(url).toContain('/app');
+    expect(url).not.toContain('/settings');
+  });
+
+  test('should switch between services and settings', async () => {
+    const geminiButton = firstWindow.locator('app-sidebar button img[alt="Gemini"]');
+    await geminiButton.click();
+
+    const settingsButton = firstWindow.locator('app-sidebar button img[alt="Settings"]');
+    await settingsButton.click();
+    await firstWindow.waitForURL(/settings$/, { timeout: 5000 });
+
+    const chatgptButton = firstWindow.locator('app-sidebar button img[alt="ChatGPT"]');
+    await chatgptButton.click();
+    await firstWindow.waitForURL(/app$/, { timeout: 5000 });
 
     const finalUrl = firstWindow.url();
     expect(finalUrl).toContain('/app');

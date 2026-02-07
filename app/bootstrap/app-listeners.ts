@@ -1,11 +1,11 @@
 import { app, globalShortcut } from 'electron';
-import { AutoUpdaterService } from '../services/auto-updater.service';
 import { ConfigManagerService } from '../services/config-manager.service';
+import { UpdateCheckerService } from '../services/update-checker.service';
 import { WindowManagerService } from '../services/window-manager.service';
 
 export function registerAppEventListeners(
   windowManager: WindowManagerService,
-  autoUpdater: AutoUpdaterService,
+  updateChecker: UpdateCheckerService,
   configManager: ConfigManagerService
 ): void {
   app.on('before-quit', () => {
@@ -25,7 +25,7 @@ export function registerAppEventListeners(
   app.on('activate', () => {
     if (!windowManager.getWindow()) {
       const win = windowManager.createWindow();
-      autoUpdater.setupAutoUpdater(win);
+      updateChecker.setupAutoUpdater(win);
 
       if (configManager.getConfig().launchHidden) {
         windowManager.hideWindow();
@@ -35,6 +35,6 @@ export function registerAppEventListeners(
 
   app.on('will-quit', () => {
     globalShortcut.unregisterAll();
-    autoUpdater.destroy();
+    updateChecker.destroy();
   });
 }

@@ -26,18 +26,18 @@ declare global {
       isDevMode: () => Promise<boolean>;
       sendDevShortcut: () => void;
       onOpenDevPage: (callback: () => void) => void;
-      onUpdateAvailable: (callback: (updateInfo: { version: string; releaseDate: string }) => void) => void;
-      onUpdateNotAvailable: (callback: () => void) => void;
-      onUpdateDownloaded: (callback: () => void) => void;
-      onUpdateDownloadProgress: (
-        callback: (progress: { percent: number; bytesPerSecond: number; transferred: number; total: number }) => void
+      onUpdateAvailable: (
+        callback: (updateInfo: {
+          version: string;
+          releaseDate: string;
+          releaseNotes: string;
+          prerelease: boolean;
+        }) => void
       ) => void;
-      onUpdateDownloadFailed: (callback: (error: string) => void) => void;
-      startUpdateDownload: () => void;
-      quitAndInstall: () => void;
+      onUpdateNotAvailable: (callback: () => void) => void;
+      openUpdateURL: () => void;
+      getUpdateURL: () => Promise<string>;
       simulateUpdateAvailable: () => void;
-      simulateUpdateDownloaded: () => void;
-      notifyRendererReady: () => void;
       checkForUpdates: () => Promise<void>;
     };
   }

@@ -14,16 +14,14 @@ describe('TestUpdaterComponent', () => {
   const mockElectronAPI = {
     getPlatform: () => Promise.resolve('linux'),
     logDebug: vi.fn().mockResolvedValue(undefined),
-    onUpdateAvailable: vi.fn((callback) => callback({ version: '0.4.0', releaseDate: '2025-01-15' })),
+    onUpdateAvailable: vi.fn((callback) =>
+      callback({ version: '0.4.0', releaseDate: '2025-01-15', releaseNotes: 'Test release' })
+    ),
     onUpdateNotAvailable: vi.fn(),
-    onUpdateDownloaded: vi.fn(),
-    onUpdateDownloadProgress: vi.fn(),
-    onUpdateDownloadFailed: vi.fn(),
-    startUpdateDownload: vi.fn(),
-    quitAndInstall: vi.fn(),
+    openUpdateURL: vi.fn(),
+    getUpdateURL: vi.fn().mockResolvedValue('https://github.com/marmotz/AyAIs#linux'),
     simulateUpdateAvailable: vi.fn(),
-    simulateUpdateDownloaded: vi.fn(),
-    notifyRendererReady: vi.fn(),
+    checkForUpdates: vi.fn().mockResolvedValue(undefined),
   };
 
   beforeEach(async () => {
@@ -79,9 +77,9 @@ describe('TestUpdaterComponent', () => {
     expect(mockElectronAPI.simulateUpdateAvailable).toHaveBeenCalled();
   });
 
-  it('should call simulateUpdateDownloaded on electronAPI', () => {
-    component.simulateUpdateDownloaded();
-    expect(mockElectronAPI.simulateUpdateDownloaded).toHaveBeenCalled();
+  it('should call checkForUpdates on electronAPI', async () => {
+    await component.checkForUpdates();
+    expect(mockElectronAPI.checkForUpdates).toHaveBeenCalled();
   });
 
   it('should not call simulateUpdateAvailable when electronAPI is undefined', () => {

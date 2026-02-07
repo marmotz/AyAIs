@@ -1,32 +1,19 @@
-import { ipcMain } from 'electron';
-import { AutoUpdaterService } from '../services/auto-updater.service';
+import { ipcMain, shell } from 'electron';
+import { UpdateCheckerService } from '../services/update-checker.service';
 import { WindowManagerService } from '../services/window-manager.service';
 
-export function setupUpdateIPCHandlers(autoUpdater: AutoUpdaterService, windowManager: WindowManagerService): void {
+export function setupUpdateIPCHandlers(updateChecker: UpdateCheckerService, windowManager: WindowManagerService): void {
   ipcMain.handle('check-for-updates', async () => {
-    await autoUpdater.checkForUpdates();
+    await updateChecker.checkForUpdates();
   });
 
-  ipcMain.on('start_download', async () => {
-    try {
-      await autoUpdater.downloadUpdate();
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error('[UpdateIPC] Failed to download update:', errorMessage);
-      const win = windowManager.getWindow();
-      if (win) {
-        win.webContents.send('update_download_failed', errorMessage);
-      }
-    }
+  ipcMain.handle('get-update-url', () => {
+    return updateChecker.getUpdateURL();
   });
 
-  ipcMain.on('restart_app', () => {
-    console.log('[UpdateIPC] restart_app message received');
-    autoUpdater.quitAndInstall();
-  });
-
-  ipcMain.on('renderer-ready', async () => {
-    await autoUpdater.checkForUpdates();
+  ipcMain.on('open-update-url', async () => {
+    const updateUrl = updateChecker.getUpdateURL();
+    await shell.openExternal(updateUrl);
   });
 
   ipcMain.on('simulate-update-available', () => {
@@ -34,16 +21,11 @@ export function setupUpdateIPCHandlers(autoUpdater: AutoUpdaterService, windowMa
 
     const win = windowManager.getWindow();
     if (win) {
-      win.webContents.send('update_available');
-    }
-  });
-
-  ipcMain.on('simulate-update-downloaded', () => {
-    console.log('Simulate an "update downloaded" event');
-
-    const win = windowManager.getWindow();
-    if (win) {
-      win.webContents.send('update_downloaded');
+      win.webContents.send('update_available', {
+        version: '13.0.2',
+        releaseDate: new Date().toISOString(),
+        releaseNotes: 'Simulated update',
+      });
     }
   });
 }

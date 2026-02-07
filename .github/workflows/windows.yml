@@ -98,5 +98,3 @@ jobs:
           name: windows-build
           path: |
             release/*.exe
-            release/beta.yml
-            release/latest.yml

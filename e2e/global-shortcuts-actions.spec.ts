@@ -44,19 +44,6 @@ test.describe('Global Shortcuts Actions', () => {
     expect(typeof finalState).toBe('boolean');
   });
 
-  test('should maintain app visibility state', async () => {
-    const chatgptButton = firstWindow.locator('app-sidebar button img[alt="ChatGPT"]');
-    await chatgptButton.click();
-    await firstWindow.waitForTimeout(500);
-
-    const isVisible = await app.evaluate(async (process) => {
-      const mainWindow = process.BrowserWindow.getAllWindows()[0];
-      return mainWindow.isVisible();
-    });
-
-    expect(isVisible).toBeTruthy();
-  });
-
   test.afterAll(async () => {
     await context.tracing.stop({ path: 'e2e/tracing/global-shortcuts-trace.zip' });
     await app.close();

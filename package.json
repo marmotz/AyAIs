@@ -21,7 +21,7 @@
     "electron:copy-assets": "copyfiles -f \"app/*.png\" dist/app/",
     "electron:serve": "wait-on tcp:4213 && npm run electron:serve-tsc && electron . --serve",
     "electron:local": "npm run web:dev && electron .",
-    "electron:build": "rimraf dist && npm run web:prod && node build-electron.js",
+    "electron:build": "rimraf dist && npm run web:prod && electron-builder --config electron-builder.json --publish=never",
     "test": "npm run test:angular && npm run test:electron",
     "test:angular": "ng test --watch=false",
     "test:angular:watch": "ng test",
@@ -52,9 +52,9 @@
     "@fortawesome/free-solid-svg-icons": "7.1.0",
     "@primeuix/themes": "2.0.3",
     "@tailwindcss/postcss": "4.1.18",
-    "electron-updater": "6.8.2",
     "postcss": "8.5.6",
     "primeng": "21.1.1",
+    "compare-versions": "6.1.0",
     "rxjs": "7.8.2",
     "tailwindcss": "4.1.18",
     "tailwindcss-primeui": "0.6.1",
@@ -99,26 +99,10 @@
     "chrome 140"
   ],
   "build": {
-    "publish": [
-      {
-        "provider": "github",
-        "owner": "marmotz",
-        "repo": "AyAIs"
-      }
-    ],
-    "linux": {
-      "target": [
-        "AppImage"
-      ]
-    },
-    "win": {
-      "target": [
-        "nsis"
-      ],
-      "verifyUpdateCodeSignature": false,
-      "publish": [
-        "github"
-      ]
+    "publish": {
+      "provider": "github",
+      "owner": "marmotz",
+      "repo": "AyAIs"
     },
     "nsis": {
       "oneClick": false,

@@ -17,21 +17,14 @@ test.describe('Critical User Flows', () => {
   test('should complete full workflow: select service, navigate to settings, return to service', async () => {
     const chatgptButton = firstWindow.locator('app-sidebar button img[alt="ChatGPT"]');
     await chatgptButton.click();
-    await firstWindow.waitForTimeout(500);
+    await firstWindow.waitForURL(/app$/);
 
     const settingsButton = firstWindow.locator('app-sidebar button img[alt="Settings"]');
     await settingsButton.click();
-    await firstWindow.waitForTimeout(500);
-
-    const url = firstWindow.url();
-    expect(url).toContain('/settings');
+    await firstWindow.waitForURL(/settings$/);
 
     await chatgptButton.click();
-    await firstWindow.waitForTimeout(500);
-
-    const finalUrl = firstWindow.url();
-    expect(finalUrl).toContain('/app');
-    expect(finalUrl).not.toContain('/settings');
+    await firstWindow.waitForURL(/app$/);
   });
 
   test('should cycle through all AI services', async () => {
@@ -43,8 +36,11 @@ test.describe('Critical User Flows', () => {
 
     for (const serviceButton of services) {
       await serviceButton.click();
-      await firstWindow.waitForTimeout(500);
     }
+
+    // Verify all webviews were created
+    const webviews = firstWindow.locator('webview');
+    await expect(webviews).toHaveCount(3);
   });
 
   test('should handle rapid service switching', async () => {
@@ -56,17 +52,21 @@ test.describe('Critical User Flows', () => {
     await claudeButton.click();
     await geminiButton.click();
     await chatgptButton.click();
-    await firstWindow.waitForTimeout(500);
+    await firstWindow.waitForTimeout(300);
+
+    // Verify all webviews exist after rapid switching
+    const webviews = firstWindow.locator('webview');
+    await expect(webviews).toHaveCount(3);
   });
 
   test('should handle service selection after settings visit', async () => {
     const settingsButton = firstWindow.locator('app-sidebar button img[alt="Settings"]');
     await settingsButton.click();
-    await firstWindow.waitForTimeout(500);
+    await firstWindow.waitForTimeout(300);
 
     const claudeButton = firstWindow.locator('app-sidebar button img[alt="Claude"]');
     await claudeButton.click();
-    await firstWindow.waitForTimeout(500);
+    await firstWindow.waitForTimeout(300);
 
     const url = firstWindow.url();
     expect(url).toContain('/app');

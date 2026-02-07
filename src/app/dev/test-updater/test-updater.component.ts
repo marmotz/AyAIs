@@ -27,9 +27,9 @@ export class TestUpdaterComponent {
     }
   }
 
-  simulateUpdateDownloaded(): void {
+  async checkForUpdates(): Promise<void> {
     if (window.electronAPI) {
-      window.electronAPI.simulateUpdateDownloaded();
+      await window.electronAPI.checkForUpdates();
     }
   }
 }

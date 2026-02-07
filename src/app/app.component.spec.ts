@@ -1,4 +1,4 @@
-import { TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { DevShortcutsService } from '@app/services/dev-shortcuts.service';
 import { TranslateModule } from '@ngx-translate/core';
@@ -21,6 +21,10 @@ const mockElectronAPI = {
 };
 
 describe('AppComponent', () => {
+  let fixture: ComponentFixture<App>;
+  let component: App;
+  let messageService: MessageService;
+
   beforeEach(async () => {
     global.window = {
       ...global.window,
@@ -33,22 +37,21 @@ describe('AppComponent', () => {
       providers: [
         provideRouter([]),
         ConfirmationService,
-        {
-          provide: MessageService,
-          useValue: { add: vi.fn(), clear: vi.fn() },
-        },
+        MessageService,
         {
           provide: DevShortcutsService,
           useValue: {},
         },
       ],
     }).compileComponents();
+
+    fixture = TestBed.createComponent(App);
+    component = fixture.componentInstance;
+    messageService = TestBed.inject(MessageService);
   });
 
   it('should create the app', () => {
-    const fixture = TestBed.createComponent(App);
-    const app = fixture.debugElement.componentInstance;
-    expect(app).toBeTruthy();
+    expect(component).toBeTruthy();
   });
 
   afterEach(() => {

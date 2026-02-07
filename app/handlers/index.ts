@@ -1,8 +1,8 @@
-import { AutoUpdaterService } from '../services/auto-updater.service';
 import { ConfigManagerService } from '../services/config-manager.service';
 import { DebugLoggerService } from '../services/debug-logger.service';
 import { ShortcutManagerService } from '../services/shortcut-manager.service';
 import { StartupManagerService } from '../services/startup-manager.service';
+import { UpdateCheckerService } from '../services/update-checker.service';
 import { WindowManagerService } from '../services/window-manager.service';
 import { setupConfigIPCHandlers } from './config-ipc-handlers';
 import { setupDebugIPCHandlers } from './debug-ipc-handlers';
@@ -16,13 +16,13 @@ export function setupIPCHandlers(
   shortcutManager: ShortcutManagerService,
   startupManager: StartupManagerService,
   debugLogger: DebugLoggerService,
-  autoUpdater: AutoUpdaterService,
+  updateChecker: UpdateCheckerService,
   serve: boolean
 ): void {
   setupConfigIPCHandlers(configManager, windowManager, shortcutManager, startupManager);
   setupShortcutIPCHandlers(shortcutManager);
   setupWindowIPCHandlers(windowManager);
-  setupUpdateIPCHandlers(autoUpdater, windowManager);
+  setupUpdateIPCHandlers(updateChecker, windowManager);
   setupDebugIPCHandlers(debugLogger, startupManager, serve);
 }
 

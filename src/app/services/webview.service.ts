@@ -39,6 +39,8 @@ export class WebviewService {
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chromium/142.0.0.0 Safari/537.36';
 
     webview.addEventListener('dom-ready', () => this.injectScript(webview, service));
+    webview.addEventListener('did-navigate', () => this.injectScript(webview, service));
+    webview.addEventListener('did-navigate-in-page', () => this.injectScript(webview, service));
     webview.addEventListener('console-message', async (e: any) => {
       const msg = e.message;
       if (msg.startsWith('AYAIS_')) {

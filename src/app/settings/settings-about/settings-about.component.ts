@@ -5,6 +5,13 @@ import { MessageService } from 'primeng/api';
 import { Button } from 'primeng/button';
 import { Select } from 'primeng/select';
 
+export interface UpdateInfo {
+  version: string;
+  releaseDate: string;
+  releaseNotes: string;
+  prerelease: boolean;
+}
+
 @Component({
   selector: 'app-settings-about',
   standalone: true,
@@ -15,6 +22,7 @@ export class SettingsAboutComponent implements OnInit, OnDestroy {
   appVersion = signal<string>('');
   updateChannel = signal<UpdateChannel>('stable');
   isChecking = signal<boolean>(false);
+  availableUpdate = signal<UpdateInfo | null>(null);
   channels: { label: string; value: UpdateChannel }[] = [
     { label: 'Stable', value: 'stable' },
     { label: 'Beta', value: 'beta' },
@@ -27,6 +35,7 @@ export class SettingsAboutComponent implements OnInit, OnDestroy {
     }
 
     this.isChecking.set(true);
+    this.availableUpdate.set(null);
 
     try {
       this.messageService.add({
@@ -77,14 +86,21 @@ export class SettingsAboutComponent implements OnInit, OnDestroy {
     this.loadAppConfig();
     this.loadAppVersion();
     window.electronAPI.onUpdateNotAvailable(this.updateNotAvailableListener);
+    window.electronAPI.onUpdateAvailable(this.updateAvailableListener);
   }
 
   onChange(): void {
+    this.availableUpdate.set(null);
     const newConfig: Partial<AppConfig> = {
       updateChannel: this.updateChannel(),
     };
     window.electronAPI.saveAppConfig(newConfig).catch(() => {});
   }
+
+  private readonly updateAvailableListener = (updateInfo: UpdateInfo): void => {
+    this.availableUpdate.set(updateInfo);
+    this.isChecking.set(false);
+  };
 
   private readonly updateNotAvailableListener = (): void => {
     this.messageService.clear();

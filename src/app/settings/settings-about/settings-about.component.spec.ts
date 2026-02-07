@@ -45,6 +45,7 @@ describe('SettingsUpdatesComponent', () => {
       getAppVersion: vi.fn().mockResolvedValue('0.3.0-beta.1'),
       checkForUpdates: vi.fn().mockResolvedValue(undefined),
       onUpdateNotAvailable: vi.fn(),
+      onUpdateAvailable: vi.fn(),
     };
 
     await TestBed.configureTestingModule({
@@ -95,11 +96,13 @@ describe('SettingsUpdatesComponent', () => {
   });
 
   it('should listen for update not available events', () => {
-    const onSpy = vi.spyOn(window.electronAPI, 'onUpdateNotAvailable');
+    const onNotAvailableSpy = vi.spyOn(window.electronAPI, 'onUpdateNotAvailable');
+    const onAvailableSpy = vi.spyOn(window.electronAPI, 'onUpdateAvailable');
 
     component.ngOnInit();
 
-    expect(onSpy).toHaveBeenCalledWith(expect.any(Function));
+    expect(onNotAvailableSpy).toHaveBeenCalledWith(expect.any(Function));
+    expect(onAvailableSpy).toHaveBeenCalledWith(expect.any(Function));
   });
 
   it('should show up to date message when update not available', () => {
@@ -148,5 +151,23 @@ describe('SettingsUpdatesComponent', () => {
       detail: 'Failed to check for updates. Please try again later.',
       life: 5000,
     });
+  });
+
+  it('should display update info when update is available', () => {
+    component.ngOnInit();
+
+    const mockUpdateInfo = {
+      version: '1.0.0',
+      releaseDate: '2025-01-15T10:00:00Z',
+      releaseNotes: 'Bug fixes and performance improvements',
+      prerelease: false,
+    };
+
+    const listener = vi.mocked(window.electronAPI.onUpdateAvailable).mock.calls[0]?.[0];
+    if (listener) {
+      listener(mockUpdateInfo);
+      expect(component.availableUpdate()).toEqual(mockUpdateInfo);
+      expect(component.isChecking()).toBe(false);
+    }
   });
 });

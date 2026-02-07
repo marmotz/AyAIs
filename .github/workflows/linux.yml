@@ -63,5 +63,3 @@ jobs:
           name: linux-build
           path: |
             release/**/*.AppImage
-            release/beta-linux.yml
-            release/latest-linux.yml

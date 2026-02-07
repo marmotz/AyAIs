@@ -14,27 +14,19 @@ test.describe('Webview Management', () => {
     await firstWindow.waitForLoadState('domcontentloaded');
   });
 
-  test('should create webview when service is selected', async () => {
-    const chatgptButton = firstWindow.locator('app-sidebar button img[alt="ChatGPT"]');
-    await chatgptButton.click();
-    await firstWindow.waitForTimeout(500);
-
-    const webview = firstWindow.locator('webview');
-    await expect(webview).toHaveCount(1, { timeout: 5000 });
-  });
-
   test('should hide webview when navigating to settings', async () => {
     const chatgptButton = firstWindow.locator('app-sidebar button img[alt="ChatGPT"]');
     await chatgptButton.click();
-    await firstWindow.waitForTimeout(500);
+    await firstWindow.waitForTimeout(300);
 
     const webview = firstWindow.locator('webview');
-    await expect(webview).toHaveCount(1, { timeout: 5000 });
+    await expect(webview).toHaveCount(1, { timeout: 3000 });
 
     const settingsButton = firstWindow.locator('app-sidebar button img[alt="Settings"]');
     await settingsButton.click();
-    await firstWindow.waitForTimeout(500);
+    await firstWindow.waitForTimeout(300);
 
+    // Check webview is hidden (not waiting for content load)
     const webviewStyle = await webview.getAttribute('style');
     expect(webviewStyle).toContain('visibility: hidden');
     expect(webviewStyle).toContain('height: 0');
@@ -44,17 +36,17 @@ test.describe('Webview Management', () => {
   test('should show webview when returning from settings', async () => {
     const chatgptButton = firstWindow.locator('app-sidebar button img[alt="ChatGPT"]');
     await chatgptButton.click();
-    await firstWindow.waitForTimeout(500);
+    await firstWindow.waitForTimeout(300);
 
     const webview = firstWindow.locator('webview');
-    await expect(webview).toHaveCount(1, { timeout: 5000 });
+    await expect(webview).toHaveCount(1, { timeout: 3000 });
 
     const settingsButton = firstWindow.locator('app-sidebar button img[alt="Settings"]');
     await settingsButton.click();
-    await firstWindow.waitForTimeout(500);
+    await firstWindow.waitForTimeout(300);
 
     await chatgptButton.click();
-    await firstWindow.waitForTimeout(500);
+    await firstWindow.waitForTimeout(300);
 
     const webviewStyle = await webview.getAttribute('style');
     expect(webviewStyle).toContain('visibility: visible');
@@ -67,13 +59,13 @@ test.describe('Webview Management', () => {
     const claudeButton = firstWindow.locator('app-sidebar button img[alt="Claude"]');
 
     await chatgptButton.click();
-    await firstWindow.waitForTimeout(500);
+    await firstWindow.waitForTimeout(300);
 
     await claudeButton.click();
-    await firstWindow.waitForTimeout(500);
+    await firstWindow.waitForTimeout(300);
 
     await chatgptButton.click();
-    await firstWindow.waitForTimeout(500);
+    await firstWindow.waitForTimeout(300);
 
     const webviews = firstWindow.locator('webview');
     const count = await webviews.count();

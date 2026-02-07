@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import * as PATH from 'path';
 import { BrowserContext, _electron as electron, ElectronApplication, Page } from 'playwright';
 
-test.describe('Check Home Page', () => {
+test.describe('Application Launch', () => {
   let app: ElectronApplication;
   let firstWindow: Page;
   let context: BrowserContext;

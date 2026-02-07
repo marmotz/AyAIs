@@ -35,3 +35,4 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: release-artifacts/**
+          prerelease: ${{ contains(github.ref_name, 'beta') }}

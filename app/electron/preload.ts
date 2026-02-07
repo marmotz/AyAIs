@@ -23,27 +23,16 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onOpenDevPage: (callback: () => void) => {
     ipcRenderer.on('open-dev-page', () => callback());
   },
-  onUpdateAvailable: (callback: (updateInfo: { version: string; releaseDate: string }) => void) => {
+  onUpdateAvailable: (
+    callback: (updateInfo: { version: string; releaseDate: string; releaseNotes: string; prerelease: boolean }) => void
+  ) => {
     ipcRenderer.on('update_available', (_event, updateInfo) => callback(updateInfo));
   },
   onUpdateNotAvailable: (callback: () => void) => {
     ipcRenderer.on('update_not_available', () => callback());
   },
-  onUpdateDownloaded: (callback: () => void) => {
-    ipcRenderer.on('update_downloaded', () => callback());
-  },
-  onUpdateDownloadProgress: (
-    callback: (progress: { percent: number; bytesPerSecond: number; transferred: number; total: number }) => void
-  ) => {
-    ipcRenderer.on('update_download_progress', (_event, progress) => callback(progress));
-  },
-  onUpdateDownloadFailed: (callback: (error: string) => void) => {
-    ipcRenderer.on('update_download_failed', (_event, error) => callback(error));
-  },
-  startUpdateDownload: () => ipcRenderer.send('start_download'),
-  quitAndInstall: () => ipcRenderer.send('restart_app'),
+  openUpdateURL: () => ipcRenderer.send('open-update-url'),
+  getUpdateURL: () => ipcRenderer.invoke('get-update-url'),
   simulateUpdateAvailable: () => ipcRenderer.send('simulate-update-available'),
-  simulateUpdateDownloaded: () => ipcRenderer.send('simulate-update-downloaded'),
-  notifyRendererReady: () => ipcRenderer.send('renderer-ready'),
   checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
 });

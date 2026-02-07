@@ -27,25 +27,46 @@ test.describe('AI Services Navigation', () => {
   test('should navigate to ChatGPT service', async () => {
     const chatgptButton = firstWindow.locator('app-sidebar button img[alt="ChatGPT"]');
     await chatgptButton.click();
+    await firstWindow.waitForTimeout(300);
 
+    // Verify webview element exists and has correct src attribute
     const webview = firstWindow.locator('webview#webview-chatgpt');
-    await expect(webview).toHaveCount(1, { timeout: 5000 });
+    const count = await webview.count();
+    expect(count).toBe(1);
+
+    // Check that the webview has the src attribute set (without waiting for load)
+    const hasSrc = await webview.getAttribute('src');
+    // ChatGPT may redirect to chatgpt.com or chat.openai.com
+    const isValidChatGPT = hasSrc?.includes('chat.openai.com') || hasSrc?.includes('chatgpt.com');
+    expect(isValidChatGPT).toBe(true);
   });
 
   test('should navigate to Claude service', async () => {
     const claudeButton = firstWindow.locator('app-sidebar button img[alt="Claude"]');
     await claudeButton.click();
+    await firstWindow.waitForTimeout(300);
 
     const webview = firstWindow.locator('webview#webview-claude');
-    await expect(webview).toHaveCount(1, { timeout: 5000 });
+    const count = await webview.count();
+    expect(count).toBe(1);
+
+    // Check that the webview has the src attribute set
+    const hasSrc = await webview.getAttribute('src');
+    expect(hasSrc).toContain('claude.ai');
   });
 
   test('should navigate to Gemini service', async () => {
     const geminiButton = firstWindow.locator('app-sidebar button img[alt="Gemini"]');
     await geminiButton.click();
+    await firstWindow.waitForTimeout(300);
 
     const webview = firstWindow.locator('webview#webview-gemini');
-    await expect(webview).toHaveCount(1, { timeout: 5000 });
+    const count = await webview.count();
+    expect(count).toBe(1);
+
+    // Check that the webview has the src attribute set
+    const hasSrc = await webview.getAttribute('src');
+    expect(hasSrc).toContain('gemini.google.com');
   });
 
   test('should switch between services', async () => {
@@ -53,18 +74,35 @@ test.describe('AI Services Navigation', () => {
     const claudeButton = firstWindow.locator('app-sidebar button img[alt="Claude"]');
 
     await chatgptButton.click();
-    await firstWindow.waitForTimeout(500);
+    await firstWindow.waitForTimeout(300);
 
     await claudeButton.click();
-    await firstWindow.waitForTimeout(500);
+    await firstWindow.waitForTimeout(300);
 
-    const webviews = firstWindow.locator('webview');
-    await expect(webviews).toHaveCount(3, { timeout: 5000 });
-
+    // Verify both webviews exist and are properly configured
     const chatgptWebview = firstWindow.locator('webview#webview-chatgpt');
-    await expect(chatgptWebview).toHaveCSS('visibility', 'hidden');
     const claudeWebview = firstWindow.locator('webview#webview-claude');
-    await expect(claudeWebview).toHaveCSS('visibility', 'visible');
+
+    expect(await chatgptWebview.count()).toBe(1);
+    expect(await claudeWebview.count()).toBe(1);
+
+    // Verify the Claude webview is visible and ChatGPT is hidden
+    const claudeStyles = await claudeWebview.evaluate((el: any) => ({
+      visibility: el.style.visibility,
+      height: el.style.height,
+      width: el.style.width,
+    }));
+
+    const chatgptStyles = await chatgptWebview.evaluate((el: any) => ({
+      visibility: el.style.visibility,
+      height: el.style.height,
+      width: el.style.width,
+    }));
+
+    expect(claudeStyles.visibility).toBe('visible');
+    expect(claudeStyles.height).toBe('100%');
+    expect(claudeStyles.width).toBe('100%');
+    expect(chatgptStyles.visibility).toBe('hidden');
   });
 
   test.afterAll(async () => {

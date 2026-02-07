@@ -1,176 +1,104 @@
-import { ipcMain } from 'electron';
+import { ipcMain, shell } from 'electron';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { AutoUpdaterService } from '../services/auto-updater.service';
+import { UpdateCheckerService } from '../services/update-checker.service';
 import { WindowManagerService } from '../services/window-manager.service';
 import { setupUpdateIPCHandlers } from './update-ipc-handlers';
 
 vi.mock('electron', () => ({
   ipcMain: {
-    on: vi.fn(),
     handle: vi.fn(),
+    on: vi.fn(),
+  },
+  shell: {
+    openExternal: vi.fn(),
   },
 }));
 
-vi.mock('../services/auto-updater.service');
-vi.mock('../services/window-manager.service');
-
-describe('Update IPC Handlers', () => {
-  let autoUpdater: AutoUpdaterService;
-  let windowManager: WindowManagerService;
+describe('setupUpdateIPCHandlers', () => {
+  let mockUpdateChecker: UpdateCheckerService;
+  let mockWindowManager: WindowManagerService;
 
   beforeEach(() => {
+    mockUpdateChecker = {
+      checkForUpdates: vi.fn().mockResolvedValue(null),
+      getUpdateURL: vi.fn().mockReturnValue('https://github.com/marmotz/AyAIs#windows'),
+    } as unknown as UpdateCheckerService;
+
+    mockWindowManager = {
+      getWindow: vi.fn().mockReturnValue({
+        webContents: {
+          send: vi.fn(),
+        },
+      }),
+    } as unknown as WindowManagerService;
+
     vi.clearAllMocks();
-
-    autoUpdater = {
-      downloadUpdate: vi.fn(),
-      quitAndInstall: vi.fn(),
-    } as any;
-
-    windowManager = {
-      getWindow: vi.fn(),
-    } as any;
   });
 
-  describe('start_download listener', () => {
-    it('should setup start_download listener', () => {
-      setupUpdateIPCHandlers(autoUpdater, windowManager);
+  it('should set up IPC handlers', () => {
+    setupUpdateIPCHandlers(mockUpdateChecker, mockWindowManager);
 
-      expect(ipcMain.on).toHaveBeenCalledWith('start_download', expect.any(Function));
-    });
-
-    it('should call downloadUpdate', async () => {
-      setupUpdateIPCHandlers(autoUpdater, windowManager);
-
-      const listener = vi.mocked(ipcMain.on).mock.calls.find((call) => call[0] === 'start_download')?.[1] as any;
-      if (listener) {
-        await listener();
-        expect(autoUpdater.downloadUpdate).toHaveBeenCalled();
-      }
-    });
-
-    it('should handle download errors', async () => {
-      const mockError = new Error('Download failed');
-      vi.mocked(autoUpdater.downloadUpdate).mockRejectedValue(mockError);
-      const mockWebContents = { send: vi.fn() };
-      const mockWindow = { webContents: mockWebContents };
-      vi.mocked(windowManager.getWindow).mockReturnValue(mockWindow as any);
-
-      setupUpdateIPCHandlers(autoUpdater, windowManager);
-
-      const listener = vi.mocked(ipcMain.on).mock.calls.find((call) => call[0] === 'start_download')?.[1] as any;
-      if (listener) {
-        await listener();
-        expect(mockWebContents.send).toHaveBeenCalledWith('update_download_failed', 'Download failed');
-      }
-    });
+    expect(ipcMain.handle).toHaveBeenCalledWith('check-for-updates', expect.any(Function));
+    expect(ipcMain.handle).toHaveBeenCalledWith('get-update-url', expect.any(Function));
+    expect(ipcMain.on).toHaveBeenCalledWith('open-update-url', expect.any(Function));
+    expect(ipcMain.on).toHaveBeenCalledWith('simulate-update-available', expect.any(Function));
   });
 
-  describe('restart_app listener', () => {
-    it('should setup restart_app listener', () => {
-      setupUpdateIPCHandlers(autoUpdater, windowManager);
+  it('should handle check-for-updates', async () => {
+    setupUpdateIPCHandlers(mockUpdateChecker, mockWindowManager);
 
-      expect(ipcMain.on).toHaveBeenCalledWith('restart_app', expect.any(Function));
-    });
+    const handleCalls = (ipcMain.handle as ReturnType<typeof vi.fn>).mock.calls;
+    const checkForUpdatesHandler = handleCalls.find((call) => call[0] === 'check-for-updates');
 
-    it('should call quitAndInstall', () => {
-      setupUpdateIPCHandlers(autoUpdater, windowManager);
-
-      const listener = vi.mocked(ipcMain.on).mock.calls.find((call) => call[0] === 'restart_app')?.[1] as any;
-      if (listener) {
-        listener();
-        expect(autoUpdater.quitAndInstall).toHaveBeenCalled();
-      }
-    });
+    if (checkForUpdatesHandler) {
+      await checkForUpdatesHandler[1]();
+      expect(mockUpdateChecker.checkForUpdates).toHaveBeenCalled();
+    }
   });
 
-  describe('simulate-update-available listener', () => {
-    it('should setup simulate-update-available listener', () => {
-      setupUpdateIPCHandlers(autoUpdater, windowManager);
+  it('should handle get-update-url', () => {
+    setupUpdateIPCHandlers(mockUpdateChecker, mockWindowManager);
 
-      expect(ipcMain.on).toHaveBeenCalledWith('simulate-update-available', expect.any(Function));
-    });
+    const handleCalls = (ipcMain.handle as ReturnType<typeof vi.fn>).mock.calls;
+    const getUpdateUrlHandler = handleCalls.find((call) => call[0] === 'get-update-url');
 
-    it('should send update_available event to window', () => {
-      const mockWebContents = { send: vi.fn() };
-      const mockWindow = { webContents: mockWebContents };
-      vi.mocked(windowManager.getWindow).mockReturnValue(mockWindow as any);
-
-      setupUpdateIPCHandlers(autoUpdater, windowManager);
-
-      const listener = vi
-        .mocked(ipcMain.on)
-        .mock.calls.find((call) => call[0] === 'simulate-update-available')?.[1] as any;
-      if (listener) {
-        listener();
-        expect(mockWebContents.send).toHaveBeenCalledWith('update_available');
-      }
-    });
-
-    it('should handle missing window gracefully', () => {
-      vi.mocked(windowManager.getWindow).mockReturnValue(null as any);
-
-      setupUpdateIPCHandlers(autoUpdater, windowManager);
-
-      const listener = vi
-        .mocked(ipcMain.on)
-        .mock.calls.find((call) => call[0] === 'simulate-update-available')?.[1] as any;
-      expect(() => listener()).not.toThrow();
-    });
+    if (getUpdateUrlHandler) {
+      const url = getUpdateUrlHandler[1]();
+      expect(url).toBe('https://github.com/marmotz/AyAIs#windows');
+      expect(mockUpdateChecker.getUpdateURL).toHaveBeenCalled();
+    }
   });
 
-  describe('simulate-update-downloaded listener', () => {
-    it('should setup simulate-update-downloaded listener', () => {
-      setupUpdateIPCHandlers(autoUpdater, windowManager);
+  it('should handle open-update-url', () => {
+    setupUpdateIPCHandlers(mockUpdateChecker, mockWindowManager);
 
-      expect(ipcMain.on).toHaveBeenCalledWith('simulate-update-downloaded', expect.any(Function));
-    });
+    const onCalls = (ipcMain.on as ReturnType<typeof vi.fn>).mock.calls;
+    const openUpdateUrlHandler = onCalls.find((call) => call[0] === 'open-update-url');
 
-    it('should send update_downloaded event to window', () => {
-      const mockWebContents = { send: vi.fn() };
-      const mockWindow = { webContents: mockWebContents };
-      vi.mocked(windowManager.getWindow).mockReturnValue(mockWindow as any);
-
-      setupUpdateIPCHandlers(autoUpdater, windowManager);
-
-      const listener = vi
-        .mocked(ipcMain.on)
-        .mock.calls.find((call) => call[0] === 'simulate-update-downloaded')?.[1] as any;
-      if (listener) {
-        listener();
-        expect(mockWebContents.send).toHaveBeenCalledWith('update_downloaded');
-      }
-    });
-
-    it('should handle missing window gracefully', () => {
-      vi.mocked(windowManager.getWindow).mockReturnValue(null as any);
-
-      setupUpdateIPCHandlers(autoUpdater, windowManager);
-
-      const listener = vi
-        .mocked(ipcMain.on)
-        .mock.calls.find((call) => call[0] === 'simulate-update-downloaded')?.[1] as any;
-      expect(() => listener()).not.toThrow();
-    });
+    if (openUpdateUrlHandler) {
+      openUpdateUrlHandler[1]();
+      expect(mockUpdateChecker.getUpdateURL).toHaveBeenCalled();
+      expect(shell.openExternal).toHaveBeenCalledWith('https://github.com/marmotz/AyAIs#windows');
+    }
   });
 
-  describe('check-for-updates handler', () => {
-    it('should setup check-for-updates handler', () => {
-      setupUpdateIPCHandlers(autoUpdater, windowManager);
+  it('should handle simulate-update-available', () => {
+    setupUpdateIPCHandlers(mockUpdateChecker, mockWindowManager);
 
-      expect(ipcMain.handle).toHaveBeenCalledWith('check-for-updates', expect.any(Function));
-    });
+    const onCalls = (ipcMain.on as ReturnType<typeof vi.fn>).mock.calls;
+    const simulateHandler = onCalls.find((call) => call[0] === 'simulate-update-available');
 
-    it('should call checkForUpdates', async () => {
-      const mockCheckForUpdates = vi.fn().mockResolvedValue(undefined);
-      (autoUpdater as any).checkForUpdates = mockCheckForUpdates;
+    if (simulateHandler) {
+      simulateHandler[1]();
 
-      setupUpdateIPCHandlers(autoUpdater, windowManager);
-
-      const handler = vi.mocked(ipcMain.handle).mock.calls.find((call) => call[0] === 'check-for-updates')?.[1] as any;
-      if (handler) {
-        await handler();
-        expect(mockCheckForUpdates).toHaveBeenCalled();
+      const mockWin = mockWindowManager.getWindow();
+      if (mockWin) {
+        expect(mockWin.webContents.send).toHaveBeenCalledWith('update_available', {
+          version: '13.0.2',
+          releaseDate: expect.any(String),
+          releaseNotes: 'Simulated update',
+        });
       }
-    });
+    }
   });
 });

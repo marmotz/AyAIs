@@ -12,18 +12,14 @@ describe('AutoUpdateService', () => {
     logDebug: vi.fn().mockResolvedValue(undefined),
     onUpdateAvailable: vi.fn((callback) => {
       if (callOnUpdateImmediately) {
-        callback({ version: '0.4.0', releaseDate: '2025-01-15' });
+        callback({ version: '0.4.0', releaseDate: '2025-01-15', releaseNotes: 'Test release' });
       }
     }),
     onUpdateNotAvailable: vi.fn(),
-    onUpdateDownloaded: vi.fn(),
-    onUpdateDownloadProgress: vi.fn(),
-    onUpdateDownloadFailed: vi.fn(),
-    startUpdateDownload: vi.fn(),
-    quitAndInstall: vi.fn(),
+    openUpdateURL: vi.fn(),
+    getUpdateURL: vi.fn().mockResolvedValue('https://github.com/marmotz/AyAIs#linux'),
     simulateUpdateAvailable: vi.fn(),
-    simulateUpdateDownloaded: vi.fn(),
-    notifyRendererReady: vi.fn(),
+    checkForUpdates: vi.fn().mockResolvedValue(undefined),
   });
 
   beforeEach(() => {
@@ -46,7 +42,6 @@ describe('AutoUpdateService', () => {
 
   afterEach(() => {
     vi.clearAllMocks();
-    // Don't delete the mock - the setup file will maintain it
   });
 
   it('should be created', () => {
@@ -59,23 +54,13 @@ describe('AutoUpdateService', () => {
     expect(mockMessageService.add).not.toHaveBeenCalled();
   });
 
-  it('should show download error toast when download fails', () => {
-    const errorCallback = (global.window.electronAPI.onUpdateDownloadFailed as any).mock.calls[0][0];
-    errorCallback('Network error');
-
-    expect(service.updateStatus()).toBe('error');
-    expect(mockMessageService.clear).toHaveBeenCalled();
-    expect(mockMessageService.add).toHaveBeenCalledWith(
-      expect.objectContaining({
-        severity: 'error',
-        summary: 'Download Failed',
-        detail: 'Failed to download the update: Network error',
-      })
-    );
-  });
-
   it('should capture and store update info when update is available', () => {
-    const mockUpdateInfo = { version: '0.4.0', releaseDate: '2025-01-15' };
+    const mockUpdateInfo = {
+      version: '0.4.0',
+      releaseDate: '2025-01-15',
+      releaseNotes: 'Test release',
+      prerelease: false,
+    };
     const availableCallback = (global.window.electronAPI.onUpdateAvailable as any).mock.calls[0][0];
 
     availableCallback(mockUpdateInfo);
@@ -85,43 +70,37 @@ describe('AutoUpdateService', () => {
     expect(mockMessageService.add).toHaveBeenCalled();
   });
 
-  it('should clear download progress when download completes', () => {
-    const mockProgress = { percent: 100, bytesPerSecond: 0, transferred: 100000000, total: 100000000 };
-    const progressCallback = (global.window.electronAPI.onUpdateDownloadProgress as any).mock.calls[0][0];
-    const downloadedCallback = (global.window.electronAPI.onUpdateDownloaded as any).mock.calls[0][0];
-
-    progressCallback(mockProgress);
-    expect(service.downloadProgress()).toEqual(mockProgress);
-
-    downloadedCallback();
-    expect(service.downloadProgress()).toBe(null);
-    expect(service.updateStatus()).toBe('downloaded');
-  });
-
-  it('should clear download progress when download fails', () => {
-    const mockProgress = { percent: 50, bytesPerSecond: 1000000, transferred: 50000000, total: 100000000 };
-    const progressCallback = (global.window.electronAPI.onUpdateDownloadProgress as any).mock.calls[0][0];
-    const errorCallback = (global.window.electronAPI.onUpdateDownloadFailed as any).mock.calls[0][0];
-
-    progressCallback(mockProgress);
-    expect(service.downloadProgress()).toEqual(mockProgress);
-
-    errorCallback('Network error');
-    expect(service.downloadProgress()).toBe(null);
-    expect(service.updateStatus()).toBe('error');
-  });
-
-  it('should handle download progress updates', () => {
-    const progressCallback = (global.window.electronAPI.onUpdateDownloadProgress as any).mock.calls[0][0];
-    const mockProgress = {
-      percent: 50,
-      bytesPerSecond: 1000000,
-      transferred: 50000000,
-      total: 100000000,
+  it('should show update available confirmation when update is detected', () => {
+    const mockUpdateInfo = {
+      version: '0.4.0',
+      releaseDate: '2025-01-15',
+      releaseNotes: 'Test release',
+      prerelease: false,
     };
+    const availableCallback = (global.window.electronAPI.onUpdateAvailable as any).mock.calls[0][0];
 
-    progressCallback(mockProgress);
+    availableCallback(mockUpdateInfo);
 
-    expect(service.downloadProgress()).toEqual(mockProgress);
+    expect(mockMessageService.add).toHaveBeenCalledWith(
+      expect.objectContaining({
+        severity: 'success',
+        summary: 'Update Available',
+        detail: expect.stringContaining('version 0.4.0'),
+      })
+    );
+  });
+
+  it('should open update URL', async () => {
+    await service.openUpdateURL();
+
+    expect(global.window.electronAPI.openUpdateURL).toHaveBeenCalled();
+  });
+
+  it('should handle update not available', () => {
+    const notAvailableCallback = (global.window.electronAPI.onUpdateNotAvailable as any).mock.calls[0][0];
+
+    notAvailableCallback();
+
+    expect(service.updateStatus()).toBe('idle');
   });
 });

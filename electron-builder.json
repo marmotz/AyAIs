@@ -24,9 +24,7 @@
   ],
   "win": {
     "icon": "dist/renderer/browser/assets/icons/win/icon.ico",
-    "target": ["nsis"],
-    "cscLink": "build/certificate.pfx",
-    "verifyUpdateCodeSignature": false
+    "target": ["nsis"]
   },
   "nsis": {
     "artifactName": "Ayais-setup-${version}.${ext}",
@@ -35,10 +33,10 @@
   },
   "mac": {
     "icon": "dist/renderer/browser/assets/icons/mac/icon.icns",
-    "target": ["dmg", "zip"]
+    "target": ["dmg"]
   },
   "linux": {
     "icon": "dist/renderer/browser/assets/icons/png/512x512.png",
-    "target": ["AppImage"]
+    "target": ["AppImage", "deb"]
   }
 }

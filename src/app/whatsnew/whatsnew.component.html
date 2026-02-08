@@ -1,16 +1,16 @@
 <div class="max-h-[70vh] overflow-y-auto">
   <div class="space-y-6">
     <app-version
-      date="1 February 2026"
+      date="8 February 2026"
       version="0.3.0"
     >
       <app-new-features>
-        <li>Implemented auto-update functionality with electron-updater</li>
+        <li>Implemented update checker to notify when new versions are available</li>
         <li>Added update channel selector (stable/beta) in settings</li>
-        <li>Added notifications for available updates and download progress</li>
         <li>Reworked keyboard shortcuts handling with improved architecture</li>
       </app-new-features>
       <app-fixes>
+        <li>Fixed keyboard shortcuts that prevented certain key combinations from working in AI services</li>
         <li>Fixed Windows build paths and artifact naming conventions</li>
         <li>Fixed ChatGPT navigation to include `chatgpt.com` domain</li>
       </app-fixes>

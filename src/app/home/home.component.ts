@@ -15,6 +15,7 @@ import { AIService } from '@app/ai-services/interfaces';
 import { NavigationService } from '@app/services/navigation.service';
 import { ShortcutActionEvent, ShortcutManagerService } from '@app/services/shortcut-manager.service';
 import { WebviewService } from '@app/services/webview.service';
+import { WhatsNewService } from '@app/services/whats-new.service';
 import { SidebarComponent } from '@app/sidebar/sidebar.component';
 import type { WebviewTag } from 'electron';
 
@@ -32,6 +33,7 @@ export class Home {
   private readonly webviewService = inject(WebviewService);
   private readonly router = inject(Router);
   private readonly shortcutManager = inject(ShortcutManagerService);
+  private readonly whatsNewService = inject(WhatsNewService);
   private services: AIService[] = AI_SERVICES;
   private webviews = new Map<string, any>();
 
@@ -158,13 +160,16 @@ export class Home {
     } else if (action === 'nextService') {
       void this.router.navigate(['/app']);
       this.navigateToNextService();
+      this.whatsNewService.close();
     } else if (action === 'previousService') {
       void this.router.navigate(['/app']);
       this.navigateToPreviousService();
+      this.whatsNewService.close();
     } else if (action === 'selectService' && serviceIndex !== undefined) {
       if (serviceIndex >= 0 && serviceIndex < this.services.length) {
         void this.router.navigate(['/app']);
         await this.onServiceSelected(this.services[serviceIndex]);
+        this.whatsNewService.close();
       }
     }
   }

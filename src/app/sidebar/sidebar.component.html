@@ -92,10 +92,10 @@
   </div>
 
   <p-dialog
-    (visibleChange)="whatsNewVisible.set($event)"
+    (visibleChange)="closeWhatsNew()"
     [modal]="true"
     [style]="{ width: '50vw' }"
-    [visible]="whatsNewVisible()"
+    [visible]="whatsNewVisible"
     closeOnEscape
     dismissableMask
   >

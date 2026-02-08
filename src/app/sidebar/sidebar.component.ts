@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { AI_SERVICES } from '@app/ai-services/constants';
 import { AIService } from '@app/ai-services/interfaces';
 import { NavigationService } from '@app/services/navigation.service';
+import { WhatsNewService } from '@app/services/whats-new.service';
 import { WhatsnewComponent } from '@app/whatsnew/whatsnew.component';
 import type { AppConfig } from '@shared/types/app-config.interface';
 import { DialogModule } from 'primeng/dialog';
@@ -17,7 +18,7 @@ import { DialogModule } from 'primeng/dialog';
 export class SidebarComponent {
   services: AIService[] = AI_SERVICES;
   appConfig = signal<AppConfig | null>(null);
-  whatsNewVisible = signal(false);
+  private readonly whatsNewService = inject(WhatsNewService);
   serviceSelected = output<AIService>();
   selectedService = model<AIService | null>(null);
   selectedIndex = computed(() => this.services.findIndex((s) => s === this.selectedService()));
@@ -69,7 +70,15 @@ export class SidebarComponent {
   }
 
   openWhatsNew() {
-    this.whatsNewVisible.set(true);
+    this.whatsNewService.open();
+  }
+
+  get whatsNewVisible(): boolean {
+    return this.whatsNewService.isVisible();
+  }
+
+  closeWhatsNew() {
+    this.whatsNewService.close();
   }
 
   async quitApp() {

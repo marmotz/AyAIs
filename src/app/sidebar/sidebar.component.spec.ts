@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { AIService } from '@app/ai-services/interfaces';
 import { NavigationService } from '@app/services/navigation.service';
+import { WhatsNewService } from '@app/services/whats-new.service';
 import type { AppConfig } from '@shared/types/app-config.interface';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SidebarComponent } from './sidebar.component';
@@ -11,6 +12,7 @@ describe('SidebarComponent', () => {
   let fixture: ComponentFixture<SidebarComponent>;
   let mockRouter: Router;
   let mockNavigationService: NavigationService;
+  let mockWhatsNewService: WhatsNewService;
 
   const mockAppConfig: AppConfig = {
     position: { x: 100, y: 100, width: 800, height: 600 },
@@ -48,6 +50,13 @@ describe('SidebarComponent', () => {
       isSettingsRoute: vi.fn(() => false),
     } as unknown as NavigationService;
 
+    mockWhatsNewService = {
+      isVisible: vi.fn(() => false),
+      open: vi.fn(),
+      close: vi.fn(),
+      toggle: vi.fn(),
+    } as unknown as WhatsNewService;
+
     (window as any).electronAPI = {
       getAppConfig: vi.fn().mockResolvedValue(mockAppConfig),
       quitApp: vi.fn().mockResolvedValue(undefined),
@@ -60,6 +69,7 @@ describe('SidebarComponent', () => {
       providers: [
         { provide: Router, useValue: mockRouter },
         { provide: NavigationService, useValue: mockNavigationService },
+        { provide: WhatsNewService, useValue: mockWhatsNewService },
       ],
     }).compileComponents();
 
@@ -216,13 +226,17 @@ describe('SidebarComponent', () => {
   describe('openWhatsNew', () => {
     it('should open whats new modal', () => {
       component.openWhatsNew();
-      expect(component.whatsNewVisible()).toBe(true);
+      expect(mockWhatsNewService.open).toHaveBeenCalled();
     });
 
-    it('should close whats new modal when setting signal to false', () => {
-      component.whatsNewVisible.set(true);
-      component.whatsNewVisible.set(false);
-      expect(component.whatsNewVisible()).toBe(false);
+    it('should close whats new modal', () => {
+      component.closeWhatsNew();
+      expect(mockWhatsNewService.close).toHaveBeenCalled();
+    });
+
+    it('should return visibility status', () => {
+      vi.mocked(mockWhatsNewService.isVisible).mockReturnValue(true);
+      expect(component.whatsNewVisible).toBe(true);
     });
   });
 });

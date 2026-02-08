@@ -1,14 +1,23 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { MOCK_CONFIG_WITH_SERVICES } from '@app-tests/test-config';
+import { WhatsNewService } from '@app/services/whats-new.service';
 import { TranslateModule } from '@ngx-translate/core';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Home } from './home.component';
 
 describe('Home', () => {
   let router: Router;
+  let mockWhatsNewService: WhatsNewService;
 
   beforeEach(async () => {
+    mockWhatsNewService = {
+      isVisible: vi.fn(() => false),
+      open: vi.fn(),
+      close: vi.fn(),
+      toggle: vi.fn(),
+    } as unknown as WhatsNewService;
+
     (window as any).electronAPI = {
       getLastService: vi.fn().mockResolvedValue(undefined),
       saveLastService: vi.fn(),
@@ -25,7 +34,7 @@ describe('Home', () => {
     await TestBed.configureTestingModule({
       declarations: [],
       imports: [Home, TranslateModule.forRoot()],
-      providers: [provideRouter([])],
+      providers: [provideRouter([]), { provide: WhatsNewService, useValue: mockWhatsNewService }],
     }).compileComponents();
 
     router = TestBed.inject(Router);

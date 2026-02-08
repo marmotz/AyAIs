@@ -62,6 +62,93 @@ test.describe('WhatsNew Page', () => {
     expect(count).toBeGreaterThan(0);
   });
 
+  test('should close whats new modal when using keyboard shortcut to select service', async () => {
+    const whatsnewButton = firstWindow.getByTestId('sidebar-button-whatsnew');
+    await whatsnewButton.click();
+
+    // Verify the modal is visible
+    const dialog = firstWindow.locator('.p-dialog');
+    await expect(dialog).toBeVisible({ timeout: 3000 });
+
+    // Press keyboard shortcut to select ChatGPT service (Control+1)
+    await firstWindow.keyboard.press('Control+1');
+
+    // Verify the modal is no longer visible
+    await expect(dialog).not.toBeVisible({ timeout: 3000 });
+
+    // Verify the service is selected
+    const url = firstWindow.url();
+    expect(url).toContain('/app');
+
+    // Verify the chatgpt button is not grayscale and not opacity-50 (meaning it's selected)
+    const chatgptButton = firstWindow.getByTestId('sidebar-button-chatgpt');
+    const chatgptImg = chatgptButton.locator('img');
+    const hasGrayscale = await chatgptImg.evaluate((el) => el.classList.contains('grayscale'));
+    const hasOpacity = await chatgptImg.evaluate((el) => el.classList.contains('opacity-50'));
+    expect(hasGrayscale).toBeFalsy();
+    expect(hasOpacity).toBeFalsy();
+  });
+
+  test('should close whats new modal when using next service shortcut', async () => {
+    const whatsnewButton = firstWindow.getByTestId('sidebar-button-whatsnew');
+    await whatsnewButton.click();
+    await firstWindow.waitForTimeout(500);
+
+    // Verify the modal is visible
+    const dialog = firstWindow.locator('.p-dialog');
+    await expect(dialog).toBeVisible({ timeout: 3000 });
+
+    // First select a service
+    await firstWindow.keyboard.press('Control+1');
+    await firstWindow.waitForTimeout(500);
+
+    // Open the modal again
+    await whatsnewButton.click();
+    await firstWindow.waitForTimeout(500);
+    await expect(dialog).toBeVisible({ timeout: 3000 });
+
+    // Press keyboard shortcut to go to next service (Control+Tab)
+    await firstWindow.keyboard.press('Control+Tab');
+    await firstWindow.waitForTimeout(500);
+
+    // Verify the modal is no longer visible
+    await expect(dialog).not.toBeVisible({ timeout: 3000 });
+
+    // Verify we're still on the app page
+    const url = firstWindow.url();
+    expect(url).toContain('/app');
+  });
+
+  test('should close whats new modal when using previous service shortcut', async () => {
+    const whatsnewButton = firstWindow.getByTestId('sidebar-button-whatsnew');
+    await whatsnewButton.click();
+    await firstWindow.waitForTimeout(500);
+
+    // Verify the modal is visible
+    const dialog = firstWindow.locator('.p-dialog');
+    await expect(dialog).toBeVisible({ timeout: 3000 });
+
+    // First select a service
+    await firstWindow.keyboard.press('Control+2');
+    await firstWindow.waitForTimeout(500);
+
+    // Open the modal again
+    await whatsnewButton.click();
+    await firstWindow.waitForTimeout(500);
+    await expect(dialog).toBeVisible({ timeout: 3000 });
+
+    // Press keyboard shortcut to go to previous service (Control+Shift+Tab)
+    await firstWindow.keyboard.press('Control+Shift+Tab');
+    await firstWindow.waitForTimeout(500);
+
+    // Verify the modal is no longer visible
+    await expect(dialog).not.toBeVisible({ timeout: 3000 });
+
+    // Verify we're still on the app page
+    const url = firstWindow.url();
+    expect(url).toContain('/app');
+  });
+
   test.afterAll(async () => {
     await app.close();
   });

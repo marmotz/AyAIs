@@ -20,6 +20,7 @@
     @for (service of services; track service.name; let i = $index) {
       <button
         (click)="onServiceClick(service)"
+        [attr.data-testid]="'sidebar-button-' + service.name.toLowerCase()"
         [title]="getServiceTitle(service, i)"
         class="group relative size-16 cursor-pointer rounded-2xl border-none p-2 text-white transition-colors duration-200 hover:bg-slate-500/10 focus:outline-none"
       >
@@ -47,6 +48,7 @@
     <button
       (click)="openWhatsNew()"
       class="group relative size-12 cursor-pointer rounded-2xl border-none p-2 transition-colors duration-200 hover:bg-slate-500/10 focus:outline-none"
+      data-testid="sidebar-button-whatsnew"
       title="What's new"
     >
       <img
@@ -60,6 +62,7 @@
       (click)="isAiServicesRoute() ? openSettings() : openAiServices()"
       [title]="getSettingsTitle()"
       class="group relative mt-auto size-12 cursor-pointer rounded-2xl border-none p-2 transition-colors duration-200 hover:bg-slate-500/10 focus:outline-none"
+      data-testid="sidebar-button-settings"
     >
       <img
         alt="Settings"
@@ -72,6 +75,7 @@
       (click)="quitApp()"
       [title]="getQuitTitle()"
       class="group relative size-12 cursor-pointer rounded-2xl border-none p-2 text-white transition-colors duration-200 hover:bg-slate-500/10 focus:outline-none"
+      data-testid="sidebar-button-quit"
     >
       <img
         alt="Quit"

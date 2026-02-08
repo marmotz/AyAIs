@@ -15,11 +15,11 @@ test.describe('Critical User Flows', () => {
   });
 
   test('should complete full workflow: select service, navigate to settings, return to service', async () => {
-    const chatgptButton = firstWindow.locator('app-sidebar button img[alt="ChatGPT"]');
+    const chatgptButton = firstWindow.getByTestId('sidebar-button-chatgpt');
     await chatgptButton.click();
     await firstWindow.waitForURL(/app$/);
 
-    const settingsButton = firstWindow.locator('app-sidebar button img[alt="Settings"]');
+    const settingsButton = firstWindow.getByTestId('sidebar-button-settings');
     await settingsButton.click();
     await firstWindow.waitForURL(/settings$/);
 
@@ -29,9 +29,9 @@ test.describe('Critical User Flows', () => {
 
   test('should cycle through all AI services', async () => {
     const services = [
-      firstWindow.locator('app-sidebar button img[alt="ChatGPT"]'),
-      firstWindow.locator('app-sidebar button img[alt="Claude"]'),
-      firstWindow.locator('app-sidebar button img[alt="Gemini"]'),
+      firstWindow.getByTestId('sidebar-button-chatgpt'),
+      firstWindow.getByTestId('sidebar-button-claude'),
+      firstWindow.getByTestId('sidebar-button-gemini'),
     ];
 
     for (const serviceButton of services) {
@@ -44,9 +44,9 @@ test.describe('Critical User Flows', () => {
   });
 
   test('should handle rapid service switching', async () => {
-    const chatgptButton = firstWindow.locator('app-sidebar button img[alt="ChatGPT"]');
-    const claudeButton = firstWindow.locator('app-sidebar button img[alt="Claude"]');
-    const geminiButton = firstWindow.locator('app-sidebar button img[alt="Gemini"]');
+    const chatgptButton = firstWindow.getByTestId('sidebar-button-chatgpt');
+    const claudeButton = firstWindow.getByTestId('sidebar-button-claude');
+    const geminiButton = firstWindow.getByTestId('sidebar-button-gemini');
 
     await chatgptButton.click();
     await claudeButton.click();
@@ -60,11 +60,11 @@ test.describe('Critical User Flows', () => {
   });
 
   test('should handle service selection after settings visit', async () => {
-    const settingsButton = firstWindow.locator('app-sidebar button img[alt="Settings"]');
+    const settingsButton = firstWindow.getByTestId('sidebar-button-settings');
     await settingsButton.click();
     await firstWindow.waitForTimeout(300);
 
-    const claudeButton = firstWindow.locator('app-sidebar button img[alt="Claude"]');
+    const claudeButton = firstWindow.getByTestId('sidebar-button-claude');
     await claudeButton.click();
     await firstWindow.waitForTimeout(300);
 

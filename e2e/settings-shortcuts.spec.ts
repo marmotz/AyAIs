@@ -7,7 +7,7 @@ test.describe('Settings Shortcuts', () => {
   let firstWindow: Page;
 
   async function clickOnShortcutsTab() {
-    const settingsButton = firstWindow.locator('app-sidebar button img[alt="Settings"]');
+    const settingsButton = firstWindow.getByTestId('sidebar-button-settings');
     await settingsButton.click();
     await firstWindow.waitForURL(/settings$/);
 
@@ -37,7 +37,7 @@ test.describe('Settings Shortcuts', () => {
     // Reset to the main app page before each test
     const currentUrl = firstWindow.url();
     if (currentUrl.includes('/settings')) {
-      const chatgptButton = firstWindow.locator('app-sidebar button img[alt="ChatGPT"]');
+      const chatgptButton = firstWindow.getByTestId('sidebar-button-chatgpt');
       try {
         await chatgptButton.click({ timeout: 2000 });
         await firstWindow.waitForTimeout(500);
@@ -48,7 +48,7 @@ test.describe('Settings Shortcuts', () => {
   });
 
   test('should navigate to settings shortcuts page', async () => {
-    const settingsButton = firstWindow.locator('app-sidebar button img[alt="Settings"]');
+    const settingsButton = firstWindow.getByTestId('sidebar-button-settings');
     await settingsButton.click();
     await firstWindow.waitForURL(/settings$/);
   });

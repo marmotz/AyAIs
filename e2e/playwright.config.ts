@@ -4,7 +4,7 @@ const config = {
   timeout: 60000,
   outputDir: './screenshots',
   use: {
-    headless: true,
+    headless: false,
     viewport: { width: 1280, height: 720 },
     launchOptions: {
       slowMo: 50,

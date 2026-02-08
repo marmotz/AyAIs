@@ -15,14 +15,13 @@ test.describe('Webview Management', () => {
   });
 
   test('should hide webview when navigating to settings', async () => {
-    const chatgptButton = firstWindow.locator('app-sidebar button img[alt="ChatGPT"]');
+    const chatgptButton = firstWindow.getByTestId('sidebar-button-chatgpt');
     await chatgptButton.click();
-    await firstWindow.waitForTimeout(300);
 
-    const webview = firstWindow.locator('webview');
+    const webview = firstWindow.getByTestId('webview-chatgpt');
     await expect(webview).toHaveCount(1, { timeout: 3000 });
 
-    const settingsButton = firstWindow.locator('app-sidebar button img[alt="Settings"]');
+    const settingsButton = firstWindow.getByTestId('sidebar-button-settings');
     await settingsButton.click();
     await firstWindow.waitForTimeout(300);
 
@@ -34,19 +33,18 @@ test.describe('Webview Management', () => {
   });
 
   test('should show webview when returning from settings', async () => {
-    const chatgptButton = firstWindow.locator('app-sidebar button img[alt="ChatGPT"]');
+    const chatgptButton = firstWindow.getByTestId('sidebar-button-chatgpt');
     await chatgptButton.click();
-    await firstWindow.waitForTimeout(300);
 
-    const webview = firstWindow.locator('webview');
+    const webview = firstWindow.getByTestId('webview-chatgpt');
     await expect(webview).toHaveCount(1, { timeout: 3000 });
 
-    const settingsButton = firstWindow.locator('app-sidebar button img[alt="Settings"]');
+    const settingsButton = firstWindow.getByTestId('sidebar-button-settings');
     await settingsButton.click();
-    await firstWindow.waitForTimeout(300);
+    await firstWindow.waitForURL(/settings$/);
 
     await chatgptButton.click();
-    await firstWindow.waitForTimeout(300);
+    await firstWindow.waitForURL(/app$/);
 
     const webviewStyle = await webview.getAttribute('style');
     expect(webviewStyle).toContain('visibility: visible');
@@ -55,21 +53,15 @@ test.describe('Webview Management', () => {
   });
 
   test('should maintain separate webviews for different services', async () => {
-    const chatgptButton = firstWindow.locator('app-sidebar button img[alt="ChatGPT"]');
-    const claudeButton = firstWindow.locator('app-sidebar button img[alt="Claude"]');
+    const chatgptButton = firstWindow.getByTestId('sidebar-button-chatgpt');
+    const claudeButton = firstWindow.getByTestId('sidebar-button-claude');
 
     await chatgptButton.click();
-    await firstWindow.waitForTimeout(300);
-
     await claudeButton.click();
-    await firstWindow.waitForTimeout(300);
-
     await chatgptButton.click();
-    await firstWindow.waitForTimeout(300);
 
-    const webviews = firstWindow.locator('webview');
-    const count = await webviews.count();
-    expect(count).toBeGreaterThanOrEqual(1);
+    const webviewClaude = firstWindow.getByTestId('webview-claude');
+    await expect(webviewClaude).toHaveCount(1, { timeout: 3000 });
   });
 
   test.afterAll(async () => {

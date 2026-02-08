@@ -15,9 +15,9 @@ test.describe('Application State', () => {
   });
 
   test('should load app and be ready for service selection', async () => {
-    const chatgpt = firstWindow.locator('app-sidebar button img[alt="ChatGPT"]');
-    const claude = firstWindow.locator('app-sidebar button img[alt="Claude"]');
-    const gemini = firstWindow.locator('app-sidebar button img[alt="Gemini"]');
+    const chatgpt = firstWindow.getByTestId('sidebar-button-chatgpt');
+    const claude = firstWindow.getByTestId('sidebar-button-claude');
+    const gemini = firstWindow.getByTestId('sidebar-button-gemini');
 
     await expect(chatgpt).toBeVisible({ timeout: 5000 });
     await expect(claude).toBeVisible({ timeout: 5000 });
@@ -25,7 +25,7 @@ test.describe('Application State', () => {
   });
 
   test('should navigate to settings page', async () => {
-    const settingsButton = firstWindow.locator('app-sidebar button img[alt="Settings"]');
+    const settingsButton = firstWindow.getByTestId('sidebar-button-settings');
     await settingsButton.click();
     await firstWindow.waitForURL(/settings$/, { timeout: 5000 });
 
@@ -34,11 +34,11 @@ test.describe('Application State', () => {
   });
 
   test('should navigate back to home from settings', async () => {
-    const settingsButton = firstWindow.locator('app-sidebar button img[alt="Settings"]');
+    const settingsButton = firstWindow.getByTestId('sidebar-button-settings');
     await settingsButton.click();
     await firstWindow.waitForTimeout(500);
 
-    const chatgptButton = firstWindow.locator('app-sidebar button img[alt="ChatGPT"]');
+    const chatgptButton = firstWindow.getByTestId('sidebar-button-chatgpt');
     await chatgptButton.click();
     await firstWindow.waitForTimeout(500);
 
@@ -48,14 +48,14 @@ test.describe('Application State', () => {
   });
 
   test('should switch between services and settings', async () => {
-    const geminiButton = firstWindow.locator('app-sidebar button img[alt="Gemini"]');
+    const geminiButton = firstWindow.getByTestId('sidebar-button-gemini');
     await geminiButton.click();
 
-    const settingsButton = firstWindow.locator('app-sidebar button img[alt="Settings"]');
+    const settingsButton = firstWindow.getByTestId('sidebar-button-settings');
     await settingsButton.click();
     await firstWindow.waitForURL(/settings$/, { timeout: 5000 });
 
-    const chatgptButton = firstWindow.locator('app-sidebar button img[alt="ChatGPT"]');
+    const chatgptButton = firstWindow.getByTestId('sidebar-button-chatgpt');
     await chatgptButton.click();
     await firstWindow.waitForURL(/app$/, { timeout: 5000 });
 

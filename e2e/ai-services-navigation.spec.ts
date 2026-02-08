@@ -15,9 +15,9 @@ test.describe('AI Services Navigation', () => {
   });
 
   test('should display all AI services in sidebar', async () => {
-    const chatgpt = firstWindow.locator('app-sidebar button img[alt="ChatGPT"]');
-    const claude = firstWindow.locator('app-sidebar button img[alt="Claude"]');
-    const gemini = firstWindow.locator('app-sidebar button img[alt="Gemini"]');
+    const chatgpt = firstWindow.getByTestId('sidebar-button-chatgpt');
+    const claude = firstWindow.getByTestId('sidebar-button-claude');
+    const gemini = firstWindow.getByTestId('sidebar-button-gemini');
 
     await expect(chatgpt).toBeVisible({ timeout: 5000 });
     await expect(claude).toBeVisible({ timeout: 5000 });
@@ -25,12 +25,12 @@ test.describe('AI Services Navigation', () => {
   });
 
   test('should navigate to ChatGPT service', async () => {
-    const chatgptButton = firstWindow.locator('app-sidebar button img[alt="ChatGPT"]');
+    const chatgptButton = firstWindow.getByTestId('sidebar-button-chatgpt');
     await chatgptButton.click();
     await firstWindow.waitForTimeout(300);
 
     // Verify webview element exists and has correct src attribute
-    const webview = firstWindow.locator('webview#webview-chatgpt');
+    const webview = firstWindow.getByTestId('webview-chatgpt');
     const count = await webview.count();
     expect(count).toBe(1);
 
@@ -42,11 +42,11 @@ test.describe('AI Services Navigation', () => {
   });
 
   test('should navigate to Claude service', async () => {
-    const claudeButton = firstWindow.locator('app-sidebar button img[alt="Claude"]');
+    const claudeButton = firstWindow.getByTestId('sidebar-button-claude');
     await claudeButton.click();
     await firstWindow.waitForTimeout(300);
 
-    const webview = firstWindow.locator('webview#webview-claude');
+    const webview = firstWindow.getByTestId('webview-claude');
     const count = await webview.count();
     expect(count).toBe(1);
 
@@ -56,11 +56,11 @@ test.describe('AI Services Navigation', () => {
   });
 
   test('should navigate to Gemini service', async () => {
-    const geminiButton = firstWindow.locator('app-sidebar button img[alt="Gemini"]');
+    const geminiButton = firstWindow.getByTestId('sidebar-button-gemini');
     await geminiButton.click();
     await firstWindow.waitForTimeout(300);
 
-    const webview = firstWindow.locator('webview#webview-gemini');
+    const webview = firstWindow.getByTestId('webview-gemini');
     const count = await webview.count();
     expect(count).toBe(1);
 
@@ -70,8 +70,8 @@ test.describe('AI Services Navigation', () => {
   });
 
   test('should switch between services', async () => {
-    const chatgptButton = firstWindow.locator('app-sidebar button img[alt="ChatGPT"]');
-    const claudeButton = firstWindow.locator('app-sidebar button img[alt="Claude"]');
+    const chatgptButton = firstWindow.getByTestId('sidebar-button-chatgpt');
+    const claudeButton = firstWindow.getByTestId('sidebar-button-claude');
 
     await chatgptButton.click();
     await firstWindow.waitForTimeout(300);
@@ -80,8 +80,8 @@ test.describe('AI Services Navigation', () => {
     await firstWindow.waitForTimeout(300);
 
     // Verify both webviews exist and are properly configured
-    const chatgptWebview = firstWindow.locator('webview#webview-chatgpt');
-    const claudeWebview = firstWindow.locator('webview#webview-claude');
+    const chatgptWebview = firstWindow.getByTestId('webview-chatgpt');
+    const claudeWebview = firstWindow.getByTestId('webview-claude');
 
     expect(await chatgptWebview.count()).toBe(1);
     expect(await claudeWebview.count()).toBe(1);

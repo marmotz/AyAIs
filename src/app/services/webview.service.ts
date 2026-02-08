@@ -20,18 +20,9 @@ export class WebviewService {
     void this.initializePlatform();
   }
 
-  private flushShortcut(): void {
-    if (this.pendingShortcut) {
-      const shortcutToSend = this.pendingShortcut;
-      this.pendingShortcut = null;
-      this.shortcutCapturedSubject.next(shortcutToSend);
-    }
-    this.debounceTimer = null;
-  }
-
   async createWebview(service: AIService) {
     const webview: WebviewTag = document.createElement('webview') as any;
-    webview.id = `webview-${service.name.toLowerCase()}`;
+    webview.setAttribute('data-testid', `webview-${service.name.toLowerCase()}`);
     webview.style.display = 'flex';
     webview.partition = `persist:${service.name}`;
     webview.spellcheck = true;
@@ -132,6 +123,15 @@ export class WebviewService {
         }
       }, true);
     `);
+  }
+
+  private flushShortcut(): void {
+    if (this.pendingShortcut) {
+      const shortcutToSend = this.pendingShortcut;
+      this.pendingShortcut = null;
+      this.shortcutCapturedSubject.next(shortcutToSend);
+    }
+    this.debounceTimer = null;
   }
 
   private handleShortcutFromWebview(shortcut: string) {

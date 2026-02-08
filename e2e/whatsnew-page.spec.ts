@@ -26,7 +26,7 @@ test.describe('WhatsNew Page', () => {
   });
 
   test('should display version information', async () => {
-    const whatsnewButton = firstWindow.locator('app-sidebar button img[alt="What\'s new"]');
+    const whatsnewButton = firstWindow.getByTestId('sidebar-button-whatsnew');
     await whatsnewButton.click();
     await firstWindow.waitForTimeout(500);
 
@@ -39,7 +39,7 @@ test.describe('WhatsNew Page', () => {
   });
 
   test('should display new features section', async () => {
-    const whatsnewButton = firstWindow.locator('app-sidebar button img[alt="What\'s new"]');
+    const whatsnewButton = firstWindow.getByTestId('sidebar-button-whatsnew');
     await whatsnewButton.click();
     await firstWindow.waitForTimeout(500);
 
@@ -51,7 +51,7 @@ test.describe('WhatsNew Page', () => {
   });
 
   test('should display fixes section', async () => {
-    const whatsnewButton = firstWindow.locator('app-sidebar button img[alt="What\'s new"]');
+    const whatsnewButton = firstWindow.getByTestId('sidebar-button-whatsnew');
     await whatsnewButton.click();
     await firstWindow.waitForTimeout(500);
 

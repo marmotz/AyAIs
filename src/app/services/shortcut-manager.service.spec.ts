@@ -48,7 +48,7 @@ describe('ShortcutManagerService', () => {
       expect(globalShortcuts[0].id).toBe('showHideApp');
       expect(globalShortcuts[0].value).toBe(process.platform === 'darwin' ? 'Meta+I' : 'Ctrl+Shift+I');
 
-      expect(internalShortcuts.length).toBe(14);
+      expect(internalShortcuts.length).toBe(15);
       expect(internalShortcuts[0].id).toBe('openSettings');
       expect(internalShortcuts[0].value).toBe(process.platform === 'darwin' ? 'Command+,' : 'Ctrl+,');
     });
@@ -320,8 +320,11 @@ describe('ShortcutManagerService', () => {
     });
 
     it('should handle digit keys correctly (AZERTY fix)', async () => {
-      const shortcut = service.internalShortcuts()[4];
-      await service.startEditing(shortcut);
+      const serviceShortcut = service.internalShortcuts().find((s) => s.id.startsWith('service'));
+      if (!serviceShortcut) {
+        throw new Error('No service shortcut found');
+      }
+      await service.startEditing(serviceShortcut);
 
       const event = new KeyboardEvent('keydown', { key: '&', ctrlKey: true });
       Object.defineProperty(event, 'code', { value: 'Digit1' });
@@ -612,6 +615,7 @@ describe('ShortcutManagerService', () => {
             quitApp: 'Ctrl+Q',
             previousService: 'Ctrl+Shift+Tab',
             nextService: 'Ctrl+Tab',
+            refreshService: 'Ctrl+R',
             services: expect.any(Object),
           }),
         }),
@@ -736,6 +740,12 @@ describe('ShortcutManagerService', () => {
       const action = await service.executeShortcut('Ctrl+Shift+Tab');
 
       expect(action).toEqual({ action: 'previousService' });
+    });
+
+    it('should return refreshService action', async () => {
+      const action = await service.executeShortcut('Ctrl+R');
+
+      expect(action).toEqual({ action: 'refreshService' });
     });
 
     it('should return selectService action with index', async () => {

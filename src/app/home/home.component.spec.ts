@@ -68,4 +68,12 @@ describe('Home', () => {
     await home.handleKeydown(new KeyboardEvent('keydown', { key: 'Tab', ctrlKey: true }));
     expect(spy).toHaveBeenCalled();
   });
+
+  it('should refresh current service when refresh shortcut is triggered', async () => {
+    const home = TestBed.createComponent(Home).componentInstance;
+    const refreshSpy = vi.spyOn(home, 'refreshCurrentService' as any);
+
+    await home.handleKeydown(new KeyboardEvent('keydown', { key: 'R', ctrlKey: true }));
+    expect(refreshSpy).toHaveBeenCalled();
+  });
 });

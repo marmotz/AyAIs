@@ -16,6 +16,7 @@ export const DEFAULT_SHORTCUTS = {
     { id: 'quitApp', label: 'Quit App' },
     { id: 'previousService', label: 'Previous AI Service' },
     { id: 'nextService', label: 'Next AI Service' },
+    { id: 'refreshService', label: 'Refresh AI Service' },
     { id: 'service1', label: 'Go to Service 1' },
     { id: 'service2', label: 'Go to Service 2' },
     { id: 'service3', label: 'Go to Service 3' },

@@ -23,6 +23,7 @@ describe('SettingsUpdatesComponent', () => {
         quitApp: 'CmdOrCtrl+Q',
         previousService: 'CmdOrCtrl+Left',
         nextService: 'CmdOrCtrl+Right',
+        refreshService: 'CmdOrCtrl+R',
         services: {
           service1: 'CmdOrCtrl+1',
           service2: 'CmdOrCtrl+2',

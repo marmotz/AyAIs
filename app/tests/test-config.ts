@@ -20,6 +20,7 @@ export const MOCK_CONFIG: AppConfig = {
       previousService: 'Ctrl+Shift+Tab',
       nextService: 'Ctrl+Tab',
       services: {},
+      refreshService: 'Ctr+R',
     },
   },
   updateChannel: 'stable',

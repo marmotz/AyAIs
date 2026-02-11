@@ -67,6 +67,7 @@ test.describe('Settings Shortcuts', () => {
     // Verify internal shortcuts exist in the component
     expect(textContent).toContain('Open Settings');
     expect(textContent).toContain('Quit App');
+    expect(textContent).toContain('Refresh AI Service');
 
     // Verify service shortcuts exist (using labels not shortcut values)
     expect(textContent).toContain('Go to Service 1');

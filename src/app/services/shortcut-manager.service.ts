@@ -2,7 +2,13 @@ import { Injectable, signal } from '@angular/core';
 import { DEFAULT_SHORTCUTS, Shortcut } from '@app/settings/settings-shortcuts/shortcut.model';
 import { ShortcutConfig } from '@shared/types/app-config.interface';
 
-export type ShortcutAction = 'openSettings' | 'quitApp' | 'nextService' | 'previousService' | 'selectService';
+export type ShortcutAction =
+  | 'openSettings'
+  | 'quitApp'
+  | 'nextService'
+  | 'previousService'
+  | 'refreshService'
+  | 'selectService';
 
 export interface ShortcutActionEvent {
   action: ShortcutAction;
@@ -59,6 +65,8 @@ export class ShortcutManagerService {
       return { action: 'nextService' };
     } else if (shortcut === config.internalShortcuts.previousService) {
       return { action: 'previousService' };
+    } else if (shortcut === config.internalShortcuts.refreshService) {
+      return { action: 'refreshService' };
     } else {
       for (const [id, serviceShortcut] of Object.entries(config.internalShortcuts.services)) {
         if (shortcut === serviceShortcut) {
@@ -187,36 +195,47 @@ export class ShortcutManagerService {
           this.globalShortcuts.set([
             {
               id: 'showHideApp',
-              label: DEFAULT_SHORTCUTS.globalShortcuts[0].label,
+              label: DEFAULT_SHORTCUTS.globalShortcuts.find((s) => s.id === 'showHideApp')!.label,
               value: shortcutConfig.globalShortcuts.showHideApp,
             },
           ]);
 
+          const getShortcutLabel = (id: string): string => {
+            return DEFAULT_SHORTCUTS.internalShortcuts.find((s) => s.id === id)!.label;
+          };
+
           this.internalShortcuts.set([
             {
               id: 'openSettings',
-              label: DEFAULT_SHORTCUTS.internalShortcuts[0].label,
+              label: getShortcutLabel('openSettings'),
               value: shortcutConfig.internalShortcuts.openSettings,
             },
             {
               id: 'quitApp',
-              label: DEFAULT_SHORTCUTS.internalShortcuts[1].label,
+              label: getShortcutLabel('quitApp'),
               value: shortcutConfig.internalShortcuts.quitApp,
             },
             {
               id: 'previousService',
-              label: DEFAULT_SHORTCUTS.internalShortcuts[2].label,
+              label: getShortcutLabel('previousService'),
               value: shortcutConfig.internalShortcuts.previousService,
             },
             {
               id: 'nextService',
-              label: DEFAULT_SHORTCUTS.internalShortcuts[3].label,
+              label: getShortcutLabel('nextService'),
               value: shortcutConfig.internalShortcuts.nextService,
             },
-            ...DEFAULT_SHORTCUTS.internalShortcuts.slice(4).map((service) => ({
-              ...service,
-              value: shortcutConfig.internalShortcuts.services[service.id] ?? '',
-            })),
+            {
+              id: 'refreshService',
+              label: getShortcutLabel('refreshService'),
+              value: shortcutConfig.internalShortcuts.refreshService,
+            },
+            ...DEFAULT_SHORTCUTS.internalShortcuts
+              .filter((s) => s.id.startsWith('service'))
+              .map((service) => ({
+                ...service,
+                value: shortcutConfig.internalShortcuts.services[service.id] ?? '',
+              })),
           ]);
         } else {
           this.setEmptyShortcuts();
@@ -240,6 +259,7 @@ export class ShortcutManagerService {
         quitApp: internal.find((s) => s.id === 'quitApp')?.value || 'Ctrl+Q',
         previousService: internal.find((s) => s.id === 'previousService')?.value || '',
         nextService: internal.find((s) => s.id === 'nextService')?.value || '',
+        refreshService: internal.find((s) => s.id === 'refreshService')?.value || 'Ctrl+R',
         services: {} as Record<string, string>,
       },
     };

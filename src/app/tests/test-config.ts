@@ -19,6 +19,7 @@ export const MOCK_CONFIG: AppConfig = {
       quitApp: 'Ctrl+Q',
       previousService: 'Ctrl+Shift+Tab',
       nextService: 'Ctrl+Tab',
+      refreshService: 'Ctrl+R',
       services: {},
     },
   },

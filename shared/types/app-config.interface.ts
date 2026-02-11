@@ -7,6 +7,7 @@ export interface ShortcutConfig {
     quitApp: string;
     previousService: string;
     nextService: string;
+    refreshService: string;
     services: Record<string, string>;
   };
 }

@@ -124,6 +124,18 @@ export class Home {
     void this.navigateToService(this.services[previousIndex]);
   }
 
+  public async refreshCurrentService() {
+    const currentService = this.selectedService();
+    if (!currentService) {
+      return;
+    }
+
+    const webview: WebviewTag = this.webviews.get(currentService.name);
+    if (webview) {
+      webview.reload();
+    }
+  }
+
   async onServiceSelected(service: AIService) {
     this.selectedService.set(service);
     const container = this.webviewsContainer?.nativeElement as HTMLElement;
@@ -165,6 +177,8 @@ export class Home {
       void this.router.navigate(['/app']);
       this.navigateToPreviousService();
       this.whatsNewService.close();
+    } else if (action === 'refreshService') {
+      await this.refreshCurrentService();
     } else if (action === 'selectService' && serviceIndex !== undefined) {
       if (serviceIndex >= 0 && serviceIndex < this.services.length) {
         void this.router.navigate(['/app']);

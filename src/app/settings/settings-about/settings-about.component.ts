@@ -1,5 +1,6 @@
 import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { AppConfig, UpdateChannel } from '@shared/types/app-config.interface';
 import { MessageService } from 'primeng/api';
 import { Button } from 'primeng/button';
@@ -16,7 +17,7 @@ export interface UpdateInfo {
   selector: 'app-settings-about',
   standalone: true,
   templateUrl: './settings-about.component.html',
-  imports: [FormsModule, Select, Button],
+  imports: [FormsModule, Select, Button, FaIconComponent],
 })
 export class SettingsAboutComponent implements OnInit, OnDestroy {
   appVersion = signal<string>('');
@@ -79,7 +80,7 @@ export class SettingsAboutComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     // Note: IPC listeners in Electron cannot be easily removed
-    // The listener will be garbage collected when the component is destroyed
+    // The listener will be garbage collected when component is destroyed
   }
 
   ngOnInit(): void {

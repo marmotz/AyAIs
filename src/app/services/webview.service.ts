@@ -125,6 +125,12 @@ export class WebviewService {
     `);
   }
 
+  reloadWebview(webview: WebviewTag): void {
+    if (webview) {
+      webview.reload();
+    }
+  }
+
   private flushShortcut(): void {
     if (this.pendingShortcut) {
       const shortcutToSend = this.pendingShortcut;

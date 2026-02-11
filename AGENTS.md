@@ -535,6 +535,67 @@ The app uses electron-updater for automatic updates. Key requirements:
 
 Note: The auto-updater checks for updates at startup and can be manually triggered by users through the app menu.
 
+### Icon Usage Guidelines
+
+**CRITICAL: This project uses FortAwesome (FontAwesome) for icons, NOT PrimeNG PrimeIcons**
+
+- **ALL icons must use FortAwesome** - Never use PrimeNG icons (`pi` classes or `[icon]` with PrimeNG icon names)
+- **Icon Library Initialization**: All FortAwesome icons are pre-registered in `src/app/app.component.ts`
+- **Adding New Icons**: To add a new icon to the project:
+  1.  Import the icon from `@fortawesome/free-solid-svg-icons` in `app.component.ts`
+  2.  Add it to the icon library using `this.fortAwesomeIconLibrary.addIcons(yourNewIcon)`
+- **Using Icons in Templates**: Use the `<fa-icon>` component with the imported icon name:
+
+  ```html
+  <!-- ✅ CORRECT - FortAwesome icon with self-closing tag -->
+  <fa-icon [icon]="['fas', 'refresh']" />
+
+  <!-- ❌ WRONG - PrimeNG icon (NEVER use) -->
+  <i class="pi pi-refresh"></i>
+  <p-button icon="pi pi-refresh"></p-button>
+  ```
+
+- **Available Icons**: Check `src/app/app.component.ts` for the list of registered icons
+- **Common Icon Mappings**:
+  - `pi-refresh` → `fa-refresh`
+  - `pi-info-circle` → `fa-info-circle`
+  - `pi-times` → `fa-times`
+  - `pi-arrow-left` → `fa-arrow-left`
+  - `pi-clock` → `fa-clock`
+  - `pi-download` → `fa-download`
+
+### HTML Template Guidelines
+
+**Self-Closing Tags for Angular Components**
+
+- **ALWAYS use self-closing tags** for Angular components that don't have content
+- **Self-closing syntax**: Use `<component />` instead of `<component></component>`
+- **When to use self-closing tags**:
+  - Components without child content (e.g., `<fa-icon />`, `<p-progressSpinner />`)
+  - Empty structural elements
+  - Standalone UI elements
+- **When NOT to use self-closing tags**:
+  - Components with child content or projections
+  - Elements that contain text or other elements
+
+Examples:
+
+```html
+<!-- ✅ CORRECT - Self-closing tags for components without content -->
+<fa-icon [icon]="['fas', 'refresh']" />
+<fa-icon [icon]="['fas', 'info-circle']" />
+
+<!-- ❌ WRONG - Opening/closing tags for empty components -->
+<fa-icon [icon]="['fas', 'refresh']"></fa-icon>
+<fa-icon [icon]="['fas', 'info-circle']"></fa-icon>
+
+<!-- ✅ CORRECT - Opening/closing tags when there is content -->
+<div class="container">
+  <fa-icon [icon]="['fas', 'refresh']" />
+  <span class="ml-2">Check for Updates</span>
+</div>
+```
+
 ## Important Agent Guidelines
 
 ### NEVER run lint commands

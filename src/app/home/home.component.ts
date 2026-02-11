@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import {
   Component,
   effect,
@@ -7,7 +7,7 @@ import {
   inject,
   NO_ERRORS_SCHEMA,
   signal,
-  ViewChild,
+  viewChild
 } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { AI_SERVICES } from '@app/ai-services/constants';
@@ -22,11 +22,11 @@ import type { WebviewTag } from 'electron';
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
-  imports: [SidebarComponent, CommonModule, RouterOutlet],
+  imports: [SidebarComponent, RouterOutlet],
   schemas: [NO_ERRORS_SCHEMA],
 })
 export class Home {
-  @ViewChild('webviewsContainer', { static: true }) webviewsContainer!: ElementRef;
+  readonly webviewsContainer = viewChild.required<ElementRef>('webviewsContainer');
   protected readonly selectedService = signal<AIService | null>(null);
   private readonly navigationService = inject(NavigationService);
   protected readonly isAiServicesRoute = this.navigationService.isAiServicesRoute;
@@ -124,21 +124,24 @@ export class Home {
     void this.navigateToService(this.services[previousIndex]);
   }
 
-  public async refreshCurrentService() {
-    const currentService = this.selectedService();
-    if (!currentService) {
+  public async refreshService(service?: AIService): Promise<void> {
+    const serviceToRefresh = service || this.selectedService();
+    if (!serviceToRefresh) {
       return;
     }
 
-    const webview: WebviewTag = this.webviews.get(currentService.name);
+    const webview: WebviewTag = this.webviews.get(serviceToRefresh.name);
     if (webview) {
-      webview.reload();
+      this.webviewService.reloadWebview(webview);
+      if (this.selectedService()?.name !== serviceToRefresh.name) {
+        this.selectedService.set(serviceToRefresh);
+      }
     }
   }
 
   async onServiceSelected(service: AIService) {
     this.selectedService.set(service);
-    const container = this.webviewsContainer?.nativeElement as HTMLElement;
+    const container = this.webviewsContainer()?.nativeElement as HTMLElement;
 
     this.hideAllWebviews();
 
@@ -178,7 +181,7 @@ export class Home {
       this.navigateToPreviousService();
       this.whatsNewService.close();
     } else if (action === 'refreshService') {
-      await this.refreshCurrentService();
+      await this.refreshService();
     } else if (action === 'selectService' && serviceIndex !== undefined) {
       if (serviceIndex >= 0 && serviceIndex < this.services.length) {
         void this.router.navigate(['/app']);

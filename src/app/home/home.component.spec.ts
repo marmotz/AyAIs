@@ -71,9 +71,45 @@ describe('Home', () => {
 
   it('should refresh current service when refresh shortcut is triggered', async () => {
     const home = TestBed.createComponent(Home).componentInstance;
-    const refreshSpy = vi.spyOn(home, 'refreshCurrentService' as any);
+    const refreshSpy = vi.spyOn(home, 'refreshService' as any);
 
     await home.handleKeydown(new KeyboardEvent('keydown', { key: 'R', ctrlKey: true }));
     expect(refreshSpy).toHaveBeenCalled();
+  });
+
+  it('should refresh service when serviceRefresh is called', async () => {
+    const home = TestBed.createComponent(Home).componentInstance;
+    const service = {
+      name: 'chatgpt',
+      icon: 'path/to/icon.png',
+      url: 'https://chatgpt.com',
+      internalDomains: ['chatgpt.com'],
+    };
+
+    await home.onServiceSelected(service);
+    const reloadSpy = vi.fn();
+    home['webviews'].set('chatgpt', { reload: reloadSpy });
+
+    await home.refreshService(service);
+
+    expect(reloadSpy).toHaveBeenCalled();
+  });
+
+  it('should select service when refreshing a different service', async () => {
+    const home = TestBed.createComponent(Home).componentInstance;
+    const service = {
+      name: 'chatgpt',
+      icon: 'path/to/icon.png',
+      url: 'https://chatgpt.com',
+      internalDomains: ['chatgpt.com'],
+    };
+
+    const reloadSpy = vi.fn();
+    home['webviews'].set('chatgpt', { reload: reloadSpy });
+
+    await home.refreshService(service);
+
+    expect(reloadSpy).toHaveBeenCalled();
+    expect((home as any).selectedService()).toBe(service);
   });
 });

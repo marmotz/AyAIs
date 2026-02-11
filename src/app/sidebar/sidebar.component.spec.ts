@@ -240,4 +240,45 @@ describe('SidebarComponent', () => {
       expect(component.whatsNewVisible).toBe(true);
     });
   });
+
+  describe('onServiceContextMenu', () => {
+    beforeEach(async () => {
+      await component.ngOnInit();
+    });
+
+    it('should set contextMenuService and show context menu', () => {
+      const service: AIService = {
+        name: 'chatgpt',
+        icon: 'path/to/icon.png',
+        url: 'https://example.com',
+        internalDomains: ['chatgpt.com'],
+      };
+      const mockEvent = new MouseEvent('contextmenu');
+      const showSpy = vi.fn();
+      vi.spyOn(component.contextMenu(), 'show').mockImplementation(showSpy);
+
+      component.onServiceContextMenu(mockEvent, service);
+
+      expect(component.contextMenuService).toBe(service);
+      expect(showSpy).toHaveBeenCalledWith(mockEvent);
+      expect(component.contextMenu().target).toBe(mockEvent.currentTarget);
+    });
+  });
+
+  describe('serviceRefresh output', () => {
+    it('should emit serviceRefresh when menu item command is called', () => {
+      const service: AIService = {
+        name: 'chatgpt',
+        icon: 'path/to/icon.png',
+        url: 'https://example.com',
+        internalDomains: ['chatgpt.com'],
+      };
+      const emitSpy = vi.spyOn(component.serviceRefresh, 'emit');
+      component.contextMenuService = service;
+
+      component.menuItems[0].command!({} as any);
+
+      expect(emitSpy).toHaveBeenCalledWith(service);
+    });
+  });
 });

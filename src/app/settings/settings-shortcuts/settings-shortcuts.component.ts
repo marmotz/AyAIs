@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, ElementRef, HostListener, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ShortcutManagerService } from '@app/services/shortcut-manager.service';
@@ -9,7 +9,7 @@ import { ShortcutInputComponent } from './shortcut-input/shortcut-input.componen
   selector: 'app-settings-shortcuts',
   standalone: true,
   templateUrl: './settings-shortcuts.component.html',
-  imports: [CommonModule, FormsModule, ShortcutInputComponent],
+  imports: [FormsModule, ShortcutInputComponent],
 })
 export class SettingsShortcutsComponent implements OnInit {
   protected readonly shortcutManager = inject(ShortcutManagerService);

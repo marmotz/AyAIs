@@ -33,15 +33,19 @@
   <div class="space-y-4">
     <p-button
       (onClick)="checkForUpdates()"
-      [label]="'Check for Updates'"
-      [icon]="'pi pi-refresh'"
       [loading]="isChecking()"
-    />
+    >
+      <fa-icon [icon]="['fas', 'refresh']" />
+      <span class="ml-2">Check for Updates</span>
+    </p-button>
 
     @if (availableUpdate()) {
       <div class="mt-4 rounded-md bg-green-50 p-4 dark:bg-green-900/20">
         <div class="flex items-start gap-3">
-          <i class="pi pi-info-circle mt-0.5 text-green-600 dark:text-green-400"></i>
+          <fa-icon
+            [icon]="['fas', 'info-circle']"
+            class="mt-0.5 text-green-600 dark:text-green-400"
+          />
           <div class="flex-1">
             <p class="font-medium text-green-800 dark:text-green-200">New version available!</p>
             <p class="text-sm text-green-700 dark:text-green-300">

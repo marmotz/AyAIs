@@ -20,6 +20,7 @@
     @for (service of services; track service.name; let i = $index) {
       <button
         (click)="onServiceClick(service)"
+        (contextmenu)="onServiceContextMenu($event, service)"
         [attr.data-testid]="'sidebar-button-' + service.name.toLowerCase()"
         [title]="getServiceTitle(service, i)"
         class="group relative size-16 cursor-pointer rounded-2xl border-none p-2 text-white transition-colors duration-200 hover:bg-slate-500/10 focus:outline-none"
@@ -90,6 +91,23 @@
       ></div>
     }
   </div>
+
+  <p-contextmenu
+    #contextMenu
+    [model]="menuItems"
+  >
+    <ng-template
+      #item
+      let-item
+    >
+      <a class="flex cursor-pointer items-center px-4 py-3">
+        @if (item.icon) {
+          <fa-icon [icon]="item.icon.split(' ')" />
+        }
+        <span class="ml-2">{{ item.label }}</span>
+      </a>
+    </ng-template>
+  </p-contextmenu>
 
   <p-dialog
     (visibleChange)="closeWhatsNew()"

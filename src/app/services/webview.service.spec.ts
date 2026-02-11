@@ -139,4 +139,25 @@ describe('WebviewService', () => {
     expect(capturedShortcuts[0]).toBe('Ctrl+A');
     expect(capturedShortcuts[1]).toBe('Ctrl+B');
   });
+
+  it('should reload webview', async () => {
+    const mockService: AIService = {
+      name: 'TestService',
+      url: 'https://example.com',
+      icon: 'test-icon',
+      internalDomains: ['example.com'],
+    };
+
+    const webview = await service.createWebview(mockService);
+    const reloadSpy = vi.fn();
+    webview.reload = reloadSpy;
+
+    service.reloadWebview(webview);
+
+    expect(reloadSpy).toHaveBeenCalled();
+  });
+
+  it('should not reload when webview is null', () => {
+    expect(() => service.reloadWebview(null as any)).not.toThrow();
+  });
 });

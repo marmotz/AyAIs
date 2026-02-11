@@ -44,7 +44,7 @@ describe('DEFAULT_CONFIGURATION', () => {
     });
 
     it('should have correct global shortcut based on platform', () => {
-      const expectedShortcut = process.platform === 'darwin' ? 'Meta+I' : 'Ctrl+Alt+I';
+      const expectedShortcut = process.platform === 'win32' ? 'Ctrl+Alt+I' : 'Meta+I';
       expect(DEFAULT_CONFIGURATION.shortcuts.globalShortcuts.showHideApp).toBe(expectedShortcut);
     });
 

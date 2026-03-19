@@ -37,4 +37,5 @@ export const DEFAULT_CONFIGURATION: AppConfig = {
     height: 600,
   },
   updateChannel: 'stable',
+  serviceOrder: [],
 };

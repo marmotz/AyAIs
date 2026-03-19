@@ -32,6 +32,7 @@ describe('SettingsUpdatesComponent', () => {
       },
     },
     updateChannel: 'stable',
+    serviceOrder: [],
   };
 
   beforeEach(async () => {

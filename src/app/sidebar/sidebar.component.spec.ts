@@ -1,5 +1,7 @@
+import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
+import { AI_SERVICES } from '@app/ai-services/constants';
 import { AIService } from '@app/ai-services/interfaces';
 import { NavigationService } from '@app/services/navigation.service';
 import { WhatsNewService } from '@app/services/whats-new.service';
@@ -37,6 +39,7 @@ describe('SidebarComponent', () => {
       },
     },
     updateChannel: 'stable',
+    serviceOrder: [],
   };
 
   beforeEach(async () => {
@@ -279,6 +282,141 @@ describe('SidebarComponent', () => {
       component.menuItems[0].command!({} as any);
 
       expect(emitSpy).toHaveBeenCalledWith(service);
+    });
+  });
+
+  describe('onServiceDropped', () => {
+    beforeEach(async () => {
+      (window as any).electronAPI.saveAppConfig = vi.fn().mockResolvedValue(undefined);
+      await component.ngOnInit();
+    });
+
+    it('should reorder services when dropped at different index', () => {
+      const originalOrder = component.services().map((s) => s.name);
+      const event = {
+        previousIndex: 0,
+        currentIndex: 2,
+        item: {} as any,
+        container: {} as any,
+        previousContainer: {} as any,
+        isPointerOverContainer: true,
+        distance: { x: 0, y: 0 },
+        dropPoint: { x: 0, y: 0 },
+        event: new MouseEvent('drop'),
+      } as CdkDragDrop<AIService[]>;
+
+      component.onServiceDropped(event);
+
+      expect(component.services()[0].name).toBe(originalOrder[1]);
+      expect(component.services()[1].name).toBe(originalOrder[2]);
+      expect(component.services()[2].name).toBe(originalOrder[0]);
+    });
+
+    it('should save service order after drop', async () => {
+      const event = {
+        previousIndex: 0,
+        currentIndex: 1,
+        item: {} as any,
+        container: {} as any,
+        previousContainer: {} as any,
+        isPointerOverContainer: true,
+        distance: { x: 0, y: 0 },
+        dropPoint: { x: 0, y: 0 },
+        event: new MouseEvent('drop'),
+      } as CdkDragDrop<AIService[]>;
+
+      component.onServiceDropped(event);
+
+      await vi.runAllTimersAsync();
+
+      expect(window.electronAPI.saveAppConfig).toHaveBeenCalledWith({
+        serviceOrder: component.services().map((s) => s.name),
+      });
+    });
+
+    it('should not save when dropped at same index', () => {
+      const event = {
+        previousIndex: 1,
+        currentIndex: 1,
+        item: {} as any,
+        container: {} as any,
+        previousContainer: {} as any,
+        isPointerOverContainer: true,
+        distance: { x: 0, y: 0 },
+        dropPoint: { x: 0, y: 0 },
+        event: new MouseEvent('drop'),
+      } as CdkDragDrop<AIService[]>;
+
+      component.onServiceDropped(event);
+
+      expect(window.electronAPI.saveAppConfig).not.toHaveBeenCalled();
+    });
+
+    it('should handle save error gracefully', async () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      (window as any).electronAPI.saveAppConfig = vi.fn().mockRejectedValue(new Error('Save failed'));
+
+      const event = {
+        previousIndex: 0,
+        currentIndex: 1,
+        item: {} as any,
+        container: {} as any,
+        previousContainer: {} as any,
+        isPointerOverContainer: true,
+        distance: { x: 0, y: 0 },
+        dropPoint: { x: 0, y: 0 },
+        event: new MouseEvent('drop'),
+      } as CdkDragDrop<AIService[]>;
+
+      component.onServiceDropped(event);
+
+      await vi.runAllTimersAsync();
+
+      expect(consoleSpy).toHaveBeenCalledWith('Failed to save service order:', expect.any(Error));
+      consoleSpy.mockRestore();
+    });
+  });
+
+  describe('service order from config', () => {
+    it('should apply saved service order on init', async () => {
+      const orderedConfig: AppConfig = {
+        ...mockAppConfig,
+        serviceOrder: ['Gemini', 'ChatGPT', 'Claude'],
+      };
+      (window as any).electronAPI.getAppConfig = vi.fn().mockResolvedValue(orderedConfig);
+
+      await component.ngOnInit();
+
+      expect(component.services()[0].name).toBe('Gemini');
+      expect(component.services()[1].name).toBe('ChatGPT');
+      expect(component.services()[2].name).toBe('Claude');
+    });
+
+    it('should append unknown services from saved order', async () => {
+      const orderedConfig: AppConfig = {
+        ...mockAppConfig,
+        serviceOrder: ['Claude'],
+      };
+      (window as any).electronAPI.getAppConfig = vi.fn().mockResolvedValue(orderedConfig);
+
+      await component.ngOnInit();
+
+      expect(component.services()[0].name).toBe('Claude');
+      expect(component.services().length).toBe(AI_SERVICES.length);
+    });
+
+    it('should keep default order when serviceOrder is empty', async () => {
+      const configWithEmptyOrder: AppConfig = {
+        ...mockAppConfig,
+        serviceOrder: [],
+      };
+      (window as any).electronAPI.getAppConfig = vi.fn().mockResolvedValue(configWithEmptyOrder);
+
+      await component.ngOnInit();
+
+      expect(component.services()[0].name).toBe('ChatGPT');
+      expect(component.services()[1].name).toBe('Claude');
+      expect(component.services()[2].name).toBe('Gemini');
     });
   });
 });

@@ -158,7 +158,7 @@ export class WindowManagerService {
       });
 
       window.loadURL('http://localhost:4213');
-      // window.webContents.openDevTools();
+      window.webContents.openDevTools();
     } else {
       let pathIndex = '../../renderer/browser/index.html';
 

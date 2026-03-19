@@ -26,4 +26,5 @@ export interface AppConfig {
   launchHidden: boolean;
   shortcuts: ShortcutConfig;
   updateChannel: UpdateChannel;
+  serviceOrder: string[];
 }

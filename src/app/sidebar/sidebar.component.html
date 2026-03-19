@@ -16,9 +16,14 @@
       AyAIs
     </div>
   </div>
-  <nav class="flex flex-1 flex-col gap-3 p-3">
-    @for (service of services; track service.name; let i = $index) {
+  <nav
+    cdkDropList
+    (cdkDropListDropped)="onServiceDropped($event)"
+    class="flex flex-1 flex-col gap-3 p-3"
+  >
+    @for (service of services(); track service.name; let i = $index) {
       <button
+        cdkDrag
         (click)="onServiceClick(service)"
         (contextmenu)="onServiceContextMenu($event, service)"
         [attr.data-testid]="'sidebar-button-' + service.name.toLowerCase()"

@@ -24,6 +24,7 @@ export const MOCK_CONFIG: AppConfig = {
     },
   },
   updateChannel: 'stable',
+  serviceOrder: [],
 };
 
 export const MOCK_CONFIG_WITH_SERVICES: AppConfig = {

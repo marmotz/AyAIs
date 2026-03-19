@@ -1,4 +1,3 @@
-
 import {
   Component,
   effect,
@@ -7,11 +6,12 @@ import {
   inject,
   NO_ERRORS_SCHEMA,
   signal,
-  viewChild
+  viewChild,
 } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { AI_SERVICES } from '@app/ai-services/constants';
 import { AIService } from '@app/ai-services/interfaces';
+import { orderServices } from '@app/ai-services/order-services';
 import { NavigationService } from '@app/services/navigation.service';
 import { ShortcutActionEvent, ShortcutManagerService } from '@app/services/shortcut-manager.service';
 import { WebviewService } from '@app/services/webview.service';
@@ -34,10 +34,11 @@ export class Home {
   private readonly router = inject(Router);
   private readonly shortcutManager = inject(ShortcutManagerService);
   private readonly whatsNewService = inject(WhatsNewService);
-  private services: AIService[] = AI_SERVICES;
+  private services: AIService[] = [...AI_SERVICES];
   private webviews = new Map<string, any>();
 
   constructor() {
+    void this.loadServiceOrder();
     this.loadLastService();
 
     window.electronAPI.onOpenSettings(() => {
@@ -188,6 +189,17 @@ export class Home {
         await this.onServiceSelected(this.services[serviceIndex]);
         this.whatsNewService.close();
       }
+    }
+  }
+
+  private async loadServiceOrder() {
+    try {
+      const config = await window.electronAPI.getAppConfig();
+      if (config.serviceOrder?.length) {
+        this.services = orderServices(config.serviceOrder);
+      }
+    } catch (error) {
+      console.error('Failed to load service order:', error);
     }
   }
 

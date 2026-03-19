@@ -1,3 +1,4 @@
+import { ViewportRuler } from '@angular/cdk/scrolling';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { MOCK_CONFIG_WITH_SERVICES } from '@app-tests/test-config';
@@ -34,7 +35,18 @@ describe('Home', () => {
     await TestBed.configureTestingModule({
       declarations: [],
       imports: [Home, TranslateModule.forRoot()],
-      providers: [provideRouter([]), { provide: WhatsNewService, useValue: mockWhatsNewService }],
+      providers: [
+        provideRouter([]),
+        { provide: WhatsNewService, useValue: mockWhatsNewService },
+        {
+          provide: ViewportRuler,
+          useValue: {
+            getViewportRect: () => ({ top: 0, left: 0, bottom: 768, right: 1024, height: 768, width: 1024 }),
+            getViewportSize: () => ({ width: 1024, height: 768 }),
+            getViewportScrollPosition: () => ({ top: 0, left: 0 }),
+          },
+        },
+      ],
     }).compileComponents();
 
     router = TestBed.inject(Router);

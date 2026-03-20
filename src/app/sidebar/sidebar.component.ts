@@ -31,6 +31,7 @@ export class SidebarComponent {
   appConfig = signal<AppConfig | null>(null);
   serviceSelected = output<ConfiguredService>();
   serviceRefresh = output<ConfiguredService>();
+  serviceRemoved = output<ConfiguredService>();
   selectedService = model<ConfiguredService | null>(null);
   selectedIndex = computed(() => this.configuredServices().findIndex((p) => p.id === this.selectedService()?.id));
   addServiceDialogVisible = signal(false);
@@ -164,6 +165,7 @@ export class SidebarComponent {
   removeService(service: ConfiguredService) {
     const list = this.configuredServices().filter((p) => p.id !== service.id);
     this.configuredServices.set(list);
+    this.serviceRemoved.emit(service);
 
     if (this.selectedService()?.id === service.id) {
       this.selectedService.set(list.length > 0 ? list[0] : null);

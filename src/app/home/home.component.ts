@@ -147,6 +147,18 @@ export class Home {
     await window.electronAPI.saveLastService(configuredService.id);
   }
 
+  onServiceRemoved(configuredService: ConfiguredService) {
+    const webview: WebviewTag | undefined = this.webviews.get(configuredService.id);
+    if (webview) {
+      webview.remove();
+      this.webviews.delete(configuredService.id);
+    }
+
+    if (this.selectedService()?.id === configuredService.id) {
+      this.selectedService.set(null);
+    }
+  }
+
   public async refreshService(service?: ConfiguredService): Promise<void> {
     const serviceToRefresh = service || this.selectedService();
     if (!serviceToRefresh) {

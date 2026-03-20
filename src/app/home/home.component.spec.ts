@@ -114,4 +114,51 @@ describe('Home', () => {
     expect(reloadSpy).toHaveBeenCalled();
     expect((home as any).selectedService()).toBe(service);
   });
+
+  describe('onServiceRemoved', () => {
+    it('should remove webview from DOM and map', async () => {
+      const home = TestBed.createComponent(Home).componentInstance;
+      const service: ConfiguredService = { id: 'default-chatgpt', serviceName: 'ChatGPT' };
+
+      const removeSpy = vi.fn();
+      home['webviews'].set('default-chatgpt', { remove: removeSpy });
+
+      home.onServiceRemoved(service);
+
+      expect(removeSpy).toHaveBeenCalled();
+      expect(home['webviews'].has('default-chatgpt')).toBe(false);
+    });
+
+    it('should clear selectedService when removed service is selected', async () => {
+      const home = TestBed.createComponent(Home).componentInstance;
+      const service: ConfiguredService = { id: 'default-chatgpt', serviceName: 'ChatGPT' };
+
+      (home as any).selectedService.set(service);
+      home['webviews'].set('default-chatgpt', { remove: vi.fn() });
+
+      home.onServiceRemoved(service);
+
+      expect((home as any).selectedService()).toBeNull();
+    });
+
+    it('should not clear selectedService when removed service is not selected', async () => {
+      const home = TestBed.createComponent(Home).componentInstance;
+      const removedService: ConfiguredService = { id: 'default-claude', serviceName: 'Claude' };
+      const selectedService: ConfiguredService = { id: 'default-chatgpt', serviceName: 'ChatGPT' };
+
+      (home as any).selectedService.set(selectedService);
+      home['webviews'].set('default-claude', { remove: vi.fn() });
+
+      home.onServiceRemoved(removedService);
+
+      expect((home as any).selectedService()).toBe(selectedService);
+    });
+
+    it('should handle removing service without webview gracefully', async () => {
+      const home = TestBed.createComponent(Home).componentInstance;
+      const service: ConfiguredService = { id: 'default-chatgpt', serviceName: 'ChatGPT' };
+
+      expect(() => home.onServiceRemoved(service)).not.toThrow();
+    });
+  });
 });

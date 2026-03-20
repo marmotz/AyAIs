@@ -318,6 +318,15 @@ describe('SidebarComponent', () => {
 
       expect(emitSpy).toHaveBeenCalled();
     });
+
+    it('should emit serviceRemoved with removed service', () => {
+      const service = component.configuredServices()[0];
+      const emitSpy = vi.spyOn(component.serviceRemoved, 'emit');
+
+      component.removeService(service);
+
+      expect(emitSpy).toHaveBeenCalledWith(service);
+    });
   });
 
   describe('addService', () => {

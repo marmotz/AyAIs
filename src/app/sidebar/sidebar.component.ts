@@ -189,14 +189,16 @@ export class SidebarComponent {
   }
 
   removeService(service: ConfiguredService) {
+    const currentIndex = this.configuredServices().findIndex((p) => p.id === service.id);
     const list = this.configuredServices().filter((p) => p.id !== service.id);
     this.configuredServices.set(list);
     this.serviceRemoved.emit(service);
 
     if (this.selectedService()?.id === service.id) {
-      this.selectedService.set(list.length > 0 ? list[0] : null);
-      if (list.length > 0) {
-        this.serviceSelected.emit(list[0]);
+      const next = list[currentIndex] ?? list[currentIndex - 1] ?? null;
+      this.selectedService.set(next);
+      if (next) {
+        this.serviceSelected.emit(next);
       }
     }
 

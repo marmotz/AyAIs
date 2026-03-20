@@ -302,11 +302,37 @@ describe('SidebarComponent', () => {
 
     it('should select next service when removing selected service', async () => {
       const firstService = component.configuredServices()[0];
+      const secondService = component.configuredServices()[1];
       component.selectedService.set(firstService);
 
       component.removeService(firstService);
 
-      expect(component.selectedService()).toEqual(component.configuredServices()[0]);
+      expect(component.selectedService()).toEqual(secondService);
+    });
+
+    it('should select previous service when removing last selected service', async () => {
+      const lastService = component.configuredServices()[2];
+      const secondService = component.configuredServices()[1];
+      component.selectedService.set(lastService);
+
+      component.removeService(lastService);
+
+      expect(component.selectedService()).toEqual(secondService);
+    });
+
+    it('should select null when removing the only service', async () => {
+      (window as any).electronAPI.getAppConfig = vi.fn().mockResolvedValue({
+        ...mockAppConfig,
+        configuredServices: [{ id: 'default-chatgpt', serviceName: 'ChatGPT' }],
+      });
+      await component.ngOnInit();
+
+      const onlyService = component.configuredServices()[0];
+      component.selectedService.set(onlyService);
+
+      component.removeService(onlyService);
+
+      expect(component.selectedService()).toBeNull();
     });
 
     it('should emit serviceSelected when removing currently selected service', async () => {

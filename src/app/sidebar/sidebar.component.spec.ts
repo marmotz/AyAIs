@@ -574,4 +574,81 @@ describe('SidebarComponent', () => {
       expect(component.configuredServices().length).toBe(0);
     });
   });
+
+  describe('scrollToSelectedService', () => {
+    beforeEach(async () => {
+      await component.ngOnInit();
+    });
+
+    it('should not throw when no service is selected', () => {
+      component.selectedService.set(null);
+      expect(() => (component as any).scrollToSelectedService()).not.toThrow();
+    });
+
+    it('should scroll down when button is below container', () => {
+      const container = document.createElement('div');
+      Object.defineProperty(container, 'getBoundingClientRect', {
+        value: () => ({ top: 0, bottom: 100, left: 0, right: 100, width: 100, height: 100 }),
+      });
+
+      const button = document.createElement('button');
+      button.setAttribute('data-testid', 'sidebar-button-default-chatgpt');
+      Object.defineProperty(button, 'getBoundingClientRect', {
+        value: () => ({ top: 150, bottom: 214, left: 0, right: 100, width: 100, height: 64 }),
+      });
+      container.appendChild(button);
+
+      vi.spyOn(component as any, 'servicesContainer').mockReturnValue({ nativeElement: container });
+      component.selectedService.set(component.configuredServices()[0]);
+      container.scrollTop = 0;
+
+      (component as any).scrollToSelectedService();
+
+      expect(container.scrollTop).toBe(114);
+    });
+
+    it('should scroll up when button is above container', () => {
+      const container = document.createElement('div');
+      Object.defineProperty(container, 'getBoundingClientRect', {
+        value: () => ({ top: 100, bottom: 200, left: 0, right: 100, width: 100, height: 100 }),
+      });
+
+      const button = document.createElement('button');
+      button.setAttribute('data-testid', 'sidebar-button-default-chatgpt');
+      Object.defineProperty(button, 'getBoundingClientRect', {
+        value: () => ({ top: 50, bottom: 114, left: 0, right: 100, width: 100, height: 64 }),
+      });
+      container.appendChild(button);
+
+      vi.spyOn(component as any, 'servicesContainer').mockReturnValue({ nativeElement: container });
+      component.selectedService.set(component.configuredServices()[0]);
+      container.scrollTop = 50;
+
+      (component as any).scrollToSelectedService();
+
+      expect(container.scrollTop).toBe(0);
+    });
+
+    it('should not scroll when button is already visible', () => {
+      const container = document.createElement('div');
+      Object.defineProperty(container, 'getBoundingClientRect', {
+        value: () => ({ top: 0, bottom: 200, left: 0, right: 100, width: 100, height: 200 }),
+      });
+
+      const button = document.createElement('button');
+      button.setAttribute('data-testid', 'sidebar-button-default-chatgpt');
+      Object.defineProperty(button, 'getBoundingClientRect', {
+        value: () => ({ top: 50, bottom: 114, left: 0, right: 100, width: 100, height: 64 }),
+      });
+      container.appendChild(button);
+
+      vi.spyOn(component as any, 'servicesContainer').mockReturnValue({ nativeElement: container });
+      component.selectedService.set(component.configuredServices()[0]);
+      container.scrollTop = 30;
+
+      (component as any).scrollToSelectedService();
+
+      expect(container.scrollTop).toBe(30);
+    });
+  });
 });

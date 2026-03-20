@@ -1,6 +1,17 @@
 import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, model, output, signal, viewChild } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  ElementRef,
+  HostListener,
+  inject,
+  model,
+  output,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { Router } from '@angular/router';
 import { AI_SERVICES } from '@app/ai-services/constants';
 import { AIService, ConfiguredService } from '@app/ai-services/interfaces';
@@ -57,7 +68,20 @@ export class SidebarComponent {
   protected readonly isSettingsRoute = this.navigation.isSettingsRoute;
   private readonly router = inject(Router);
   private readonly contextMenu = viewChild.required(SidebarContextmenuComponent);
+  private readonly servicesContainer = viewChild.required<ElementRef>('servicesContainer');
   private contextMenuService: ConfiguredService | null = null;
+
+  constructor() {
+    effect(() => {
+      this.selectedIndex();
+      this.scrollToSelectedService();
+    });
+  }
+
+  @HostListener('window:resize')
+  onWindowResize() {
+    this.scrollToSelectedService();
+  }
 
   addService(service: AIService) {
     const newService: ConfiguredService = {
@@ -199,6 +223,28 @@ export class SidebarComponent {
       }
     } catch (error) {
       console.error('Failed to save configured services:', error);
+    }
+  }
+
+  private scrollToSelectedService() {
+    const container = this.servicesContainer().nativeElement as HTMLElement;
+    const service = this.selectedService();
+    if (!service) {
+      return;
+    }
+
+    const button = container.querySelector(`[data-testid="sidebar-button-${service.id}"]`);
+    if (!button) {
+      return;
+    }
+
+    const containerRect = container.getBoundingClientRect();
+    const buttonRect = button.getBoundingClientRect();
+
+    if (buttonRect.top < containerRect.top) {
+      container.scrollTop -= containerRect.top - buttonRect.top;
+    } else if (buttonRect.bottom > containerRect.bottom) {
+      container.scrollTop += buttonRect.bottom - containerRect.bottom;
     }
   }
 }

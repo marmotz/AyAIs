@@ -27,6 +27,6 @@
   visibility: hidden;
 }
 
-#providers::-webkit-scrollbar {
+#services::-webkit-scrollbar {
   display: none;
 }

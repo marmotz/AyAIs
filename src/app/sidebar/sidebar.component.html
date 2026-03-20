@@ -22,8 +22,9 @@
     class="flex min-h-0 flex-1 flex-col gap-3 pt-3"
   >
     <div
+      #servicesContainer
       class="relative flex flex-col overflow-y-auto px-3"
-      id="providers"
+      id="services"
     >
       @for (provider of configuredServices(); track provider.id; let i = $index) {
         <button
@@ -125,7 +126,7 @@
   <app-sidebar-whatsnew-dialog />
 
   <app-sidebar-add-service-dialog
-    [(visible)]="addServiceDialogVisible"
     (serviceAdded)="addService($event)"
+    [(visible)]="addServiceDialogVisible"
   />
 </div>

@@ -1,0 +1,15 @@
+<p-dialog
+  (visibleChange)="close()"
+  [modal]="true"
+  [style]="{ width: '50vw' }"
+  [visible]="visible"
+  closeOnEscape
+  dismissableMask
+>
+  <ng-template pTemplate="header">
+    <h2 class="m-0 text-xl font-semibold">What's new ?</h2>
+  </ng-template>
+  <ng-template pTemplate="content">
+    <app-whatsnew />
+  </ng-template>
+</p-dialog>

@@ -33,6 +33,11 @@ describe('SettingsUpdatesComponent', () => {
     },
     updateChannel: 'stable',
     serviceOrder: [],
+    configuredServices: [
+      { id: 'default-chatgpt', serviceName: 'ChatGPT' },
+      { id: 'default-claude', serviceName: 'Claude' },
+      { id: 'default-gemini', serviceName: 'Gemini' },
+    ],
   };
 
   beforeEach(async () => {

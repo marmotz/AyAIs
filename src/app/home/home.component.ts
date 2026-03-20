@@ -10,8 +10,7 @@ import {
 } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { AI_SERVICES } from '@app/ai-services/constants';
-import { AIService } from '@app/ai-services/interfaces';
-import { orderServices } from '@app/ai-services/order-services';
+import { AIService, ConfiguredService } from '@app/ai-services/interfaces';
 import { NavigationService } from '@app/services/navigation.service';
 import { ShortcutActionEvent, ShortcutManagerService } from '@app/services/shortcut-manager.service';
 import { WebviewService } from '@app/services/webview.service';
@@ -27,18 +26,18 @@ import type { WebviewTag } from 'electron';
 })
 export class Home {
   readonly webviewsContainer = viewChild.required<ElementRef>('webviewsContainer');
-  protected readonly selectedService = signal<AIService | null>(null);
+  protected readonly selectedService = signal<ConfiguredService | null>(null);
   private readonly navigationService = inject(NavigationService);
   protected readonly isAiServicesRoute = this.navigationService.isAiServicesRoute;
   private readonly webviewService = inject(WebviewService);
   private readonly router = inject(Router);
   private readonly shortcutManager = inject(ShortcutManagerService);
   private readonly whatsNewService = inject(WhatsNewService);
-  private services: AIService[] = [...AI_SERVICES];
+  private configuredServices: ConfiguredService[] = [];
   private webviews = new Map<string, any>();
 
   constructor() {
-    void this.loadServiceOrder();
+    void this.loadConfiguredServices();
     this.loadLastService();
 
     window.electronAPI.onOpenSettings(() => {
@@ -61,7 +60,7 @@ export class Home {
 
       if (selectedService) {
         if (isAiServicesRoute) {
-          const webview: WebviewTag = this.webviews.get(selectedService.name);
+          const webview: WebviewTag = this.webviews.get(selectedService.id);
           this.showWebview(webview);
         } else {
           this.hideAllWebviews();
@@ -101,13 +100,13 @@ export class Home {
       return;
     }
 
-    const currentIndex = this.services.findIndex((s) => s.name === currentService.name);
+    const currentIndex = this.configuredServices.findIndex((p) => p.id === currentService.id);
     if (currentIndex === -1) {
       return;
     }
 
-    const nextIndex = currentIndex === this.services.length - 1 ? 0 : currentIndex + 1;
-    void this.navigateToService(this.services[nextIndex]);
+    const nextIndex = currentIndex === this.configuredServices.length - 1 ? 0 : currentIndex + 1;
+    void this.navigateToService(this.configuredServices[nextIndex]);
   }
 
   public navigateToPreviousService() {
@@ -116,47 +115,51 @@ export class Home {
       return;
     }
 
-    const currentIndex = this.services.findIndex((s) => s.name === currentService.name);
+    const currentIndex = this.configuredServices.findIndex((p) => p.id === currentService.id);
     if (currentIndex === -1) {
       return;
     }
 
-    const previousIndex = currentIndex === 0 ? this.services.length - 1 : currentIndex - 1;
-    void this.navigateToService(this.services[previousIndex]);
+    const previousIndex = currentIndex === 0 ? this.configuredServices.length - 1 : currentIndex - 1;
+    void this.navigateToService(this.configuredServices[previousIndex]);
   }
 
-  public async refreshService(service?: AIService): Promise<void> {
+  async onServiceSelected(configuredService: ConfiguredService) {
+    this.selectedService.set(configuredService);
+    const container = this.webviewsContainer()?.nativeElement as HTMLElement;
+
+    this.hideAllWebviews();
+
+    let webview: WebviewTag = this.webviews.get(configuredService.id);
+    if (!webview) {
+      const service = this.getService(configuredService);
+      if (service) {
+        webview = await this.webviewService.createWebview(service, configuredService.id);
+        container?.appendChild(webview);
+        this.webviews.set(configuredService.id, webview);
+      }
+    }
+
+    if (webview) {
+      this.showWebview(webview);
+    }
+
+    await window.electronAPI.saveLastService(configuredService.id);
+  }
+
+  public async refreshService(service?: ConfiguredService): Promise<void> {
     const serviceToRefresh = service || this.selectedService();
     if (!serviceToRefresh) {
       return;
     }
 
-    const webview: WebviewTag = this.webviews.get(serviceToRefresh.name);
+    const webview: WebviewTag = this.webviews.get(serviceToRefresh.id);
     if (webview) {
       this.webviewService.reloadWebview(webview);
-      if (this.selectedService()?.name !== serviceToRefresh.name) {
+      if (this.selectedService()?.id !== serviceToRefresh.id) {
         this.selectedService.set(serviceToRefresh);
       }
     }
-  }
-
-  async onServiceSelected(service: AIService) {
-    this.selectedService.set(service);
-    const container = this.webviewsContainer()?.nativeElement as HTMLElement;
-
-    this.hideAllWebviews();
-
-    // Create or show a dedicated webview for this service
-    let webview: WebviewTag = this.webviews.get(service.name);
-    if (!webview) {
-      webview = await this.webviewService.createWebview(service);
-      container?.appendChild(webview);
-      this.webviews.set(service.name, webview);
-    }
-
-    this.showWebview(webview);
-
-    await window.electronAPI.saveLastService(service.name);
   }
 
   showWebview(webview: WebviewTag) {
@@ -164,6 +167,10 @@ export class Home {
     webview.style.height = '100%';
     webview.style.width = '100%';
     webview.focus();
+  }
+
+  private getService(service: ConfiguredService): AIService | undefined {
+    return AI_SERVICES.find((s) => s.name === service.serviceName);
   }
 
   private async handleShortcutAction(actionEvent: ShortcutActionEvent): Promise<void> {
@@ -184,29 +191,27 @@ export class Home {
     } else if (action === 'refreshService') {
       await this.refreshService();
     } else if (action === 'selectService' && serviceIndex !== undefined) {
-      if (serviceIndex >= 0 && serviceIndex < this.services.length) {
+      if (serviceIndex >= 0 && serviceIndex < this.configuredServices.length) {
         void this.router.navigate(['/app']);
-        await this.onServiceSelected(this.services[serviceIndex]);
+        await this.onServiceSelected(this.configuredServices[serviceIndex]);
         this.whatsNewService.close();
       }
     }
   }
 
-  private async loadServiceOrder() {
+  private async loadConfiguredServices() {
     try {
       const config = await window.electronAPI.getAppConfig();
-      if (config.serviceOrder?.length) {
-        this.services = orderServices(config.serviceOrder);
-      }
+      this.configuredServices = config.configuredServices ?? [];
     } catch (error) {
-      console.error('Failed to load service order:', error);
+      console.error('Failed to load configured service:', error);
     }
   }
 
   private loadLastService() {
-    window.electronAPI.getLastService().then(async (lastServiceName: string | undefined) => {
-      if (lastServiceName) {
-        const service = this.services.find((s) => s.name === lastServiceName);
+    window.electronAPI.getLastService().then(async (lastServiceId: string | undefined) => {
+      if (lastServiceId) {
+        const service = this.configuredServices.find((p) => p.id === lastServiceId);
         if (service) {
           await this.onServiceSelected(service);
         }
@@ -214,8 +219,7 @@ export class Home {
     });
   }
 
-  private async navigateToService(service: AIService) {
-    // Navigate to /app if we're not already there
+  private async navigateToService(service: ConfiguredService) {
     if (!this.isAiServicesRoute()) {
       await this.router.navigate(['/app']);
     }

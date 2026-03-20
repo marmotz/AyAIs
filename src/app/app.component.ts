@@ -8,8 +8,10 @@ import { faArrowLeft } from '@fortawesome/free-solid-svg-icons/faArrowLeft';
 import { faClock } from '@fortawesome/free-solid-svg-icons/faClock';
 import { faDownload } from '@fortawesome/free-solid-svg-icons/faDownload';
 import { faInfoCircle } from '@fortawesome/free-solid-svg-icons/faInfoCircle';
+import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
 import { faRefresh } from '@fortawesome/free-solid-svg-icons/faRefresh';
 import { faTimes } from '@fortawesome/free-solid-svg-icons/faTimes';
+import { faTrash } from '@fortawesome/free-solid-svg-icons/faTrash';
 import { Toast } from 'primeng/toast';
 
 @Component({
@@ -34,9 +36,11 @@ export class App {
       faClock,
       faDownload,
       faInfoCircle,
+      faPlus,
       faRefresh,
       faRotateRight,
-      faTimes
+      faTimes,
+      faTrash
     );
   }
 }

@@ -1,12 +1,11 @@
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
-import { AI_SERVICES } from '@app/ai-services/constants';
-import { AIService } from '@app/ai-services/interfaces';
+import { AIService, ConfiguredService } from '@app/ai-services/interfaces';
 import { NavigationService } from '@app/services/navigation.service';
-import { WhatsNewService } from '@app/services/whats-new.service';
 import type { AppConfig } from '@shared/types/app-config.interface';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { SidebarContextmenuComponent } from './sidebar-contextmenu/sidebar-contextmenu.component';
 import { SidebarComponent } from './sidebar.component';
 
 describe('SidebarComponent', () => {
@@ -14,11 +13,10 @@ describe('SidebarComponent', () => {
   let fixture: ComponentFixture<SidebarComponent>;
   let mockRouter: Router;
   let mockNavigationService: NavigationService;
-  let mockWhatsNewService: WhatsNewService;
 
   const mockAppConfig: AppConfig = {
     position: { x: 100, y: 100, width: 800, height: 600 },
-    lastService: 'chatgpt',
+    lastService: 'default-chatgpt',
     launchAtStartup: true,
     launchHidden: false,
     shortcuts: {
@@ -40,6 +38,11 @@ describe('SidebarComponent', () => {
     },
     updateChannel: 'stable',
     serviceOrder: [],
+    configuredServices: [
+      { id: 'default-chatgpt', serviceName: 'ChatGPT' },
+      { id: 'default-claude', serviceName: 'Claude' },
+      { id: 'default-gemini', serviceName: 'Gemini' },
+    ],
   };
 
   beforeEach(async () => {
@@ -54,13 +57,6 @@ describe('SidebarComponent', () => {
       isSettingsRoute: vi.fn(() => false),
     } as unknown as NavigationService;
 
-    mockWhatsNewService = {
-      isVisible: vi.fn(() => false),
-      open: vi.fn(),
-      close: vi.fn(),
-      toggle: vi.fn(),
-    } as unknown as WhatsNewService;
-
     (window as any).electronAPI = {
       getAppConfig: vi.fn().mockResolvedValue(mockAppConfig),
       quitApp: vi.fn().mockResolvedValue(undefined),
@@ -73,7 +69,6 @@ describe('SidebarComponent', () => {
       providers: [
         { provide: Router, useValue: mockRouter },
         { provide: NavigationService, useValue: mockNavigationService },
-        { provide: WhatsNewService, useValue: mockWhatsNewService },
       ],
     }).compileComponents();
 
@@ -82,11 +77,9 @@ describe('SidebarComponent', () => {
   });
 
   afterEach(() => {
-    // Run all timers including future ones to clean up debounced debug logs
     vi.runAllTimers();
     vi.clearAllTimers();
     vi.useRealTimers();
-    // Don't delete the mock - the setup file will maintain it
   });
 
   it('should create', () => {
@@ -98,6 +91,11 @@ describe('SidebarComponent', () => {
       await component.ngOnInit();
       expect(window.electronAPI.getAppConfig).toHaveBeenCalled();
       expect(component.appConfig()).toEqual(mockAppConfig);
+    });
+
+    it('should load configured services on init', async () => {
+      await component.ngOnInit();
+      expect(component.configuredServices()).toEqual(mockAppConfig.configuredServices);
     });
 
     it('should handle errors when loading app config', async () => {
@@ -117,26 +115,16 @@ describe('SidebarComponent', () => {
       await component.ngOnInit();
     });
 
-    it('should return service name with shortcut when available', () => {
-      const service: AIService = {
-        name: 'chatgpt',
-        icon: 'path/to/icon.png',
-        url: 'https://example.com',
-        internalDomains: ['chatgpt.com'],
-      };
+    it('should return service display name with shortcut when available', () => {
+      const service: ConfiguredService = { id: 'default-chatgpt', serviceName: 'ChatGPT' };
       const title = component.getServiceTitle(service, 0);
-      expect(title).toBe('chatgpt (CmdOrCtrl+1)');
+      expect(title).toBe('ChatGPT (CmdOrCtrl+1)');
     });
 
-    it('should return service name without shortcut when not available', () => {
-      const service: AIService = {
-        name: 'unknown',
-        icon: 'path/to/icon.png',
-        url: 'https://example.com',
-        internalDomains: ['example.com'],
-      };
+    it('should return service display name without shortcut when not available', () => {
+      const service: ConfiguredService = { id: 'default-chatgpt', serviceName: 'ChatGPT' };
       const title = component.getServiceTitle(service, 5);
-      expect(title).toBe('unknown');
+      expect(title).toBe('ChatGPT');
     });
   });
 
@@ -163,12 +151,7 @@ describe('SidebarComponent', () => {
     });
 
     it('should set selected service and emit event', async () => {
-      const service: AIService = {
-        name: 'chatgpt',
-        icon: 'path/to/icon.png',
-        url: 'https://example.com',
-        internalDomains: ['chatgpt.com'],
-      };
+      const service: ConfiguredService = { id: 'default-chatgpt', serviceName: 'ChatGPT' };
       const emitSpy = vi.spyOn(component.serviceSelected, 'emit');
 
       await component.onServiceClick(service);
@@ -227,61 +210,196 @@ describe('SidebarComponent', () => {
     });
   });
 
-  describe('openWhatsNew', () => {
-    it('should open whats new modal', () => {
-      component.openWhatsNew();
-      expect(mockWhatsNewService.open).toHaveBeenCalled();
-    });
-
-    it('should close whats new modal', () => {
-      component.closeWhatsNew();
-      expect(mockWhatsNewService.close).toHaveBeenCalled();
-    });
-
-    it('should return visibility status', () => {
-      vi.mocked(mockWhatsNewService.isVisible).mockReturnValue(true);
-      expect(component.whatsNewVisible).toBe(true);
-    });
-  });
-
   describe('onServiceContextMenu', () => {
     beforeEach(async () => {
       await component.ngOnInit();
     });
 
-    it('should set contextMenuService and show context menu', () => {
-      const service: AIService = {
-        name: 'chatgpt',
-        icon: 'path/to/icon.png',
-        url: 'https://example.com',
-        internalDomains: ['chatgpt.com'],
-      };
+    it('should call contextMenu show with event', () => {
+      const service: ConfiguredService = { id: 'default-chatgpt', serviceName: 'ChatGPT' };
       const mockEvent = new MouseEvent('contextmenu');
-      const showSpy = vi.fn();
-      vi.spyOn(component.contextMenu(), 'show').mockImplementation(showSpy);
+      const contextMenuComponent = { show: vi.fn() } as unknown as SidebarContextmenuComponent;
+      vi.spyOn(component as any, 'contextMenu').mockReturnValue(contextMenuComponent);
 
       component.onServiceContextMenu(mockEvent, service);
 
-      expect(component.contextMenuService).toBe(service);
-      expect(showSpy).toHaveBeenCalledWith(mockEvent);
-      expect(component.contextMenu().target).toBe(mockEvent.currentTarget);
+      expect(contextMenuComponent.show).toHaveBeenCalledWith(mockEvent);
     });
   });
 
-  describe('serviceRefresh output', () => {
-    it('should emit serviceRefresh when menu item command is called', () => {
-      const service: AIService = {
-        name: 'chatgpt',
-        icon: 'path/to/icon.png',
-        url: 'https://example.com',
-        internalDomains: ['chatgpt.com'],
-      };
-      const emitSpy = vi.spyOn(component.serviceRefresh, 'emit');
-      component.contextMenuService = service;
+  describe('onContextMenuRefresh', () => {
+    beforeEach(async () => {
+      await component.ngOnInit();
+    });
 
-      component.menuItems[0].command!({} as any);
+    it('should emit serviceRefresh with context menu service', () => {
+      const service: ConfiguredService = { id: 'default-chatgpt', serviceName: 'ChatGPT' };
+      const emitSpy = vi.spyOn(component.serviceRefresh, 'emit');
+      (component as any).contextMenuService = service;
+
+      component.onContextMenuRefresh();
 
       expect(emitSpy).toHaveBeenCalledWith(service);
+    });
+
+    it('should not emit when no context menu service', () => {
+      const emitSpy = vi.spyOn(component.serviceRefresh, 'emit');
+
+      component.onContextMenuRefresh();
+
+      expect(emitSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('onContextMenuRemove', () => {
+    beforeEach(async () => {
+      (window as any).electronAPI.saveAppConfig = vi.fn().mockResolvedValue(undefined);
+      await component.ngOnInit();
+    });
+
+    it('should remove context menu service', () => {
+      const service = component.configuredServices()[0];
+      (component as any).contextMenuService = service;
+
+      component.onContextMenuRemove();
+
+      expect(component.configuredServices().find((p) => p.id === service.id)).toBeUndefined();
+    });
+
+    it('should not remove when no context menu service', () => {
+      const initialLength = component.configuredServices().length;
+
+      component.onContextMenuRemove();
+
+      expect(component.configuredServices().length).toBe(initialLength);
+    });
+  });
+
+  describe('removeService', () => {
+    beforeEach(async () => {
+      (window as any).electronAPI.saveAppConfig = vi.fn().mockResolvedValue(undefined);
+      await component.ngOnInit();
+    });
+
+    it('should remove service from list', () => {
+      const service = component.configuredServices()[0];
+      component.removeService(service);
+
+      expect(component.configuredServices().length).toBe(2);
+      expect(component.configuredServices().find((p) => p.id === service.id)).toBeUndefined();
+    });
+
+    it('should save config after removing', async () => {
+      const service = component.configuredServices()[0];
+      component.removeService(service);
+
+      await vi.runAllTimersAsync();
+
+      expect(window.electronAPI.saveAppConfig).toHaveBeenCalledWith({
+        configuredServices: component.configuredServices(),
+      });
+    });
+
+    it('should select next service when removing selected service', async () => {
+      const firstService = component.configuredServices()[0];
+      component.selectedService.set(firstService);
+
+      component.removeService(firstService);
+
+      expect(component.selectedService()).toEqual(component.configuredServices()[0]);
+    });
+
+    it('should emit serviceSelected when removing currently selected service', async () => {
+      const firstService = component.configuredServices()[0];
+      component.selectedService.set(firstService);
+      const emitSpy = vi.spyOn(component.serviceSelected, 'emit');
+
+      component.removeService(firstService);
+
+      expect(emitSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('addService', () => {
+    beforeEach(async () => {
+      (window as any).electronAPI.saveAppConfig = vi.fn().mockResolvedValue(undefined);
+      await component.ngOnInit();
+    });
+
+    it('should add service to list', () => {
+      const service: AIService = {
+        name: 'ChatGPT',
+        url: 'https://chat.openai.com',
+        icon: 'assets/ai-services/chatgpt.svg',
+        internalDomains: ['chat.openai.com'],
+      };
+      const initialLength = component.configuredServices().length;
+
+      component.addService(service);
+
+      expect(component.configuredServices().length).toBe(initialLength + 1);
+      const added = component.configuredServices()[component.configuredServices().length - 1];
+      expect(added.serviceName).toBe('ChatGPT');
+      expect(added.id).toContain('chatgpt-');
+    });
+
+    it('should save config after adding', async () => {
+      const service: AIService = {
+        name: 'Claude',
+        url: 'https://claude.ai',
+        icon: 'assets/ai-services/claude.svg',
+        internalDomains: ['claude.ai'],
+      };
+
+      component.addService(service);
+
+      await vi.runAllTimersAsync();
+
+      expect(window.electronAPI.saveAppConfig).toHaveBeenCalled();
+    });
+
+    it('should allow adding same service multiple times', () => {
+      const service: AIService = {
+        name: 'ChatGPT',
+        url: 'https://chat.openai.com',
+        icon: 'assets/ai-services/chatgpt.svg',
+        internalDomains: ['chat.openai.com'],
+      };
+
+      component.addService(service);
+      component.addService(service);
+
+      const chatgptServices = component.configuredServices().filter((p) => p.serviceName === 'ChatGPT');
+      expect(chatgptServices.length).toBeGreaterThan(1);
+      expect(chatgptServices[0].id).not.toBe(chatgptServices[1].id);
+    });
+  });
+
+  describe('displayNames', () => {
+    beforeEach(async () => {
+      (window as any).electronAPI.saveAppConfig = vi.fn().mockResolvedValue(undefined);
+      await component.ngOnInit();
+    });
+
+    it('should return service name for first instance', () => {
+      const names = component.displayNames();
+      const chatgpt = component.configuredServices().find((p) => p.serviceName === 'ChatGPT');
+      expect(names.get(chatgpt!.id)).toBe('ChatGPT');
+    });
+
+    it('should return numbered name for duplicates', () => {
+      const service: AIService = {
+        name: 'ChatGPT',
+        url: 'https://chat.openai.com',
+        icon: 'assets/ai-services/chatgpt.svg',
+        internalDomains: ['chat.openai.com'],
+      };
+      component.addService(service);
+
+      const names = component.displayNames();
+      const chatgptServices = component.configuredServices().filter((p) => p.serviceName === 'ChatGPT');
+      expect(names.get(chatgptServices[0].id)).toBe('ChatGPT');
+      expect(names.get(chatgptServices[1].id)).toBe('ChatGPT 2');
     });
   });
 
@@ -292,7 +410,7 @@ describe('SidebarComponent', () => {
     });
 
     it('should reorder services when dropped at different index', () => {
-      const originalOrder = component.services().map((s) => s.name);
+      const originalOrder = component.configuredServices().map((p) => p.id);
       const event = {
         previousIndex: 0,
         currentIndex: 2,
@@ -303,16 +421,16 @@ describe('SidebarComponent', () => {
         distance: { x: 0, y: 0 },
         dropPoint: { x: 0, y: 0 },
         event: new MouseEvent('drop'),
-      } as CdkDragDrop<AIService[]>;
+      } as CdkDragDrop<ConfiguredService[]>;
 
       component.onServiceDropped(event);
 
-      expect(component.services()[0].name).toBe(originalOrder[1]);
-      expect(component.services()[1].name).toBe(originalOrder[2]);
-      expect(component.services()[2].name).toBe(originalOrder[0]);
+      expect(component.configuredServices()[0].id).toBe(originalOrder[1]);
+      expect(component.configuredServices()[1].id).toBe(originalOrder[2]);
+      expect(component.configuredServices()[2].id).toBe(originalOrder[0]);
     });
 
-    it('should save service order after drop', async () => {
+    it('should save configured services after drop', async () => {
       const event = {
         previousIndex: 0,
         currentIndex: 1,
@@ -323,14 +441,14 @@ describe('SidebarComponent', () => {
         distance: { x: 0, y: 0 },
         dropPoint: { x: 0, y: 0 },
         event: new MouseEvent('drop'),
-      } as CdkDragDrop<AIService[]>;
+      } as CdkDragDrop<ConfiguredService[]>;
 
       component.onServiceDropped(event);
 
       await vi.runAllTimersAsync();
 
       expect(window.electronAPI.saveAppConfig).toHaveBeenCalledWith({
-        serviceOrder: component.services().map((s) => s.name),
+        configuredServices: component.configuredServices(),
       });
     });
 
@@ -345,7 +463,7 @@ describe('SidebarComponent', () => {
         distance: { x: 0, y: 0 },
         dropPoint: { x: 0, y: 0 },
         event: new MouseEvent('drop'),
-      } as CdkDragDrop<AIService[]>;
+      } as CdkDragDrop<ConfiguredService[]>;
 
       component.onServiceDropped(event);
 
@@ -366,57 +484,58 @@ describe('SidebarComponent', () => {
         distance: { x: 0, y: 0 },
         dropPoint: { x: 0, y: 0 },
         event: new MouseEvent('drop'),
-      } as CdkDragDrop<AIService[]>;
+      } as CdkDragDrop<ConfiguredService[]>;
 
       component.onServiceDropped(event);
 
       await vi.runAllTimersAsync();
 
-      expect(consoleSpy).toHaveBeenCalledWith('Failed to save service order:', expect.any(Error));
+      expect(consoleSpy).toHaveBeenCalledWith('Failed to save configured services:', expect.any(Error));
       consoleSpy.mockRestore();
     });
   });
 
-  describe('service order from config', () => {
-    it('should apply saved service order on init', async () => {
-      const orderedConfig: AppConfig = {
-        ...mockAppConfig,
-        serviceOrder: ['Gemini', 'ChatGPT', 'Claude'],
-      };
-      (window as any).electronAPI.getAppConfig = vi.fn().mockResolvedValue(orderedConfig);
+  describe('addServiceDialog', () => {
+    it('should open add service dialog', () => {
+      component.openAddServiceDialog();
+      expect(component.addServiceDialogVisible()).toBe(true);
+    });
+  });
 
-      await component.ngOnInit();
-
-      expect(component.services()[0].name).toBe('Gemini');
-      expect(component.services()[1].name).toBe('ChatGPT');
-      expect(component.services()[2].name).toBe('Claude');
+  describe('getService', () => {
+    it('should return AIService for known service', () => {
+      const configuredService: ConfiguredService = { id: 'default-chatgpt', serviceName: 'ChatGPT' };
+      const service = component.getService(configuredService);
+      expect(service).toBeDefined();
+      expect(service?.name).toBe('ChatGPT');
     });
 
-    it('should append unknown services from saved order', async () => {
-      const orderedConfig: AppConfig = {
-        ...mockAppConfig,
-        serviceOrder: ['Claude'],
-      };
-      (window as any).electronAPI.getAppConfig = vi.fn().mockResolvedValue(orderedConfig);
+    it('should return undefined for unknown service', () => {
+      const configuredService: ConfiguredService = { id: 'unknown', serviceName: 'Unknown' };
+      const service = component.getService(configuredService);
+      expect(service).toBeUndefined();
+    });
+  });
 
+  describe('configured services from config', () => {
+    it('should load configured services on init', async () => {
       await component.ngOnInit();
 
-      expect(component.services()[0].name).toBe('Claude');
-      expect(component.services().length).toBe(AI_SERVICES.length);
+      expect(component.configuredServices()[0].serviceName).toBe('ChatGPT');
+      expect(component.configuredServices()[1].serviceName).toBe('Claude');
+      expect(component.configuredServices()[2].serviceName).toBe('Gemini');
     });
 
-    it('should keep default order when serviceOrder is empty', async () => {
-      const configWithEmptyOrder: AppConfig = {
+    it('should handle empty configured services', async () => {
+      const configWithEmpty = {
         ...mockAppConfig,
-        serviceOrder: [],
+        configuredServices: [],
       };
-      (window as any).electronAPI.getAppConfig = vi.fn().mockResolvedValue(configWithEmptyOrder);
+      (window as any).electronAPI.getAppConfig = vi.fn().mockResolvedValue(configWithEmpty);
 
       await component.ngOnInit();
 
-      expect(component.services()[0].name).toBe('ChatGPT');
-      expect(component.services()[1].name).toBe('Claude');
-      expect(component.services()[2].name).toBe('Gemini');
+      expect(component.configuredServices().length).toBe(0);
     });
   });
 });

@@ -3,55 +3,69 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, inject, model, output, signal, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { AI_SERVICES } from '@app/ai-services/constants';
-import { AIService } from '@app/ai-services/interfaces';
-import { orderServices } from '@app/ai-services/order-services';
+import { AIService, ConfiguredService } from '@app/ai-services/interfaces';
 import { NavigationService } from '@app/services/navigation.service';
 import { WhatsNewService } from '@app/services/whats-new.service';
-import { WhatsnewComponent } from '@app/whatsnew/whatsnew.component';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import type { AppConfig } from '@shared/types/app-config.interface';
-import { MenuItem } from 'primeng/api';
-import { ContextMenu } from 'primeng/contextmenu';
-import { DialogModule } from 'primeng/dialog';
+import { SidebarAddServiceDialogComponent } from './sidebar-add-service-dialog/sidebar-add-service-dialog.component';
+import { SidebarContextmenuComponent } from './sidebar-contextmenu/sidebar-contextmenu.component';
+import { SidebarWhatsnewDialogComponent } from './sidebar-whatsnew-dialog/sidebar-whatsnew-dialog.component';
 
 @Component({
   selector: 'app-sidebar',
-  imports: [CommonModule, CdkDropList, CdkDrag, ContextMenu, DialogModule, WhatsnewComponent, FaIconComponent],
+  imports: [
+    CommonModule,
+    CdkDropList,
+    CdkDrag,
+    FaIconComponent,
+    SidebarContextmenuComponent,
+    SidebarWhatsnewDialogComponent,
+    SidebarAddServiceDialogComponent,
+  ],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.css',
 })
 export class SidebarComponent {
-  services = signal<AIService[]>([...AI_SERVICES]);
+  configuredServices = signal<ConfiguredService[]>([]);
   appConfig = signal<AppConfig | null>(null);
-  serviceSelected = output<AIService>();
-  serviceRefresh = output<AIService>();
-  selectedService = model<AIService | null>(null);
-  selectedIndex = computed(() => this.services().findIndex((s) => s === this.selectedService()));
-  readonly contextMenu = viewChild.required<ContextMenu>('contextMenu');
-  contextMenuService: AIService | null = null;
-  menuItems: MenuItem[] = [
-    {
-      label: 'Refresh',
-      icon: 'fas rotate-right',
-      command: () => {
-        if (this.contextMenuService) {
-          this.serviceRefresh.emit(this.contextMenuService);
-        }
-      },
-    },
-  ];
-  private readonly whatsNewService = inject(WhatsNewService);
+  serviceSelected = output<ConfiguredService>();
+  serviceRefresh = output<ConfiguredService>();
+  selectedService = model<ConfiguredService | null>(null);
+  selectedIndex = computed(() => this.configuredServices().findIndex((p) => p.id === this.selectedService()?.id));
+  addServiceDialogVisible = signal(false);
+  displayNames = computed(() => {
+    const configuredServices = this.configuredServices();
+    const nameCounts = new Map<string, number>();
+    const names = new Map<string, string>();
+
+    for (const configuredService of configuredServices) {
+      const count = (nameCounts.get(configuredService.serviceName) ?? 0) + 1;
+      nameCounts.set(configuredService.serviceName, count);
+      names.set(
+        configuredService.id,
+        count === 1 ? configuredService.serviceName : `${configuredService.serviceName} ${count}`
+      );
+    }
+
+    return names;
+  });
   private readonly navigation = inject(NavigationService);
+  private readonly whatsNewService = inject(WhatsNewService);
   protected readonly isAiServicesRoute = this.navigation.isAiServicesRoute;
   protected readonly isSettingsRoute = this.navigation.isSettingsRoute;
-  private router = inject(Router);
+  private readonly router = inject(Router);
+  private readonly contextMenu = viewChild.required(SidebarContextmenuComponent);
+  private contextMenuService: ConfiguredService | null = null;
 
-  get whatsNewVisible(): boolean {
-    return this.whatsNewService.isVisible();
-  }
-
-  closeWhatsNew() {
-    this.whatsNewService.close();
+  addService(service: AIService) {
+    const newService: ConfiguredService = {
+      id: `${service.name.toLowerCase()}-${Date.now()}`,
+      serviceName: service.name,
+    };
+    const list = [...this.configuredServices(), newService];
+    this.configuredServices.set(list);
+    void this.saveConfiguredServices();
   }
 
   getQuitTitle(): string {
@@ -59,15 +73,22 @@ export class SidebarComponent {
     if (shortcut) {
       return `Quit (${shortcut})`;
     }
+
     return 'Quit';
   }
 
-  getServiceTitle(service: AIService, index: number): string {
+  getService(service: ConfiguredService): AIService | undefined {
+    return AI_SERVICES.find((s) => s.name === service.serviceName);
+  }
+
+  getServiceTitle(service: ConfiguredService, index: number): string {
+    const displayName = this.displayNames().get(service.id) ?? service.serviceName;
     const shortcut = this.appConfig()?.shortcuts?.internalShortcuts?.services?.['service' + (index + 1)];
     if (shortcut) {
-      return `${service.name} (${shortcut})`;
+      return `${displayName} (${shortcut})`;
     }
-    return service.name;
+
+    return displayName;
   }
 
   getSettingsTitle(): string {
@@ -75,34 +96,53 @@ export class SidebarComponent {
     if (shortcut) {
       return `Settings (${shortcut})`;
     }
+
     return 'Settings';
   }
 
   async ngOnInit() {
     await this.loadAppConfig();
-    this.applyServiceOrder();
   }
 
-  async onServiceClick(service: AIService) {
+  onContextMenuRefresh() {
+    if (this.contextMenuService) {
+      this.serviceRefresh.emit(this.contextMenuService);
+    }
+  }
+
+  onContextMenuRemove() {
+    if (this.contextMenuService) {
+      this.removeService(this.contextMenuService);
+    }
+  }
+
+  async onServiceClick(service: ConfiguredService) {
     this.selectedService.set(service);
     this.serviceSelected.emit(service);
     await this.router.navigate(['/app']);
   }
 
-  onServiceContextMenu(event: MouseEvent, service: AIService) {
+  onServiceContextMenu(event: MouseEvent, service: ConfiguredService) {
     this.contextMenuService = service;
-    this.contextMenu().target = event.currentTarget as HTMLElement;
     this.contextMenu().show(event);
   }
 
-  onServiceDropped(event: CdkDragDrop<AIService[]>) {
+  onServiceDropped(event: CdkDragDrop<ConfiguredService[]>) {
     if (event.previousIndex !== event.currentIndex) {
-      const list = [...this.services()];
+      const list = [...this.configuredServices()];
       const [moved] = list.splice(event.previousIndex, 1);
       list.splice(event.currentIndex, 0, moved);
-      this.services.set(list);
-      void this.saveServiceOrder();
+      this.configuredServices.set(list);
+      void this.saveConfiguredServices();
     }
+  }
+
+  openAddServiceDialog() {
+    this.addServiceDialogVisible.set(true);
+  }
+
+  openWhatsNew() {
+    this.whatsNewService.open();
   }
 
   async openAiServices() {
@@ -113,10 +153,6 @@ export class SidebarComponent {
     await this.router.navigate(['/app/settings']);
   }
 
-  openWhatsNew() {
-    this.whatsNewService.open();
-  }
-
   async quitApp() {
     try {
       await window.electronAPI.quitApp();
@@ -125,34 +161,40 @@ export class SidebarComponent {
     }
   }
 
+  removeService(service: ConfiguredService) {
+    const list = this.configuredServices().filter((p) => p.id !== service.id);
+    this.configuredServices.set(list);
+
+    if (this.selectedService()?.id === service.id) {
+      this.selectedService.set(list.length > 0 ? list[0] : null);
+      if (list.length > 0) {
+        this.serviceSelected.emit(list[0]);
+      }
+    }
+
+    void this.saveConfiguredServices();
+  }
+
   private async loadAppConfig() {
     try {
       const config = await window.electronAPI.getAppConfig();
       this.appConfig.set(config);
+      this.configuredServices.set(config.configuredServices ?? []);
     } catch (error) {
       console.error('Failed to load app config:', error);
     }
   }
 
-  private applyServiceOrder() {
-    const config = this.appConfig();
-    if (!config?.serviceOrder?.length) {
-      return;
-    }
-
-    this.services.set(orderServices(config.serviceOrder));
-  }
-
-  private async saveServiceOrder() {
-    const order = this.services().map((s) => s.name);
+  private async saveConfiguredServices() {
+    const services = this.configuredServices();
     try {
-      await window.electronAPI.saveAppConfig({ serviceOrder: order });
+      await window.electronAPI.saveAppConfig({ configuredServices: services });
       const config = this.appConfig();
       if (config) {
-        this.appConfig.set({ ...config, serviceOrder: order });
+        this.appConfig.set({ ...config, configuredServices: services });
       }
     } catch (error) {
-      console.error('Failed to save service order:', error);
+      console.error('Failed to save configured services:', error);
     }
   }
 }

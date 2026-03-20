@@ -3,7 +3,7 @@ import { AppConfig } from '@shared/types/app-config.interface';
 export const MOCK_CONFIG: AppConfig = {
   launchAtStartup: false,
   launchHidden: false,
-  lastService: 'chatgpt',
+  lastService: 'default-chatgpt',
   position: {
     x: 0,
     y: 0,
@@ -25,6 +25,11 @@ export const MOCK_CONFIG: AppConfig = {
   },
   updateChannel: 'stable',
   serviceOrder: [],
+  configuredServices: [
+    { id: 'default-chatgpt', serviceName: 'ChatGPT' },
+    { id: 'default-claude', serviceName: 'Claude' },
+    { id: 'default-gemini', serviceName: 'Gemini' },
+  ],
 };
 
 export const MOCK_CONFIG_WITH_SERVICES: AppConfig = {

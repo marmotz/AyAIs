@@ -2,7 +2,7 @@ import { AppConfig } from '@shared/types/app-config.interface';
 import { app } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
-import { DEFAULT_CONFIGURATION } from '../config/default-configuration';
+import { DEFAULT_CONFIGURATION, getConfiguredServices } from '../config/default-configuration';
 
 export class ConfigManagerService {
   private configPath: string;
@@ -45,8 +45,11 @@ export class ConfigManagerService {
 
     try {
       const partialConfig: Partial<AppConfig> = JSON.parse(rawConfig);
+      const merged = this.mergeConfigs(DEFAULT_CONFIGURATION, partialConfig);
 
-      return this.mergeConfigs(DEFAULT_CONFIGURATION, partialConfig);
+      merged.configuredServices = getConfiguredServices(partialConfig.configuredServices, merged.serviceOrder);
+
+      return merged;
     } catch (error) {
       console.error('Failed to parse config:', error);
       return { ...DEFAULT_CONFIGURATION };
@@ -61,6 +64,9 @@ export class ConfigManagerService {
         ...defaultConfig.position,
         ...(partialConfig?.position ?? {}),
       },
+      configuredServices: partialConfig?.configuredServices?.length
+        ? partialConfig.configuredServices
+        : defaultConfig.configuredServices,
       shortcuts: {
         ...defaultConfig.shortcuts,
         ...(partialConfig?.shortcuts ?? {}),

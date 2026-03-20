@@ -27,4 +27,5 @@ export interface AppConfig {
   shortcuts: ShortcutConfig;
   updateChannel: UpdateChannel;
   serviceOrder: string[];
+  configuredServices: { id: string; serviceName: string }[];
 }

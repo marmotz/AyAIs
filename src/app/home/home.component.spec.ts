@@ -2,6 +2,7 @@ import { ViewportRuler } from '@angular/cdk/scrolling';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { MOCK_CONFIG_WITH_SERVICES } from '@app-tests/test-config';
+import { ConfiguredService } from '@app/ai-services/interfaces';
 import { WhatsNewService } from '@app/services/whats-new.service';
 import { TranslateModule } from '@ngx-translate/core';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -55,7 +56,6 @@ describe('Home', () => {
 
   afterEach(() => {
     delete (window as any).electronAPI;
-    // Clear any pending timers to prevent logDebug errors after tests
     vi.clearAllTimers();
   });
 
@@ -91,16 +91,11 @@ describe('Home', () => {
 
   it('should refresh service when serviceRefresh is called', async () => {
     const home = TestBed.createComponent(Home).componentInstance;
-    const service = {
-      name: 'chatgpt',
-      icon: 'path/to/icon.png',
-      url: 'https://chatgpt.com',
-      internalDomains: ['chatgpt.com'],
-    };
+    const service: ConfiguredService = { id: 'default-chatgpt', serviceName: 'ChatGPT' };
 
     await home.onServiceSelected(service);
     const reloadSpy = vi.fn();
-    home['webviews'].set('chatgpt', { reload: reloadSpy });
+    home['webviews'].set('default-chatgpt', { reload: reloadSpy });
 
     await home.refreshService(service);
 
@@ -109,15 +104,10 @@ describe('Home', () => {
 
   it('should select service when refreshing a different service', async () => {
     const home = TestBed.createComponent(Home).componentInstance;
-    const service = {
-      name: 'chatgpt',
-      icon: 'path/to/icon.png',
-      url: 'https://chatgpt.com',
-      internalDomains: ['chatgpt.com'],
-    };
+    const service: ConfiguredService = { id: 'default-chatgpt', serviceName: 'ChatGPT' };
 
     const reloadSpy = vi.fn();
-    home['webviews'].set('chatgpt', { reload: reloadSpy });
+    home['webviews'].set('default-chatgpt', { reload: reloadSpy });
 
     await home.refreshService(service);
 

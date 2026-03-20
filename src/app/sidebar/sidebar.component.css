@@ -26,3 +26,7 @@
 .cdk-drag-placeholder > img {
   visibility: hidden;
 }
+
+#providers::-webkit-scrollbar {
+  display: none;
+}

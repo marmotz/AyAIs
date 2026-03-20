@@ -4,3 +4,8 @@ export interface AIService {
   icon: string;
   internalDomains: string[];
 }
+
+export interface ConfiguredService {
+  id: string;
+  serviceName: string;
+}

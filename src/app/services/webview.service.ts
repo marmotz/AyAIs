@@ -20,11 +20,11 @@ export class WebviewService {
     void this.initializePlatform();
   }
 
-  async createWebview(service: AIService) {
+  async createWebview(service: AIService, partitionKey?: string) {
     const webview: WebviewTag = document.createElement('webview') as any;
     webview.setAttribute('data-testid', `webview-${service.name.toLowerCase()}`);
     webview.style.display = 'flex';
-    webview.partition = `persist:${service.name}`;
+    webview.partition = `persist:${partitionKey ?? service.name}`;
     webview.spellcheck = true;
     webview.useragent =
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chromium/142.0.0.0 Safari/537.36';

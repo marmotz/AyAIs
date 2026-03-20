@@ -17,37 +17,57 @@
     </div>
   </div>
   <nav
-    cdkDropList
     (cdkDropListDropped)="onServiceDropped($event)"
-    class="flex flex-1 flex-col gap-3 p-3"
+    cdkDropList
+    class="flex min-h-0 flex-1 flex-col gap-3 pt-3"
   >
-    @for (service of services(); track service.name; let i = $index) {
+    <div
+      class="relative flex flex-col overflow-y-auto px-3"
+      id="providers"
+    >
+      @for (provider of configuredServices(); track provider.id; let i = $index) {
+        <button
+          (click)="onServiceClick(provider)"
+          (contextmenu)="onServiceContextMenu($event, provider)"
+          [attr.data-testid]="'sidebar-button-' + provider.id"
+          [title]="getServiceTitle(provider, i)"
+          cdkDrag
+          class="group relative size-16 cursor-pointer rounded-2xl border-none p-2 text-white transition-colors duration-200 hover:bg-slate-500/10 focus:outline-none"
+        >
+          @if (getService(provider); as service) {
+            <img
+              [alt]="displayNames().get(provider.id) ?? service.name"
+              [class.grayscale]="selectedService()?.id !== provider.id"
+              [class.opacity-50]="selectedService()?.id !== provider.id"
+              [src]="service.icon"
+              class="size-12 group-hover:opacity-100 group-hover:grayscale-0"
+            />
+          }
+        </button>
+      }
+
+      @if (isAiServicesRoute() && selectedIndex() !== -1) {
+        <div
+          [style.top.px]="selectedIndex() * 64"
+          class="pointer-events-none absolute left-21 h-16 w-1 rounded bg-slate-500 transition-all duration-500 dark:bg-slate-300"
+          id="serviceMark"
+        ></div>
+      }
+    </div>
+
+    <div class="px-3">
       <button
-        cdkDrag
-        (click)="onServiceClick(service)"
-        (contextmenu)="onServiceContextMenu($event, service)"
-        [attr.data-testid]="'sidebar-button-' + service.name.toLowerCase()"
-        [title]="getServiceTitle(service, i)"
-        class="group relative size-16 cursor-pointer rounded-2xl border-none p-2 text-white transition-colors duration-200 hover:bg-slate-500/10 focus:outline-none"
+        (click)="openAddServiceDialog()"
+        class="group relative size-16 cursor-pointer rounded-2xl border-2 border-dashed border-slate-400 p-2 text-slate-400 transition-colors duration-200 hover:border-slate-600 hover:text-slate-600 focus:outline-none dark:border-slate-500 dark:text-slate-500 dark:hover:border-slate-300 dark:hover:text-slate-300"
+        data-testid="sidebar-button-add-provider"
+        title="Add provider"
       >
-        <img
-          [alt]="service.name"
-          [class.grayscale]="selectedService()?.name !== service.name"
-          [class.opacity-50]="selectedService()?.name !== service.name"
-          [src]="service.icon"
-          class="size-12 group-hover:opacity-100 group-hover:grayscale-0"
+        <fa-icon
+          [icon]="['fas', 'plus']"
+          class="text-2xl"
         />
       </button>
-    }
-
-    @if (isAiServicesRoute() && selectedIndex() !== -1) {
-      <div
-        [style]="{
-          transform: `translateY(calc(var(--spacing) * 19 * ${selectedIndex()})`,
-        }"
-        class="absolute h-16 w-1 translate-x-18 rounded bg-slate-500 text-sm whitespace-nowrap transition-transform duration-500 dark:bg-slate-300"
-      ></div>
-    }
+    </div>
   </nav>
 
   <div class="mb-3 flex w-full flex-col items-center gap-3">
@@ -97,36 +117,15 @@
     }
   </div>
 
-  <p-contextmenu
-    #contextMenu
-    [model]="menuItems"
-  >
-    <ng-template
-      #item
-      let-item
-    >
-      <a class="flex cursor-pointer items-center px-4 py-3">
-        @if (item.icon) {
-          <fa-icon [icon]="item.icon.split(' ')" />
-        }
-        <span class="ml-2">{{ item.label }}</span>
-      </a>
-    </ng-template>
-  </p-contextmenu>
+  <app-sidebar-contextmenu
+    (serviceRefresh)="onContextMenuRefresh()"
+    (serviceRemove)="onContextMenuRemove()"
+  />
 
-  <p-dialog
-    (visibleChange)="closeWhatsNew()"
-    [modal]="true"
-    [style]="{ width: '50vw' }"
-    [visible]="whatsNewVisible"
-    closeOnEscape
-    dismissableMask
-  >
-    <ng-template pTemplate="header">
-      <h2 class="m-0 text-xl font-semibold">What's new ?</h2>
-    </ng-template>
-    <ng-template pTemplate="content">
-      <app-whatsnew />
-    </ng-template>
-  </p-dialog>
+  <app-sidebar-whatsnew-dialog />
+
+  <app-sidebar-add-service-dialog
+    [(visible)]="addServiceDialogVisible"
+    (serviceAdded)="addService($event)"
+  />
 </div>

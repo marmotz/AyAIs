@@ -53,76 +53,59 @@ export class WebviewService {
   }
 
   async injectScript(webview: WebviewTag, service: AIService) {
-    await webview.executeJavaScript(`
-      document.addEventListener('click', (e) => {
-        // We search if the clicked element is a link or inside a link
-        const link = e.target.closest('a');
+    try {
+      await webview.executeJavaScript(`
+        (function() {
+          if (window.__ayaScriptInjected) { return; }
+          window.__ayaScriptInjected = true;
 
-        if (link && link.href && link.href.startsWith('http')) {
-          const url = new URL(link.href);
-          const currentOrigin = window.location.origin;
+          var internalDomains = ${JSON.stringify(service.internalDomains)};
+          var isMac = ${this.isMac};
 
-        // Compute whether the clicked link is internal to the current AI service
-        const internalDomains = ${JSON.stringify(service.internalDomains)};
-        const isInternal = internalDomains.includes(url.hostname);
+          document.addEventListener('click', function(e) {
+            var link = e.target.closest('a');
 
-        // If it is not internal and not the same origin, intercept
-        if (!isInternal) {
-            e.preventDefault();
-            e.stopPropagation();
+            if (link && link.href && link.href.startsWith('http')) {
+              var url = new URL(link.href);
+              var isInternal = internalDomains.indexOf(url.hostname) !== -1;
 
-            // We send the URL to the outside world via the console
-            // This is the most reliable way for Electron to hear it
-            console.log('AYAIS_FORCE_EXTERNAL_OPEN:' + url);
-          }
-        }
-      }, true); // The "true" is crucial: we capture the event before anyone else
+              if (!isInternal) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('AYAIS_FORCE_EXTERNAL_OPEN:' + url);
+              }
+            }
+          }, true);
 
-      // Capture keyboard shortcuts to prevent them from being handled by the webview
-      document.addEventListener('keydown', (e) => {
-        const keys = [];
-        const isMac = ${this.isMac};
+          document.addEventListener('keydown', function(e) {
+            var keys = [];
 
-        if (e.ctrlKey) {
-          keys.push('Ctrl');
-        }
-        if (e.altKey) {
-          keys.push(isMac ? 'Opt' : 'Alt');
-        }
-        if (e.shiftKey) {
-          keys.push('Shift');
-        }
-        if (e.metaKey) {
-          keys.push(isMac ? 'Cmd' : 'Meta');
-        }
+            if (e.ctrlKey) { keys.push('Ctrl'); }
+            if (e.altKey) { keys.push(isMac ? 'Opt' : 'Alt'); }
+            if (e.shiftKey) { keys.push('Shift'); }
+            if (e.metaKey) { keys.push(isMac ? 'Cmd' : 'Meta'); }
 
-        // Get the main key
-        let mainKey = e.key;
-        if (e.code.startsWith('Digit')) {
-          mainKey = e.code.replace('Digit', '');
-        } else if (e.code.startsWith('Key')) {
-          mainKey = e.key.toUpperCase();
-        } else if (e.code.startsWith('Numpad')) {
-          mainKey = 'Num' + e.key;
-        } else if (e.code.startsWith('F') && e.code.length <= 3) {
-          mainKey = e.code;
-        }
+            var mainKey = e.key;
+            if (e.code.startsWith('Digit')) { mainKey = e.code.replace('Digit', ''); }
+            else if (e.code.startsWith('Key')) { mainKey = e.key.toUpperCase(); }
+            else if (e.code.startsWith('Numpad')) { mainKey = 'Num' + e.key; }
+            else if (e.code.startsWith('F') && e.code.length <= 3) { mainKey = e.code; }
 
-        // Only process if we have modifier keys or special keys
-        if (keys.length > 0 || ['Escape', 'Tab', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12'].includes(mainKey)) {
-          if (mainKey && !['Control', 'Alt', 'Shift', 'Meta'].includes(mainKey)) {
-            keys.push(mainKey.length === 1 ? mainKey.toUpperCase() : mainKey);
-          }
+            if (keys.length > 0 || ['Escape', 'Tab', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12'].indexOf(mainKey) !== -1) {
+              if (mainKey && ['Control', 'Alt', 'Shift', 'Meta'].indexOf(mainKey) === -1) {
+                keys.push(mainKey.length === 1 ? mainKey.toUpperCase() : mainKey);
+              }
 
-          if (keys.length > 0) {
-            const shortcut = keys.join('+');
-
-            // Send the shortcut to the main process
-            console.log('AYAIS_SHORTCUT:' + shortcut);
-          }
-        }
-      }, true);
-    `);
+              if (keys.length > 0) {
+                console.log('AYAIS_SHORTCUT:' + keys.join('+'));
+              }
+            }
+          }, true);
+        })();
+      `);
+    } catch {
+      // Webview may not be ready yet, script will be re-injected on next navigation event
+    }
   }
 
   reloadWebview(webview: WebviewTag): void {

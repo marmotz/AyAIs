@@ -382,6 +382,33 @@ describe('SidebarComponent', () => {
       expect(chatgptServices.length).toBeGreaterThan(1);
       expect(chatgptServices[0].id).not.toBe(chatgptServices[1].id);
     });
+
+    it('should select the newly added service', () => {
+      const service: AIService = {
+        name: 'Gemini',
+        url: 'https://gemini.google.com',
+        icon: 'assets/ai-services/gemini.svg',
+        internalDomains: ['gemini.google.com'],
+      };
+
+      component.addService(service);
+
+      expect(component.selectedService()?.serviceName).toBe('Gemini');
+    });
+
+    it('should emit serviceSelected when adding a service', () => {
+      const service: AIService = {
+        name: 'Gemini',
+        url: 'https://gemini.google.com',
+        icon: 'assets/ai-services/gemini.svg',
+        internalDomains: ['gemini.google.com'],
+      };
+      const emitSpy = vi.spyOn(component.serviceSelected, 'emit');
+
+      component.addService(service);
+
+      expect(emitSpy).toHaveBeenCalledWith(expect.objectContaining({ serviceName: 'Gemini' }));
+    });
   });
 
   describe('displayNames', () => {

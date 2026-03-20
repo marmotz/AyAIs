@@ -66,6 +66,8 @@ export class SidebarComponent {
     };
     const list = [...this.configuredServices(), newService];
     this.configuredServices.set(list);
+    this.selectedService.set(newService);
+    this.serviceSelected.emit(newService);
     void this.saveConfiguredServices();
   }
 

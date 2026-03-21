@@ -91,6 +91,20 @@ Enter your password when prompted. You'll now be able to launch AyAis from Appli
 
 #### Linux
 
+**Arch Linux (AUR)**
+
+AyAIs is available on the AUR as [`ayais-bin`](https://aur.archlinux.org/packages/ayais-bin):
+
+```bash
+# Using yay
+yay -S ayais-bin
+
+# Using paru
+paru -S ayais-bin
+```
+
+**AppImage**
+
 1. Download `AyAis-x.x.x.AppImage`
 2. Make the file executable:
    ```bash

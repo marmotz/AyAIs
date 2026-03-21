@@ -36,3 +36,8 @@ jobs:
         with:
           files: release-artifacts/**
           prerelease: ${{ contains(github.ref_name, 'beta') }}
+
+  aur-release:
+    needs: build-linux
+    uses: ./.github/workflows/aur.yml
+    secrets: inherit

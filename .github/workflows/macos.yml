@@ -34,7 +34,7 @@ jobs:
       - name: Install macOS dependencies
         if: matrix.platform == 'macos-latest'
         run: |
-          brew install gnu-tar coreutils
+          brew install coreutils
           echo "Homebrew dependencies installed"
 
       - name: Install Dependencies

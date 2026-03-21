@@ -15,7 +15,7 @@ test.describe('Webview Management', () => {
   });
 
   test('should hide webview when navigating to settings', async () => {
-    const chatgptButton = firstWindow.getByTestId('sidebar-button-chatgpt');
+    const chatgptButton = firstWindow.getByTestId('sidebar-button-default-chatgpt');
     await chatgptButton.click();
 
     const webview = firstWindow.getByTestId('webview-chatgpt');
@@ -23,9 +23,9 @@ test.describe('Webview Management', () => {
 
     const settingsButton = firstWindow.getByTestId('sidebar-button-settings');
     await settingsButton.click();
-    await firstWindow.waitForTimeout(300);
+    await firstWindow.waitForURL(/\/app\/settings$/);
 
-    // Check webview is hidden (not waiting for content load)
+    // Check webview is hidden via inline styles
     const webviewStyle = await webview.getAttribute('style');
     expect(webviewStyle).toContain('visibility: hidden');
     expect(webviewStyle).toContain('height: 0');
@@ -33,7 +33,7 @@ test.describe('Webview Management', () => {
   });
 
   test('should show webview when returning from settings', async () => {
-    const chatgptButton = firstWindow.getByTestId('sidebar-button-chatgpt');
+    const chatgptButton = firstWindow.getByTestId('sidebar-button-default-chatgpt');
     await chatgptButton.click();
 
     const webview = firstWindow.getByTestId('webview-chatgpt');
@@ -41,10 +41,10 @@ test.describe('Webview Management', () => {
 
     const settingsButton = firstWindow.getByTestId('sidebar-button-settings');
     await settingsButton.click();
-    await firstWindow.waitForURL(/settings$/);
+    await firstWindow.waitForURL(/\/app\/settings$/);
 
     await chatgptButton.click();
-    await firstWindow.waitForURL(/app$/);
+    await firstWindow.waitForURL(/\/app$/);
 
     const webviewStyle = await webview.getAttribute('style');
     expect(webviewStyle).toContain('visibility: visible');
@@ -53,8 +53,8 @@ test.describe('Webview Management', () => {
   });
 
   test('should maintain separate webviews for different services', async () => {
-    const chatgptButton = firstWindow.getByTestId('sidebar-button-chatgpt');
-    const claudeButton = firstWindow.getByTestId('sidebar-button-claude');
+    const chatgptButton = firstWindow.getByTestId('sidebar-button-default-chatgpt');
+    const claudeButton = firstWindow.getByTestId('sidebar-button-default-claude');
 
     await chatgptButton.click();
     await claudeButton.click();

@@ -81,7 +81,7 @@ test.describe('WhatsNew Page', () => {
     expect(url).toContain('/app');
 
     // Verify the chatgpt button is not grayscale and not opacity-50 (meaning it's selected)
-    const chatgptButton = firstWindow.getByTestId('sidebar-button-chatgpt');
+    const chatgptButton = firstWindow.getByTestId('sidebar-button-default-chatgpt');
     const chatgptImg = chatgptButton.locator('img');
     const hasGrayscale = await chatgptImg.evaluate((el) => el.classList.contains('grayscale'));
     const hasOpacity = await chatgptImg.evaluate((el) => el.classList.contains('opacity-50'));

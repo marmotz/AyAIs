@@ -15,23 +15,23 @@ test.describe('Critical User Flows', () => {
   });
 
   test('should complete full workflow: select service, navigate to settings, return to service', async () => {
-    const chatgptButton = firstWindow.getByTestId('sidebar-button-chatgpt');
+    const chatgptButton = firstWindow.getByTestId('sidebar-button-default-chatgpt');
     await chatgptButton.click();
-    await firstWindow.waitForURL(/app$/);
+    await firstWindow.waitForURL(/\/app$/);
 
     const settingsButton = firstWindow.getByTestId('sidebar-button-settings');
     await settingsButton.click();
-    await firstWindow.waitForURL(/settings$/);
+    await firstWindow.waitForURL(/\/app\/settings$/);
 
     await chatgptButton.click();
-    await firstWindow.waitForURL(/app$/);
+    await firstWindow.waitForURL(/\/app$/);
   });
 
   test('should cycle through all AI services', async () => {
     const services = [
-      firstWindow.getByTestId('sidebar-button-chatgpt'),
-      firstWindow.getByTestId('sidebar-button-claude'),
-      firstWindow.getByTestId('sidebar-button-gemini'),
+      firstWindow.getByTestId('sidebar-button-default-chatgpt'),
+      firstWindow.getByTestId('sidebar-button-default-claude'),
+      firstWindow.getByTestId('sidebar-button-default-gemini'),
     ];
 
     for (const serviceButton of services) {
@@ -44,9 +44,9 @@ test.describe('Critical User Flows', () => {
   });
 
   test('should handle rapid service switching', async () => {
-    const chatgptButton = firstWindow.getByTestId('sidebar-button-chatgpt');
-    const claudeButton = firstWindow.getByTestId('sidebar-button-claude');
-    const geminiButton = firstWindow.getByTestId('sidebar-button-gemini');
+    const chatgptButton = firstWindow.getByTestId('sidebar-button-default-chatgpt');
+    const claudeButton = firstWindow.getByTestId('sidebar-button-default-claude');
+    const geminiButton = firstWindow.getByTestId('sidebar-button-default-gemini');
 
     await chatgptButton.click();
     await claudeButton.click();
@@ -64,7 +64,7 @@ test.describe('Critical User Flows', () => {
     await settingsButton.click();
     await firstWindow.waitForTimeout(300);
 
-    const claudeButton = firstWindow.getByTestId('sidebar-button-claude');
+    const claudeButton = firstWindow.getByTestId('sidebar-button-default-claude');
     await claudeButton.click();
     await firstWindow.waitForTimeout(300);
 

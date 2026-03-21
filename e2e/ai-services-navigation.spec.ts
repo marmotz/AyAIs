@@ -15,9 +15,9 @@ test.describe('AI Services Navigation', () => {
   });
 
   test('should display all AI services in sidebar', async () => {
-    const chatgpt = firstWindow.getByTestId('sidebar-button-chatgpt');
-    const claude = firstWindow.getByTestId('sidebar-button-claude');
-    const gemini = firstWindow.getByTestId('sidebar-button-gemini');
+    const chatgpt = firstWindow.getByTestId('sidebar-button-default-chatgpt');
+    const claude = firstWindow.getByTestId('sidebar-button-default-claude');
+    const gemini = firstWindow.getByTestId('sidebar-button-default-gemini');
 
     await expect(chatgpt).toBeVisible({ timeout: 5000 });
     await expect(claude).toBeVisible({ timeout: 5000 });
@@ -25,7 +25,7 @@ test.describe('AI Services Navigation', () => {
   });
 
   test('should navigate to ChatGPT service', async () => {
-    const chatgptButton = firstWindow.getByTestId('sidebar-button-chatgpt');
+    const chatgptButton = firstWindow.getByTestId('sidebar-button-default-chatgpt');
     await chatgptButton.click();
     await firstWindow.waitForTimeout(300);
 
@@ -42,7 +42,7 @@ test.describe('AI Services Navigation', () => {
   });
 
   test('should navigate to Claude service', async () => {
-    const claudeButton = firstWindow.getByTestId('sidebar-button-claude');
+    const claudeButton = firstWindow.getByTestId('sidebar-button-default-claude');
     await claudeButton.click();
     await firstWindow.waitForTimeout(300);
 
@@ -56,7 +56,7 @@ test.describe('AI Services Navigation', () => {
   });
 
   test('should navigate to Gemini service', async () => {
-    const geminiButton = firstWindow.getByTestId('sidebar-button-gemini');
+    const geminiButton = firstWindow.getByTestId('sidebar-button-default-gemini');
     await geminiButton.click();
     await firstWindow.waitForTimeout(300);
 
@@ -70,8 +70,8 @@ test.describe('AI Services Navigation', () => {
   });
 
   test('should switch between services', async () => {
-    const chatgptButton = firstWindow.getByTestId('sidebar-button-chatgpt');
-    const claudeButton = firstWindow.getByTestId('sidebar-button-claude');
+    const chatgptButton = firstWindow.getByTestId('sidebar-button-default-chatgpt');
+    const claudeButton = firstWindow.getByTestId('sidebar-button-default-claude');
 
     await chatgptButton.click();
     await firstWindow.waitForTimeout(300);

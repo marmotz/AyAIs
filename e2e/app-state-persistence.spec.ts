@@ -15,9 +15,9 @@ test.describe('Application State', () => {
   });
 
   test('should load app and be ready for service selection', async () => {
-    const chatgpt = firstWindow.getByTestId('sidebar-button-chatgpt');
-    const claude = firstWindow.getByTestId('sidebar-button-claude');
-    const gemini = firstWindow.getByTestId('sidebar-button-gemini');
+    const chatgpt = firstWindow.getByTestId('sidebar-button-default-chatgpt');
+    const claude = firstWindow.getByTestId('sidebar-button-default-claude');
+    const gemini = firstWindow.getByTestId('sidebar-button-default-gemini');
 
     await expect(chatgpt).toBeVisible({ timeout: 5000 });
     await expect(claude).toBeVisible({ timeout: 5000 });
@@ -27,10 +27,10 @@ test.describe('Application State', () => {
   test('should navigate to settings page', async () => {
     const settingsButton = firstWindow.getByTestId('sidebar-button-settings');
     await settingsButton.click();
-    await firstWindow.waitForURL(/settings$/, { timeout: 5000 });
+    await firstWindow.waitForURL(/\/app\/settings$/, { timeout: 5000 });
 
     const url = firstWindow.url();
-    expect(url).toContain('/settings');
+    expect(url).toContain('/app/settings');
   });
 
   test('should navigate back to home from settings', async () => {
@@ -38,7 +38,7 @@ test.describe('Application State', () => {
     await settingsButton.click();
     await firstWindow.waitForTimeout(500);
 
-    const chatgptButton = firstWindow.getByTestId('sidebar-button-chatgpt');
+    const chatgptButton = firstWindow.getByTestId('sidebar-button-default-chatgpt');
     await chatgptButton.click();
     await firstWindow.waitForTimeout(500);
 
@@ -48,16 +48,16 @@ test.describe('Application State', () => {
   });
 
   test('should switch between services and settings', async () => {
-    const geminiButton = firstWindow.getByTestId('sidebar-button-gemini');
+    const geminiButton = firstWindow.getByTestId('sidebar-button-default-gemini');
     await geminiButton.click();
 
     const settingsButton = firstWindow.getByTestId('sidebar-button-settings');
     await settingsButton.click();
-    await firstWindow.waitForURL(/settings$/, { timeout: 5000 });
+    await firstWindow.waitForURL(/\/app\/settings$/, { timeout: 5000 });
 
-    const chatgptButton = firstWindow.getByTestId('sidebar-button-chatgpt');
+    const chatgptButton = firstWindow.getByTestId('sidebar-button-default-chatgpt');
     await chatgptButton.click();
-    await firstWindow.waitForURL(/app$/, { timeout: 5000 });
+    await firstWindow.waitForURL(/\/app$/, { timeout: 5000 });
 
     const finalUrl = firstWindow.url();
     expect(finalUrl).toContain('/app');

@@ -9,18 +9,13 @@ test.describe('Settings Shortcuts', () => {
   async function clickOnShortcutsTab() {
     const settingsButton = firstWindow.getByTestId('sidebar-button-settings');
     await settingsButton.click();
-    await firstWindow.waitForURL(/settings$/);
+    await firstWindow.waitForURL(/\/app\/settings$/);
 
-    const tabHeaders = firstWindow.locator('p-tab');
-    const count = await tabHeaders.count();
-
-    if (count >= 2) {
-      const shortcutsTabHeader = tabHeaders.nth(1);
-      try {
-        await shortcutsTabHeader.click({ timeout: 3000 });
-      } catch {
-        // Tab might already be selected, continue
-      }
+    const shortcutsTab = firstWindow.locator('p-tab[value="shortcuts"]');
+    try {
+      await shortcutsTab.click({ timeout: 3000 });
+    } catch {
+      // Tab might already be selected, continue
     }
   }
 
@@ -37,7 +32,7 @@ test.describe('Settings Shortcuts', () => {
     // Reset to the main app page before each test
     const currentUrl = firstWindow.url();
     if (currentUrl.includes('/settings')) {
-      const chatgptButton = firstWindow.getByTestId('sidebar-button-chatgpt');
+      const chatgptButton = firstWindow.getByTestId('sidebar-button-default-chatgpt');
       try {
         await chatgptButton.click({ timeout: 2000 });
         await firstWindow.waitForTimeout(500);
@@ -50,7 +45,7 @@ test.describe('Settings Shortcuts', () => {
   test('should navigate to settings shortcuts page', async () => {
     const settingsButton = firstWindow.getByTestId('sidebar-button-settings');
     await settingsButton.click();
-    await firstWindow.waitForURL(/settings$/);
+    await firstWindow.waitForURL(/\/app\/settings$/);
   });
 
   test('should display shortcuts configuration tabs', async () => {

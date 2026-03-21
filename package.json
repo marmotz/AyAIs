@@ -33,7 +33,8 @@
     "lint": "prettier --check .",
     "icon:generate": "cp resources/icon.png app/ && npx electron-icon-builder --input=./resources/icon.png --output=./src/assets",
     "update:minor": "npx npm-check-updates -i -t minor",
-    "update:latest": "npx npm-check-updates -i -t latest"
+    "update:latest": "npx npm-check-updates -i -t latest",
+    "release": "bun scripts/release.ts"
   },
   "dependencies": {
     "@angular/cdk": "21.2.3",

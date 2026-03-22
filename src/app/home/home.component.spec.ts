@@ -1,16 +1,48 @@
 import { ViewportRuler } from '@angular/cdk/scrolling';
+import { Component, computed, Input, NO_ERRORS_SCHEMA, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { MOCK_CONFIG_WITH_SERVICES } from '@app-tests/test-config';
 import { ConfiguredService } from '@app/ai-services/interfaces';
+import { ConfigService } from '@app/services/config.service';
 import { WhatsNewService } from '@app/services/whats-new.service';
+import { SidebarComponent } from '@app/sidebar/sidebar.component';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { TranslateModule } from '@ngx-translate/core';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Home } from './home.component';
 
+@Component({
+  selector: 'fa-icon',
+  template: '',
+  standalone: true,
+})
+class MockFaIconComponent {
+  @Input() icon: any;
+  @Input() size: any;
+  @Input() spin: any;
+  @Input() pulse: any;
+  @Input() border: any;
+  @Input() pull: any;
+  @Input() listItem: any;
+  @Input() rotate: any;
+  @Input() flip: any;
+  @Input() stackItemSize: any;
+  @Input() fullWidth: any;
+  @Input() inverse: any;
+  @Input() className: any;
+  @Input() transform: any;
+  @Input() mask: any;
+  @Input() symbol: any;
+  @Input() title: any;
+  @Input() animation: any;
+}
+
 describe('Home', () => {
+
   let router: Router;
   let mockWhatsNewService: WhatsNewService;
+  let mockConfigService: any;
 
   beforeEach(async () => {
     mockWhatsNewService = {
@@ -28,17 +60,51 @@ describe('Home', () => {
       onSelectService: vi.fn(),
       onOpenSettings: vi.fn(),
       getAppConfig: vi.fn().mockResolvedValue({ ...MOCK_CONFIG_WITH_SERVICES }),
+      saveAppConfig: vi.fn().mockResolvedValue(undefined),
       quitApp: vi.fn().mockResolvedValue(undefined),
       getPlatform: () => Promise.resolve('linux'),
       logDebug: vi.fn().mockResolvedValue(undefined),
     };
 
+    Object.defineProperty(window, 'matchMedia', {
+      writable: true,
+      value: vi.fn().mockImplementation((query) => ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addListener: vi.fn(), // deprecated
+        removeListener: vi.fn(), // deprecated
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      })),
+    });
+
+
+    const configSignal = signal<any>({ ...MOCK_CONFIG_WITH_SERVICES });
+    mockConfigService = {
+      appConfig: configSignal,
+      configuredServices: computed(() => configSignal()?.configuredServices ?? []),
+      shortcuts: computed(() => configSignal()?.shortcuts),
+      loadConfig: vi.fn().mockImplementation(async () => {
+        const config = await (window as any).electronAPI.getAppConfig();
+        configSignal.set(config);
+      }),
+      updateConfig: vi.fn().mockImplementation(async (partial) => {
+        const current = configSignal();
+        configSignal.set({ ...current, ...partial });
+        await (window as any).electronAPI.saveAppConfig(partial);
+      }),
+    };
+
     await TestBed.configureTestingModule({
       declarations: [],
       imports: [Home, TranslateModule.forRoot()],
+      schemas: [NO_ERRORS_SCHEMA],
       providers: [
         provideRouter([]),
         { provide: WhatsNewService, useValue: mockWhatsNewService },
+        { provide: ConfigService, useValue: mockConfigService },
         {
           provide: ViewportRuler,
           useValue: {
@@ -48,7 +114,13 @@ describe('Home', () => {
           },
         },
       ],
-    }).compileComponents();
+    })
+      .overrideComponent(SidebarComponent, {
+        remove: { imports: [FaIconComponent] },
+        add: { imports: [MockFaIconComponent] },
+      })
+      .compileComponents();
+
 
     router = TestBed.inject(Router);
     vi.spyOn(router, 'navigate').mockResolvedValue(true);
@@ -161,4 +233,47 @@ describe('Home', () => {
       expect(() => home.onServiceRemoved(service)).not.toThrow();
     });
   });
+
+  it('should navigate to next service correctly even after config update', async () => {
+    const fixture = TestBed.createComponent(Home);
+    const home = fixture.componentInstance;
+    fixture.detectChanges();
+
+    // Initial state: ChatGPT, Claude, Gemini
+    const services = mockConfigService.configuredServices();
+    await home.onServiceSelected(services[0]); // ChatGPT selected
+
+    expect((home as any).selectedService()).toBe(services[0]);
+
+    // Simulate adding a service via ConfigService
+    const newService = { id: 'new-service', serviceName: 'New AI' };
+    await mockConfigService.updateConfig({
+      configuredServices: [...services, newService]
+    });
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    // Now navigate to next service
+    home.navigateToNextService();
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    // Next after ChatGPT (index 0) should be Claude (index 1)
+    expect((home as any).selectedService()).toBe(services[1]);
+
+    // Go to Gemini
+    await home.onServiceSelected(services[2]);
+    fixture.detectChanges();
+
+    // Next after Gemini (index 2) should be New AI (index 3)
+    home.navigateToNextService();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect((home as any).selectedService()).toBe(newService);
+  });
+
 });
+

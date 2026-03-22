@@ -1,5 +1,7 @@
+import { computed, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MOCK_CONFIG_WITH_SERVICES } from '@app-tests/test-config';
+import { ConfigService } from '@app/services/config.service';
 import { ShortcutManagerService } from '@app/services/shortcut-manager.service';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SettingsShortcutsComponent } from './settings-shortcuts.component';
@@ -8,6 +10,7 @@ describe('SettingsShortcutsComponent', () => {
   let component: SettingsShortcutsComponent;
   let fixture: ComponentFixture<SettingsShortcutsComponent>;
   let shortcutManagerService: ShortcutManagerService;
+  let mockConfigService: any;
   const saveAppConfigSpy = vi.fn().mockResolvedValue(undefined);
   const validateGlobalShortcutSpy = vi.fn().mockResolvedValue({ isValid: true });
   const unregisterGlobalShortcutsSpy = vi.fn().mockResolvedValue(undefined);
@@ -24,8 +27,23 @@ describe('SettingsShortcutsComponent', () => {
       logDebug: vi.fn().mockResolvedValue(undefined),
     };
 
+    const configSignal = signal<any>(JSON.parse(JSON.stringify(MOCK_CONFIG_WITH_SERVICES)));
+    mockConfigService = {
+      appConfig: configSignal,
+      configuredServices: computed(() => configSignal()?.configuredServices ?? []),
+      shortcuts: computed(() => configSignal()?.shortcuts),
+      updateConfig: vi.fn().mockImplementation(async (partial) => {
+        const current = configSignal();
+        configSignal.set({ ...current, ...partial });
+        await (window as any).electronAPI.saveAppConfig(partial);
+      }),
+      loadConfig: vi.fn().mockResolvedValue(undefined),
+    };
+
+
     await TestBed.configureTestingModule({
       imports: [SettingsShortcutsComponent],
+      providers: [{ provide: ConfigService, useValue: mockConfigService }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(SettingsShortcutsComponent);
@@ -35,6 +53,7 @@ describe('SettingsShortcutsComponent', () => {
 
     await fixture.whenStable();
   });
+
 
   afterEach(() => {
     vi.clearAllTimers();
@@ -170,8 +189,9 @@ describe('SettingsShortcutsComponent', () => {
     await fixture.whenStable();
     expect(component.isEditing(shortcut.id)).toBe(false);
     const updatedShortcut = component.globalShortcuts().find((s) => s.id === shortcut.id);
-    expect(updatedShortcut?.value).toBe('Ctrl+A');
+    expect(updatedShortcut?.value).toBe(shortcut.value);
     expect(updatedShortcut?.validation?.isValid).toBe(false);
+
 
     expect(saveAppConfigSpy).not.toHaveBeenCalled();
   });

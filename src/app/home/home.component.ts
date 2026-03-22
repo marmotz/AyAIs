@@ -11,6 +11,7 @@ import {
 import { Router, RouterOutlet } from '@angular/router';
 import { AI_SERVICES } from '@app/ai-services/constants';
 import { AIService, ConfiguredService } from '@app/ai-services/interfaces';
+import { ConfigService } from '@app/services/config.service';
 import { NavigationService } from '@app/services/navigation.service';
 import { ShortcutActionEvent, ShortcutManagerService } from '@app/services/shortcut-manager.service';
 import { WebviewService } from '@app/services/webview.service';
@@ -33,11 +34,12 @@ export class Home {
   private readonly router = inject(Router);
   private readonly shortcutManager = inject(ShortcutManagerService);
   private readonly whatsNewService = inject(WhatsNewService);
-  private configuredServices: ConfiguredService[] = [];
+  private readonly configService = inject(ConfigService);
+  private readonly configuredServices = this.configService.configuredServices;
   private webviews = new Map<string, any>();
 
   constructor() {
-    void this.loadConfiguredServices();
+    void this.configService.loadConfig();
     this.loadLastService();
 
     window.electronAPI.onOpenSettings(() => {
@@ -100,13 +102,14 @@ export class Home {
       return;
     }
 
-    const currentIndex = this.configuredServices.findIndex((p) => p.id === currentService.id);
+    const services = this.configuredServices();
+    const currentIndex = services.findIndex((p) => p.id === currentService.id);
     if (currentIndex === -1) {
       return;
     }
 
-    const nextIndex = currentIndex === this.configuredServices.length - 1 ? 0 : currentIndex + 1;
-    void this.navigateToService(this.configuredServices[nextIndex]);
+    const nextIndex = currentIndex === services.length - 1 ? 0 : currentIndex + 1;
+    void this.navigateToService(services[nextIndex]);
   }
 
   public navigateToPreviousService() {
@@ -115,13 +118,14 @@ export class Home {
       return;
     }
 
-    const currentIndex = this.configuredServices.findIndex((p) => p.id === currentService.id);
+    const services = this.configuredServices();
+    const currentIndex = services.findIndex((p) => p.id === currentService.id);
     if (currentIndex === -1) {
       return;
     }
 
-    const previousIndex = currentIndex === 0 ? this.configuredServices.length - 1 : currentIndex - 1;
-    void this.navigateToService(this.configuredServices[previousIndex]);
+    const previousIndex = currentIndex === 0 ? services.length - 1 : currentIndex - 1;
+    void this.navigateToService(services[previousIndex]);
   }
 
   async onServiceSelected(configuredService: ConfiguredService) {
@@ -203,27 +207,20 @@ export class Home {
     } else if (action === 'refreshService') {
       await this.refreshService();
     } else if (action === 'selectService' && serviceIndex !== undefined) {
-      if (serviceIndex >= 0 && serviceIndex < this.configuredServices.length) {
+      const services = this.configuredServices();
+      if (serviceIndex >= 0 && serviceIndex < services.length) {
         void this.router.navigate(['/app']);
-        await this.onServiceSelected(this.configuredServices[serviceIndex]);
+        await this.onServiceSelected(services[serviceIndex]);
         this.whatsNewService.close();
       }
-    }
-  }
-
-  private async loadConfiguredServices() {
-    try {
-      const config = await window.electronAPI.getAppConfig();
-      this.configuredServices = config.configuredServices ?? [];
-    } catch (error) {
-      console.error('Failed to load configured service:', error);
     }
   }
 
   private loadLastService() {
     window.electronAPI.getLastService().then(async (lastServiceId: string | undefined) => {
       if (lastServiceId) {
-        const service = this.configuredServices.find((p) => p.id === lastServiceId);
+        const services = this.configuredServices();
+        const service = services.find((p) => p.id === lastServiceId);
         if (service) {
           await this.onServiceSelected(service);
         }
@@ -238,3 +235,4 @@ export class Home {
     await this.onServiceSelected(service);
   }
 }
+

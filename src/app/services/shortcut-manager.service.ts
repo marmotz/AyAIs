@@ -1,4 +1,5 @@
-import { Injectable, signal } from '@angular/core';
+import { computed, inject, Injectable, signal } from '@angular/core';
+import { ConfigService } from '@app/services/config.service';
 import { DEFAULT_SHORTCUTS, Shortcut } from '@app/settings/settings-shortcuts/shortcut.model';
 import { ShortcutConfig } from '@shared/types/app-config.interface';
 
@@ -24,15 +25,84 @@ interface PendingShortcut {
   providedIn: 'root',
 })
 export class ShortcutManagerService {
-  globalShortcuts = signal<Shortcut[]>([]);
-  internalShortcuts = signal<Shortcut[]>([]);
+  private readonly configService = inject(ConfigService);
   editingShortcutId = signal<string | null>(null);
   tempShortcutValue = signal<string>('');
+  private readonly validationResults = signal<Record<string, ValidationResult>>({});
   private isMac = false;
   private pendingRequest: PendingShortcut | null = null;
   private lastShortcutExecuted = 0;
   private debounceTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly DEBOUNCE_MS = 100;
+
+  readonly globalShortcuts = computed<Shortcut[]>(() => {
+    const config = this.configService.shortcuts();
+    if (!config) {
+      return [];
+    }
+
+    const id = 'showHideApp';
+    return [
+      {
+        id,
+        label: DEFAULT_SHORTCUTS.globalShortcuts.find((s) => s.id === id)!.label,
+        value: config.globalShortcuts.showHideApp,
+        validation: this.validationResults()[id],
+      },
+    ];
+  });
+
+  readonly internalShortcuts = computed<Shortcut[]>(() => {
+    const config = this.configService.shortcuts();
+    if (!config) {
+      return [];
+    }
+
+    const getShortcutLabel = (id: string): string => {
+      return DEFAULT_SHORTCUTS.internalShortcuts.find((s) => s.id === id)!.label;
+    };
+
+    const shortcuts: Shortcut[] = [
+      {
+        id: 'openSettings',
+        label: getShortcutLabel('openSettings'),
+        value: config.internalShortcuts.openSettings,
+      },
+      {
+        id: 'quitApp',
+        label: getShortcutLabel('quitApp'),
+        value: config.internalShortcuts.quitApp,
+      },
+      {
+        id: 'previousService',
+        label: getShortcutLabel('previousService'),
+        value: config.internalShortcuts.previousService,
+      },
+      {
+        id: 'nextService',
+        label: getShortcutLabel('nextService'),
+        value: config.internalShortcuts.nextService,
+      },
+      {
+        id: 'refreshService',
+        label: getShortcutLabel('refreshService'),
+        value: config.internalShortcuts.refreshService,
+      },
+      ...DEFAULT_SHORTCUTS.internalShortcuts
+        .filter((s) => s.id.startsWith('service'))
+        .map((service) => ({
+          ...service,
+          value: config.internalShortcuts.services[service.id] ?? '',
+        })),
+    ];
+
+    const results = this.validationResults();
+    return shortcuts.map((s) => ({
+      ...s,
+      validation: results[s.id],
+    }));
+  });
+
 
   constructor() {
     void this.initializePlatform();
@@ -54,8 +124,10 @@ export class ShortcutManagerService {
   }
 
   private async executeShortcutInternal(shortcut: string): Promise<ShortcutActionEvent | null> {
-    const appConfig = await window.electronAPI.getAppConfig();
-    const config = appConfig.shortcuts;
+    const config = this.configService.shortcuts();
+    if (!config) {
+      return null;
+    }
 
     if (shortcut === config.internalShortcuts.openSettings) {
       return { action: 'openSettings' };
@@ -187,90 +259,7 @@ export class ShortcutManagerService {
   }
 
   loadShortcuts(): void {
-    window.electronAPI
-      .getAppConfig()
-      .then((appConfig) => {
-        const shortcutConfig = appConfig.shortcuts;
-        if (shortcutConfig) {
-          this.globalShortcuts.set([
-            {
-              id: 'showHideApp',
-              label: DEFAULT_SHORTCUTS.globalShortcuts.find((s) => s.id === 'showHideApp')!.label,
-              value: shortcutConfig.globalShortcuts.showHideApp,
-            },
-          ]);
-
-          const getShortcutLabel = (id: string): string => {
-            return DEFAULT_SHORTCUTS.internalShortcuts.find((s) => s.id === id)!.label;
-          };
-
-          this.internalShortcuts.set([
-            {
-              id: 'openSettings',
-              label: getShortcutLabel('openSettings'),
-              value: shortcutConfig.internalShortcuts.openSettings,
-            },
-            {
-              id: 'quitApp',
-              label: getShortcutLabel('quitApp'),
-              value: shortcutConfig.internalShortcuts.quitApp,
-            },
-            {
-              id: 'previousService',
-              label: getShortcutLabel('previousService'),
-              value: shortcutConfig.internalShortcuts.previousService,
-            },
-            {
-              id: 'nextService',
-              label: getShortcutLabel('nextService'),
-              value: shortcutConfig.internalShortcuts.nextService,
-            },
-            {
-              id: 'refreshService',
-              label: getShortcutLabel('refreshService'),
-              value: shortcutConfig.internalShortcuts.refreshService,
-            },
-            ...DEFAULT_SHORTCUTS.internalShortcuts
-              .filter((s) => s.id.startsWith('service'))
-              .map((service) => ({
-                ...service,
-                value: shortcutConfig.internalShortcuts.services[service.id] ?? '',
-              })),
-          ]);
-        } else {
-          this.setEmptyShortcuts();
-        }
-      })
-      .catch(() => {
-        this.setEmptyShortcuts();
-      });
-  }
-
-  onShortcutSaved(): void {
-    const global = this.globalShortcuts();
-    const internal = this.internalShortcuts();
-
-    const shortcutConfig: ShortcutConfig = {
-      globalShortcuts: {
-        showHideApp: global.find((s) => s.id === 'showHideApp')?.value || 'Meta+I',
-      },
-      internalShortcuts: {
-        openSettings: internal.find((s) => s.id === 'openSettings')?.value || 'Ctrl+,',
-        quitApp: internal.find((s) => s.id === 'quitApp')?.value || 'Ctrl+Q',
-        previousService: internal.find((s) => s.id === 'previousService')?.value || '',
-        nextService: internal.find((s) => s.id === 'nextService')?.value || '',
-        refreshService: internal.find((s) => s.id === 'refreshService')?.value || 'Ctrl+R',
-        services: {} as Record<string, string>,
-      },
-    };
-
-    internal
-      .filter((s) => s.id.startsWith('service'))
-      .forEach((s) => {
-        (shortcutConfig.internalShortcuts.services as Record<string, string>)[s.id] = s.value;
-      });
-
-    window.electronAPI.saveAppConfig({ shortcuts: shortcutConfig }).catch(() => {});
+    void this.configService.loadConfig();
   }
 
   async saveShortcut(shortcutId: string): Promise<void> {
@@ -287,7 +276,7 @@ export class ShortcutManagerService {
       }
 
       if (!validationResult.isValid) {
-        this.updateShortcutValue(shortcutId, newValue, validationResult);
+        this.validationResults.update((prev) => ({ ...prev, [shortcutId]: validationResult }));
         this.editingShortcutId.set(null);
         this.tempShortcutValue.set('');
 
@@ -299,33 +288,43 @@ export class ShortcutManagerService {
       }
     }
 
-    this.updateShortcutValue(shortcutId, newValue, undefined);
+    // Clear previous validation result
+    this.validationResults.update((prev) => {
+      const next = { ...prev };
+      delete next[shortcutId];
+      return next;
+    });
+
+    const currentConfig = this.configService.appConfig();
+    if (currentConfig) {
+      const shortcuts: ShortcutConfig = JSON.parse(JSON.stringify(currentConfig.shortcuts));
+      if (isGlobalShortcut) {
+        shortcuts.globalShortcuts.showHideApp = newValue;
+      } else {
+        const internal = shortcuts.internalShortcuts;
+        if (shortcutId === 'openSettings') internal.openSettings = newValue;
+        else if (shortcutId === 'quitApp') internal.quitApp = newValue;
+        else if (shortcutId === 'previousService') internal.previousService = newValue;
+        else if (shortcutId === 'nextService') internal.nextService = newValue;
+        else if (shortcutId === 'refreshService') internal.refreshService = newValue;
+        else if (shortcutId.startsWith('service')) {
+          internal.services[shortcutId] = newValue;
+        }
+      }
+
+      void this.configService.updateConfig({ shortcuts });
+    }
+
     this.editingShortcutId.set(null);
     this.tempShortcutValue.set('');
-
-    this.onShortcutSaved();
 
     if (isGlobalShortcut) {
       await window.electronAPI.registerGlobalShortcuts();
     }
   }
 
-  setEmptyShortcuts(): void {
-    this.globalShortcuts.set(
-      DEFAULT_SHORTCUTS.globalShortcuts.map((s) => ({
-        ...s,
-        value: '',
-      }))
-    );
-    this.internalShortcuts.set(
-      DEFAULT_SHORTCUTS.internalShortcuts.map((s) => ({
-        ...s,
-        value: '',
-      }))
-    );
-  }
-
   async startEditing(shortcut: Shortcut): Promise<void> {
+
     this.editingShortcutId.set(shortcut.id);
     this.tempShortcutValue.set(shortcut.value);
 
@@ -333,6 +332,7 @@ export class ShortcutManagerService {
       await window.electronAPI.unregisterGlobalShortcuts();
     }
   }
+
 
   private buildShortcutString(event: KeyboardEvent): string {
     const modifiers = this.getModifierKeys(event);
@@ -394,25 +394,6 @@ export class ShortcutManagerService {
     this.isMac = platform === 'darwin';
   }
 
-  private updateShortcutValue(shortcutId: string, value: string, validation?: ValidationResult): void {
-    const allShortcuts = [...this.globalShortcuts(), ...this.internalShortcuts()];
-    const updatedShortcuts = allShortcuts.map((s) =>
-      s.id === shortcutId
-        ? {
-            ...s,
-            value,
-            validation,
-          }
-        : s
-    );
-
-    const global = updatedShortcuts.filter((s) => s.id === 'showHideApp');
-    const internal = updatedShortcuts.filter((s) => s.id !== 'showHideApp');
-
-    this.globalShortcuts.set(global);
-    this.internalShortcuts.set(internal);
-  }
-
   private validateInternalShortcut(shortcut: string, excludeId: string): ValidationResult {
     if (!shortcut || shortcut.trim() === '') {
       return { isValid: true };
@@ -440,3 +421,4 @@ interface ValidationResult {
   error?: 'INVALID_FORMAT' | 'INTERNAL_CONFLICT' | 'EXTERNAL_CONFLICT';
   conflictedShortcut?: string;
 }
+

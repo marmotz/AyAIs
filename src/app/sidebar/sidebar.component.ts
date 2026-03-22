@@ -15,10 +15,10 @@ import {
 import { Router } from '@angular/router';
 import { AI_SERVICES } from '@app/ai-services/constants';
 import { AIService, ConfiguredService } from '@app/ai-services/interfaces';
+import { ConfigService } from '@app/services/config.service';
 import { NavigationService } from '@app/services/navigation.service';
 import { WhatsNewService } from '@app/services/whats-new.service';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import type { AppConfig } from '@shared/types/app-config.interface';
 import { SidebarAddServiceDialogComponent } from './sidebar-add-service-dialog/sidebar-add-service-dialog.component';
 import { SidebarContextmenuComponent } from './sidebar-contextmenu/sidebar-contextmenu.component';
 import { SidebarWhatsnewDialogComponent } from './sidebar-whatsnew-dialog/sidebar-whatsnew-dialog.component';
@@ -38,8 +38,9 @@ import { SidebarWhatsnewDialogComponent } from './sidebar-whatsnew-dialog/sideba
   styleUrl: './sidebar.component.css',
 })
 export class SidebarComponent {
-  configuredServices = signal<ConfiguredService[]>([]);
-  appConfig = signal<AppConfig | null>(null);
+  private readonly configService = inject(ConfigService);
+  configuredServices = this.configService.configuredServices;
+  appConfig = this.configService.appConfig;
   serviceSelected = output<ConfiguredService>();
   serviceRefresh = output<ConfiguredService>();
   serviceRemoved = output<ConfiguredService>();
@@ -89,10 +90,9 @@ export class SidebarComponent {
       serviceName: service.name,
     };
     const list = [...this.configuredServices(), newService];
-    this.configuredServices.set(list);
     this.selectedService.set(newService);
     this.serviceSelected.emit(newService);
-    void this.saveConfiguredServices();
+    void this.configService.updateConfig({ configuredServices: list });
   }
 
   getQuitTitle(): string {
@@ -127,10 +127,6 @@ export class SidebarComponent {
     return 'Settings';
   }
 
-  async ngOnInit() {
-    await this.loadAppConfig();
-  }
-
   onContextMenuRefresh() {
     if (this.contextMenuService) {
       this.serviceRefresh.emit(this.contextMenuService);
@@ -159,8 +155,7 @@ export class SidebarComponent {
       const list = [...this.configuredServices()];
       const [moved] = list.splice(event.previousIndex, 1);
       list.splice(event.currentIndex, 0, moved);
-      this.configuredServices.set(list);
-      void this.saveConfiguredServices();
+      void this.configService.updateConfig({ configuredServices: list });
     }
   }
 
@@ -191,7 +186,6 @@ export class SidebarComponent {
   removeService(service: ConfiguredService) {
     const currentIndex = this.configuredServices().findIndex((p) => p.id === service.id);
     const list = this.configuredServices().filter((p) => p.id !== service.id);
-    this.configuredServices.set(list);
     this.serviceRemoved.emit(service);
 
     if (this.selectedService()?.id === service.id) {
@@ -202,30 +196,7 @@ export class SidebarComponent {
       }
     }
 
-    void this.saveConfiguredServices();
-  }
-
-  private async loadAppConfig() {
-    try {
-      const config = await window.electronAPI.getAppConfig();
-      this.appConfig.set(config);
-      this.configuredServices.set(config.configuredServices ?? []);
-    } catch (error) {
-      console.error('Failed to load app config:', error);
-    }
-  }
-
-  private async saveConfiguredServices() {
-    const services = this.configuredServices();
-    try {
-      await window.electronAPI.saveAppConfig({ configuredServices: services });
-      const config = this.appConfig();
-      if (config) {
-        this.appConfig.set({ ...config, configuredServices: services });
-      }
-    } catch (error) {
-      console.error('Failed to save configured services:', error);
-    }
+    void this.configService.updateConfig({ configuredServices: list });
   }
 
   private scrollToSelectedService() {
@@ -250,3 +221,4 @@ export class SidebarComponent {
     }
   }
 }
+

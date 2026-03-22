@@ -16,6 +16,7 @@ test.describe('Global Shortcuts Actions', () => {
       args: [
         PATH.join(__dirname, '../dist/app/main.js'),
         PATH.join(__dirname, '../app/package.json'),
+        '--test',
         `--user-data-dir=${userDataDir}`,
       ],
     });

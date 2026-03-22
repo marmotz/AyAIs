@@ -2,11 +2,48 @@ import { execSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import * as path from 'node:path';
 
+function confirm(message: string): boolean {
+  const answer = prompt(`${message} (Y/n)`, 'y');
+
+  return answer?.toLowerCase() !== 'n';
+}
+
 const pkgPath = path.join(process.cwd(), 'package.json');
 const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
 const oldVersion = pkg.version;
 
 console.log(`Current version: ${oldVersion}`);
+
+// 1. Git Branch Management: Switch to main
+const currentBranch = execSync('git branch --show-current').toString().trim();
+if (currentBranch !== 'main') {
+  if (confirm(`Currently on ${currentBranch}. Switch to main and pull?`)) {
+    execSync('git checkout main');
+    execSync('git pull');
+    console.log('✅ Switched to main and pulled.');
+  } else {
+    console.log('Aborted.');
+    process.exit(1);
+  }
+} else {
+  if (confirm('On main branch. Pull latest changes?')) {
+    execSync('git pull');
+    console.log('✅ Pulled latest changes.');
+  }
+}
+
+// 2. Merge develop into main
+if (confirm('Merge develop into main?')) {
+  try {
+    execSync('git merge develop');
+    console.log('✅ develop merged into main.');
+  } catch (e) {
+    console.error('❌ Merge failed. Please resolve conflicts manually.');
+    process.exit(1);
+  }
+} else {
+  console.log('Merge skipped.');
+}
 
 // Helper to calculate next versions
 const [major, minor, patch] = oldVersion.split('.').map(Number);
@@ -48,8 +85,7 @@ if (!newVersion) {
   process.exit(1);
 }
 
-const confirmVersion = prompt(`\nUpdate all files to version ${newVersion}? (Y/n)`, 'y');
-if (confirmVersion?.toLowerCase() === 'n') {
+if (!confirm(`\nUpdate all files to version ${newVersion}?`)) {
   console.log('Aborted.');
   process.exit(1);
 }
@@ -71,8 +107,7 @@ try {
 console.log('✅ Files updated.');
 
 // 3. Commit
-const confirmCommit = prompt(`\nCommit changes with message "chore: release v${newVersion}"? (Y/n)`, 'y');
-if (confirmCommit?.toLowerCase() !== 'n') {
+if (confirm(`\nCommit changes with message "chore: release v${newVersion}"?`)) {
   execSync('git add package.json app/package.json');
   execSync(`git commit -m "chore: release v${newVersion}"`);
   console.log('✅ Committed.');
@@ -82,8 +117,7 @@ if (confirmCommit?.toLowerCase() !== 'n') {
 }
 
 // 4. Push Commit
-const confirmPush = prompt('\nPush commit to remote? (Y/n)', 'y');
-if (confirmPush?.toLowerCase() !== 'n') {
+if (confirm('\nPush commit to remote?')) {
   try {
     execSync('git push');
     console.log('✅ Pushed.');
@@ -95,8 +129,7 @@ if (confirmPush?.toLowerCase() !== 'n') {
 }
 
 // 5. Tag
-const confirmTag = prompt(`\nCreate git tag v${newVersion}? (Y/n)`, 'y');
-if (confirmTag?.toLowerCase() !== 'n') {
+if (confirm(`\nCreate git tag v${newVersion}?`)) {
   execSync(`git tag v${newVersion}`);
   console.log('✅ Tag created.');
 } else {
@@ -105,8 +138,7 @@ if (confirmTag?.toLowerCase() !== 'n') {
 }
 
 // 6. Push Tag
-const confirmPushTag = prompt(`\nPush tag v${newVersion} to remote? (Y/n)`, 'y');
-if (confirmPushTag?.toLowerCase() !== 'n') {
+if (confirm(`\nPush tag v${newVersion} to remote?`)) {
   try {
     execSync('git push --tags');
     console.log('✅ Tags pushed.');
@@ -115,6 +147,22 @@ if (confirmPushTag?.toLowerCase() !== 'n') {
   }
 } else {
   console.log('Tag push skipped.');
+}
+
+// 7. Merge back to develop
+if (confirm('\nReturn to develop and merge main (merge back)?')) {
+  execSync('git checkout develop');
+  execSync('git merge main');
+  console.log('✅ main merged back into develop.');
+
+  if (confirm('Push develop to remote?')) {
+    try {
+      execSync('git push');
+      console.log('✅ develop pushed.');
+    } catch (_e) {
+      console.error('❌ Push failed.');
+    }
+  }
 }
 
 console.log(`\n🎉 Release v${newVersion} finished!`);

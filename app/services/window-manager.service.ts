@@ -160,6 +160,16 @@ export class WindowManagerService {
       window.loadURL('http://localhost:4213');
       window.webContents.openDevTools();
     } else {
+      window.webContents.on('before-input-event', (_event, input) => {
+        if (
+          input.key === 'F12' ||
+          (input.control && input.shift && input.key === 'I') ||
+          (input.meta && input.alt && input.key === 'I')
+        ) {
+          _event.preventDefault();
+        }
+      });
+
       let pathIndex = '../../renderer/browser/index.html';
 
       if (fs.existsSync(path.join(__dirname, '../../../dist/renderer/browser/index.html'))) {
@@ -170,10 +180,6 @@ export class WindowManagerService {
       const url = `file://${path.resolve(fullPath).replace(/\\/g, '/')}`;
 
       window.loadURL(url);
-
-      // if (!app.isPackaged) {
-      //   window.webContents.openDevTools();
-      // }
     }
   }
 }

@@ -15,12 +15,13 @@ const mockWindow = {
   isVisible: vi.fn(() => false),
   webContents: {
     openDevTools: vi.fn(),
+    on: vi.fn(),
   },
 };
 
 vi.mock('electron', () => ({
   BrowserWindow: class {
-    constructor(options: any) {
+    constructor() {
       return mockWindow;
     }
   },
@@ -29,6 +30,14 @@ vi.mock('electron', () => ({
       workAreaSize: { width: 1920, height: 1080 },
     })),
   },
+}));
+
+vi.mock('electron-reloader', () => ({
+  default: vi.fn(),
+}));
+
+vi.mock('electron-debug', () => ({
+  default: vi.fn(),
 }));
 
 vi.mock('./icon.service', () => ({
@@ -68,6 +77,7 @@ describe('WindowManagerService', () => {
           quitApp: 'Ctrl+Q',
           previousService: 'Ctrl+Shift+Tab',
           nextService: 'Ctrl+Tab',
+          refreshService: 'Ctrl+R',
           services: {
             service1: 'Ctrl+1',
             service2: 'Ctrl+2',
@@ -80,7 +90,9 @@ describe('WindowManagerService', () => {
         width: 800,
         height: 600,
       },
-      updateChannel: 'stable',
+      updateChannel: 'stable' as const,
+      serviceOrder: ['service1', 'service2'],
+      configuredServices: [],
     };
 
     service = new WindowManagerService(mockAppConfig);
@@ -101,7 +113,7 @@ describe('WindowManagerService', () => {
     it('should use primary display size when config position is invalid', () => {
       const invalidConfig: AppConfig = {
         ...mockAppConfig,
-        position: { x: undefined, y: undefined, width: 0, height: 0 },
+        position: { x: 0, y: 0, width: 0, height: 0 },
       };
       const invalidService = new WindowManagerService(invalidConfig);
 
@@ -127,6 +139,33 @@ describe('WindowManagerService', () => {
       nonServeService.createWindow();
 
       expect(mockWindow.loadURL).toHaveBeenCalled();
+
+      process.argv = originalArgs;
+    });
+
+    it('should block DevTools shortcuts in production mode', () => {
+      const originalArgs = process.argv;
+      process.argv = ['node', 'main.js'];
+
+      const nonServeService = new WindowManagerService(mockAppConfig);
+      nonServeService.createWindow();
+
+      expect(mockWindow.webContents.on).toHaveBeenCalledWith('before-input-event', expect.any(Function));
+
+      process.argv = originalArgs;
+    });
+
+    it('should not block DevTools shortcuts in dev mode', () => {
+      const originalArgs = process.argv;
+      process.argv = ['node', 'main.js', '--serve'];
+
+      const serveService = new WindowManagerService(mockAppConfig);
+      serveService.createWindow();
+
+      const devToolsBlockCalls = mockWindow.webContents.on.mock.calls.filter(
+        (call: any[]) => call[0] === 'before-input-event'
+      );
+      expect(devToolsBlockCalls.length).toBe(0);
 
       process.argv = originalArgs;
     });

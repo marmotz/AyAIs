@@ -33,7 +33,7 @@ if (currentBranch !== 'main') {
 }
 
 // 2. Merge develop into main
-if (confirm('Merge develop into main?')) {
+if (confirm('\nMerge develop into main?')) {
   try {
     execSync('git merge develop');
     console.log('✅ develop merged into main.');
@@ -155,7 +155,7 @@ if (confirm('\nReturn to develop and merge main (merge back)?')) {
   execSync('git merge main');
   console.log('✅ main merged back into develop.');
 
-  if (confirm('Push develop to remote?')) {
+  if (confirm('\nPush develop to remote?')) {
     try {
       execSync('git push');
       console.log('✅ develop pushed.');

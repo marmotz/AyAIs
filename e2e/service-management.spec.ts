@@ -81,13 +81,10 @@ test.describe('Service Management', () => {
       const copilotButton = dialog.locator('button', { hasText: 'Copilot' });
       await copilotButton.click();
 
-      await firstWindow.waitForTimeout(1000);
-
       const copilotImgs = firstWindow.locator('#services button img[alt^="Copilot"]');
-      expect(await copilotImgs.count()).toBeGreaterThanOrEqual(2);
+      await expect(copilotImgs).toHaveCount(2, { timeout: 10000 });
 
-      const countAfter = await servicesContainer.locator('button').count();
-      expect(countAfter).toBe(countBefore + 1);
+      await expect(servicesContainer.locator('button')).toHaveCount(countBefore + 1, { timeout: 5000 });
     });
   });
 
@@ -96,8 +93,7 @@ test.describe('Service Management', () => {
       await scrollToTopOfSidebar();
 
       const serviceButtons = firstWindow.locator('#services button[data-testid]');
-      const count = await serviceButtons.count();
-      expect(count).toBeGreaterThanOrEqual(1);
+      await expect(serviceButtons.first()).toBeVisible({ timeout: 5000 });
 
       const firstService = serviceButtons.nth(0);
       await firstService.click({ button: 'right', force: true });
@@ -117,9 +113,9 @@ test.describe('Service Management', () => {
       await scrollToTopOfSidebar();
 
       const servicesContainer = firstWindow.locator('#services');
-      const initialCount = await servicesContainer.locator('button').count();
-
       const serviceButtons = servicesContainer.locator('button[data-testid]');
+      const initialCount = await serviceButtons.count();
+
       const lastService = serviceButtons.last();
       const lastTestId = await lastService.getAttribute('data-testid');
 
@@ -130,15 +126,12 @@ test.describe('Service Management', () => {
       await expect(removeItem).toBeVisible({ timeout: 5000 });
       await removeItem.click();
 
-      await firstWindow.waitForTimeout(500);
-
       if (lastTestId) {
         const removedButton = firstWindow.getByTestId(lastTestId);
         await expect(removedButton).toBeHidden({ timeout: 3000 });
       }
 
-      const newCount = await servicesContainer.locator('button').count();
-      expect(newCount).toBe(initialCount - 1);
+      await expect(serviceButtons).toHaveCount(initialCount - 1, { timeout: 5000 });
     });
 
     test('should keep app functional after removing a service', async () => {
@@ -159,7 +152,7 @@ test.describe('Service Management', () => {
       expect(url).toContain('/app');
 
       const remainingButtons = firstWindow.locator('#services button[data-testid]');
-      expect(await remainingButtons.count()).toBeGreaterThanOrEqual(1);
+      await expect(remainingButtons.first()).toBeVisible({ timeout: 5000 });
     });
   });
 
@@ -211,8 +204,7 @@ test.describe('Service Management', () => {
       await firstWindow.mouse.up();
       await firstWindow.waitForTimeout(500);
 
-      const countAfter = await serviceButtons.count();
-      expect(countAfter).toBe(count);
+      await expect(serviceButtons).toHaveCount(count, { timeout: 5000 });
 
       const firstAfter = await serviceButtons.nth(0).getAttribute('data-testid');
       const secondAfter = await serviceButtons.nth(1).getAttribute('data-testid');
@@ -268,8 +260,7 @@ test.describe('Service Management', () => {
       await firstWindow.mouse.up();
       await firstWindow.waitForTimeout(500);
 
-      const countAfter = await serviceButtons.count();
-      expect(countAfter).toBe(countBefore);
+      await expect(serviceButtons).toHaveCount(countBefore, { timeout: 5000 });
     });
   });
 

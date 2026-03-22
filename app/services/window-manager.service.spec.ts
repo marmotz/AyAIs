@@ -1,6 +1,7 @@
 import { AppConfig } from '@shared/types/app-config.interface';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { WindowManagerService } from './window-manager.service';
+import { ConfigManagerService } from './config-manager.service';
 
 const mockWindow = {
   on: vi.fn(),
@@ -13,6 +14,7 @@ const mockWindow = {
   focus: vi.fn(),
   getBounds: vi.fn().mockReturnValue({ x: 100, y: 100, width: 800, height: 600 }),
   isVisible: vi.fn(() => false),
+  isDestroyed: vi.fn(() => false),
   webContents: {
     openDevTools: vi.fn(),
     on: vi.fn(),
@@ -58,6 +60,7 @@ vi.mock('path', () => ({
 describe('WindowManagerService', () => {
   let service: WindowManagerService;
   let mockAppConfig: AppConfig;
+  let configManager: ConfigManagerService;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -95,7 +98,12 @@ describe('WindowManagerService', () => {
       configuredServices: [],
     };
 
-    service = new WindowManagerService(mockAppConfig);
+    configManager = {
+      getConfig: vi.fn().mockReturnValue(mockAppConfig),
+      saveConfig: vi.fn(),
+    } as any;
+
+    service = new WindowManagerService(configManager);
   });
 
   afterEach(() => {
@@ -115,7 +123,11 @@ describe('WindowManagerService', () => {
         ...mockAppConfig,
         position: { x: 0, y: 0, width: 0, height: 0 },
       };
-      const invalidService = new WindowManagerService(invalidConfig);
+    const configManagerMock = {
+      getConfig: vi.fn().mockReturnValue(invalidConfig),
+      saveConfig: vi.fn(),
+    } as any;
+    const invalidService = new WindowManagerService(configManagerMock);
 
       invalidService.createWindow();
 
@@ -135,7 +147,11 @@ describe('WindowManagerService', () => {
       const originalArgs = process.argv;
       process.argv = ['node', 'main.js'];
 
-      const nonServeService = new WindowManagerService(mockAppConfig);
+      const configManagerMock = {
+        getConfig: vi.fn().mockReturnValue(mockAppConfig),
+        saveConfig: vi.fn(),
+      } as any;
+      const nonServeService = new WindowManagerService(configManagerMock);
       nonServeService.createWindow();
 
       expect(mockWindow.loadURL).toHaveBeenCalled();
@@ -147,7 +163,11 @@ describe('WindowManagerService', () => {
       const originalArgs = process.argv;
       process.argv = ['node', 'main.js'];
 
-      const nonServeService = new WindowManagerService(mockAppConfig);
+      const configManagerMock = {
+        getConfig: vi.fn().mockReturnValue(mockAppConfig),
+        saveConfig: vi.fn(),
+      } as any;
+      const nonServeService = new WindowManagerService(configManagerMock);
       nonServeService.createWindow();
 
       expect(mockWindow.webContents.on).toHaveBeenCalledWith('before-input-event', expect.any(Function));
@@ -159,7 +179,11 @@ describe('WindowManagerService', () => {
       const originalArgs = process.argv;
       process.argv = ['node', 'main.js', '--serve'];
 
-      const serveService = new WindowManagerService(mockAppConfig);
+      const configManagerMock = {
+        getConfig: vi.fn().mockReturnValue(mockAppConfig),
+        saveConfig: vi.fn(),
+      } as any;
+      const serveService = new WindowManagerService(configManagerMock);
       serveService.createWindow();
 
       const devToolsBlockCalls = mockWindow.webContents.on.mock.calls.filter(
@@ -323,6 +347,7 @@ describe('WindowManagerService', () => {
 
   describe('window events', () => {
     it('should save bounds on move', () => {
+      vi.useFakeTimers();
       const mockCallback = vi.fn();
       service.createWindow();
       service.updateConfig(mockAppConfig, mockCallback);
@@ -332,10 +357,13 @@ describe('WindowManagerService', () => {
         moveCallback();
       }
 
+      vi.advanceTimersByTime(500);
       expect(mockCallback).toHaveBeenCalled();
+      vi.useRealTimers();
     });
 
     it('should save bounds on resize', () => {
+      vi.useFakeTimers();
       const mockCallback = vi.fn();
       service.createWindow();
       service.updateConfig(mockAppConfig, mockCallback);
@@ -345,7 +373,9 @@ describe('WindowManagerService', () => {
         resizeCallback();
       }
 
+      vi.advanceTimersByTime(500);
       expect(mockCallback).toHaveBeenCalled();
+      vi.useRealTimers();
     });
 
     it('should prevent close and hide when not quitting', () => {

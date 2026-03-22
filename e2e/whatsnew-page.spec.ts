@@ -44,10 +44,7 @@ test.describe('WhatsNew Page', () => {
 
     // Look for version components
     const versionComponents = firstWindow.locator('app-version');
-    const count = await versionComponents.count();
-
-    // Should have at least one version displayed
-    expect(count).toBeGreaterThan(0);
+    await expect(versionComponents.first()).toBeVisible({ timeout: 5000 });
   });
 
   test('should display new features section', async () => {
@@ -56,10 +53,7 @@ test.describe('WhatsNew Page', () => {
     await firstWindow.waitForTimeout(500);
 
     const newFeaturesComponents = firstWindow.locator('app-new-features');
-    const count = await newFeaturesComponents.count();
-
-    // Should have at least one new features section
-    expect(count).toBeGreaterThan(0);
+    await expect(newFeaturesComponents.first()).toBeVisible({ timeout: 5000 });
   });
 
   test('should display fixes section', async () => {
@@ -68,10 +62,7 @@ test.describe('WhatsNew Page', () => {
     await firstWindow.waitForTimeout(500);
 
     const fixesComponents = firstWindow.locator('app-fixes');
-    const count = await fixesComponents.count();
-
-    // Should have at least one fixes section
-    expect(count).toBeGreaterThan(0);
+    await expect(fixesComponents.first()).toBeVisible({ timeout: 5000 });
   });
 
   test('should close whats new modal when using keyboard shortcut to select service', async () => {

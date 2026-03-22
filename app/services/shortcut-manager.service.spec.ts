@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MOCK_CONFIG_WITH_SERVICES } from '../tests/test-config';
 import { ShortcutManagerService } from './shortcut-manager.service';
 import { WindowManagerService } from './window-manager.service';
+import { ConfigManagerService } from './config-manager.service';
 
 vi.mock('electron', () => ({
   globalShortcut: {
@@ -22,15 +23,22 @@ vi.mock('./window-manager.service', () => ({
   WindowManagerService: MockWindowManagerService,
 }));
 
+class MockConfigManagerService {
+  public getConfig = vi.fn().mockReturnValue(MOCK_CONFIG_WITH_SERVICES);
+  public saveConfig = vi.fn();
+}
+
 describe('ShortcutManagerService', () => {
   let shortcutManager: ShortcutManagerService;
   let windowManager: WindowManagerService;
+  let configManager: ConfigManagerService;
 
   beforeEach(() => {
     vi.clearAllMocks();
 
+    configManager = new MockConfigManagerService() as any;
     windowManager = new MockWindowManagerService() as any;
-    shortcutManager = new ShortcutManagerService(MOCK_CONFIG_WITH_SERVICES, windowManager);
+    shortcutManager = new ShortcutManagerService(configManager, windowManager);
   });
 
   it('should validate empty shortcut', () => {

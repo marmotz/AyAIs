@@ -41,8 +41,7 @@ test.describe('AI Services Navigation', () => {
 
     // Verify webview element exists and has correct src attribute
     const webview = firstWindow.getByTestId('webview-chatgpt');
-    const count = await webview.count();
-    expect(count).toBe(1);
+    await expect(webview).toHaveCount(1, { timeout: 5000 });
 
     // Check that the webview has the src attribute set (without waiting for load)
     const hasSrc = await webview.getAttribute('src');
@@ -57,8 +56,7 @@ test.describe('AI Services Navigation', () => {
     await firstWindow.waitForTimeout(300);
 
     const webview = firstWindow.getByTestId('webview-claude');
-    const count = await webview.count();
-    expect(count).toBe(1);
+    await expect(webview).toHaveCount(1, { timeout: 5000 });
 
     // Check that the webview has the src attribute set
     const hasSrc = await webview.getAttribute('src');
@@ -71,8 +69,7 @@ test.describe('AI Services Navigation', () => {
     await firstWindow.waitForTimeout(300);
 
     const webview = firstWindow.getByTestId('webview-gemini');
-    const count = await webview.count();
-    expect(count).toBe(1);
+    await expect(webview).toHaveCount(1, { timeout: 5000 });
 
     // Check that the webview has the src attribute set
     const hasSrc = await webview.getAttribute('src');
@@ -93,8 +90,8 @@ test.describe('AI Services Navigation', () => {
     const chatgptWebview = firstWindow.getByTestId('webview-chatgpt');
     const claudeWebview = firstWindow.getByTestId('webview-claude');
 
-    expect(await chatgptWebview.count()).toBe(1);
-    expect(await claudeWebview.count()).toBe(1);
+    await expect(chatgptWebview).toHaveCount(1, { timeout: 5000 });
+    await expect(claudeWebview).toHaveCount(1, { timeout: 5000 });
 
     // Verify the Claude webview is visible and ChatGPT is hidden
     const claudeStyles = await claudeWebview.evaluate((el: any) => ({

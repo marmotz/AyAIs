@@ -1,14 +1,17 @@
 import { AppConfig } from '@shared/types/app-config.interface';
 import { globalShortcut } from 'electron';
+import { ConfigManagerService } from './config-manager.service';
 import { WindowManagerService } from './window-manager.service';
 
 export class ShortcutManagerService {
   private appConfig: AppConfig;
   private windowManager: WindowManagerService;
 
-  constructor(appConfig: AppConfig, windowManager: WindowManagerService) {
-    this.appConfig = appConfig;
+  constructor(configManager: ConfigManagerService, windowManager: WindowManagerService) {
+    this.appConfig = configManager.getConfig();
     this.windowManager = windowManager;
+
+    this.updateConfig(configManager.getConfig());
   }
 
   public handleShortcut(shortcut: string): void {

@@ -1,10 +1,13 @@
 import { expect, test } from '@playwright/test';
+import * as FS from 'fs';
+import * as OS from 'os';
 import * as PATH from 'path';
 import { _electron as electron, type ElectronApplication, type Page } from 'playwright';
 
 test.describe('Settings Shortcuts', () => {
   let app: ElectronApplication;
   let firstWindow: Page;
+  let userDataDir: string;
 
   async function clickOnShortcutsTab() {
     const settingsButton = firstWindow.getByTestId('sidebar-button-settings');
@@ -20,12 +23,20 @@ test.describe('Settings Shortcuts', () => {
   }
 
   test.beforeAll(async () => {
+    userDataDir = FS.mkdtempSync(PATH.join(OS.tmpdir(), 'ayais-test-shortcuts-'));
     app = await electron.launch({
-      args: [PATH.join(__dirname, '../dist/app/main.js'), PATH.join(__dirname, '../app/package.json')],
+      args: [
+        PATH.join(__dirname, '../dist/app/main.js'),
+        PATH.join(__dirname, '../app/package.json'),
+        `--user-data-dir=${userDataDir}`,
+      ],
     });
     firstWindow = await app.firstWindow();
     await firstWindow.waitForLoadState('domcontentloaded');
-    await firstWindow.waitForTimeout(1000);
+
+    // Wait for sidebar button to be visible to ensure app is fully loaded
+    const chatgpt = firstWindow.getByTestId('sidebar-button-default-chatgpt');
+    await expect(chatgpt).toBeVisible({ timeout: 30000 });
   });
 
   test.beforeEach(async () => {
@@ -99,5 +110,8 @@ test.describe('Settings Shortcuts', () => {
 
   test.afterAll(async () => {
     await app.close();
+    if (userDataDir && FS.existsSync(userDataDir)) {
+      FS.rmSync(userDataDir, { recursive: true, force: true });
+    }
   });
 });

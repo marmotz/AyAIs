@@ -238,10 +238,10 @@ ng test --include="**/component-name.spec.ts"
 
 ```bash
 # Run E2E tests
-npm run e2e
+npm run test:e2e
 
 # Run E2E with tracing (for debugging)
-npm run e2e:show-trace
+npm run test:e2e:show-trace
 ```
 
 ## Configuration

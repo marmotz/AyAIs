@@ -41,7 +41,7 @@ jobs:
         run: npm run test -- --reporters=default
 
       - name: Run headless e2e test
-        run: npm run e2e
+        run: npm run test:e2e
 
   test-linux:
     runs-on: ubuntu-22.04
@@ -80,7 +80,7 @@ jobs:
       - name: Run headless e2e test
         uses: GabrielBB/xvfb-action@v1
         with:
-          run: npm run e2e
+          run: npm run test:e2e
 
   test-windows:
     runs-on: windows-latest
@@ -112,4 +112,4 @@ jobs:
         run: npm run test -- --reporters=default
 
       - name: Run headless e2e test
-        run: npm run e2e
+        run: npm run test:e2e

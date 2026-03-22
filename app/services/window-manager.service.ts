@@ -2,6 +2,7 @@ import { AppConfig } from '@shared/types/app-config.interface';
 import { BrowserWindow, screen } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
+import { ConfigManagerService } from './config-manager.service';
 import { IconService } from './icon.service';
 
 export class WindowManagerService {
@@ -9,10 +10,16 @@ export class WindowManagerService {
   private isQuitting = false;
   private readonly serve: boolean;
   private saveConfigCallback: (() => void) | null = null;
+  private saveTimeout: NodeJS.Timeout | null = null;
+  private appConfig: AppConfig;
 
-  constructor(private appConfig: AppConfig) {
+  constructor(configManager: ConfigManagerService) {
+    this.appConfig = configManager.getConfig();
+
     const args = process.argv.slice(1);
     this.serve = args.some((val) => val === '--serve');
+
+    this.updateConfig(configManager.getConfig(), () => configManager.saveConfig());
   }
 
   public createWindow(): BrowserWindow {
@@ -117,12 +124,19 @@ export class WindowManagerService {
 
   private setupWindowEvents(window: BrowserWindow): void {
     const saveBounds = () => {
-      if (window) {
-        this.appConfig.position = window.getBounds();
-        if (this.saveConfigCallback) {
-          this.saveConfigCallback();
-        }
+      if (this.saveTimeout) {
+        clearTimeout(this.saveTimeout);
       }
+
+      this.saveTimeout = setTimeout(() => {
+        if (window && !window.isDestroyed()) {
+          this.appConfig.position = window.getBounds();
+          if (this.saveConfigCallback) {
+            this.saveConfigCallback();
+          }
+        }
+        this.saveTimeout = null;
+      }, 500);
     };
 
     window.on('move', saveBounds);

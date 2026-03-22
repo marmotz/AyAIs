@@ -256,7 +256,7 @@ ls release/*.exe
 3. **Test locally**:
    ```bash
    npm run test
-   npm run e2e
+   npm run test:e2e
    ```
 4. **Verify configuration**:
    - GitHub Secrets set

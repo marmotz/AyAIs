@@ -9,7 +9,14 @@ export class ConfigManagerService {
   private config: AppConfig;
 
   constructor() {
-    this.configPath = path.join(app.getPath('userData'), 'config.json');
+    const userDataPath = app.getPath('userData');
+
+    // S'assurer que le répertoire existe
+    if (!fs.existsSync(userDataPath)) {
+      fs.mkdirSync(userDataPath, { recursive: true });
+    }
+
+    this.configPath = path.join(userDataPath, 'config.json');
     this.config = this.loadConfig();
   }
 
@@ -19,9 +26,13 @@ export class ConfigManagerService {
 
   public saveConfig(): void {
     try {
+      const dir = path.dirname(this.configPath);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
       fs.writeFileSync(this.configPath, JSON.stringify(this.config, null, 2));
     } catch (error) {
-      console.error('Failed to save config:', error);
+      console.error(`Failed to save config at ${this.configPath}:`, error);
       throw error;
     }
   }

@@ -6,12 +6,22 @@ test.describe('AI Services Navigation', () => {
   let app: ElectronApplication;
   let firstWindow: Page;
 
+  let userDataDir: string;
+
   test.beforeAll(async () => {
+    userDataDir = PATH.join(__dirname, '../.tmp-test-userdata-' + Date.now());
     app = await electron.launch({
-      args: [PATH.join(__dirname, '../dist/app/main.js'), PATH.join(__dirname, '../app/package.json')],
+      args: [
+        PATH.join(__dirname, '../dist/app/main.js'),
+        PATH.join(__dirname, '../app/package.json'),
+        `--user-data-dir=${userDataDir}`,
+      ],
     });
     firstWindow = await app.firstWindow();
     await firstWindow.waitForLoadState('domcontentloaded');
+
+    // Wait for the sidebar to be populated from config
+    await firstWindow.getByTestId('sidebar-button-default-chatgpt').waitFor({ state: 'visible', timeout: 10000 });
   });
 
   test('should display all AI services in sidebar', async () => {
@@ -107,5 +117,10 @@ test.describe('AI Services Navigation', () => {
 
   test.afterAll(async () => {
     await app.close();
+    // Clean up temporary userDataDir if it exists
+    const fs = require('fs');
+    if (userDataDir && fs.existsSync(userDataDir)) {
+      fs.rmSync(userDataDir, { recursive: true, force: true });
+    }
   });
 });

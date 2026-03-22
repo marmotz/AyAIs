@@ -61,8 +61,8 @@ This file contains essential development guidelines for coding agents working on
 
 ### End-to-End Tests
 
-- **Run E2E Tests**: `npm run e2e`
-- **Run E2E with Tracing**: `npm run e2e:show-trace`
+- **Run E2E Tests**: `npm run test:e2e`
+- **Run E2E with Tracing**: `npm run test:e2e:show-trace`
 
 ### Electron Commands
 

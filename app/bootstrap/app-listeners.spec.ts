@@ -1,7 +1,7 @@
 import { app, globalShortcut } from 'electron';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { AutoUpdaterService } from '../services/auto-updater.service';
 import { ConfigManagerService } from '../services/config-manager.service';
+import { UpdateCheckerService } from '../services/update-checker.service';
 import { WindowManagerService } from '../services/window-manager.service';
 import { MOCK_CONFIG } from '../tests/test-config';
 import { registerAppEventListeners } from './app-listeners';
@@ -18,7 +18,7 @@ vi.mock('electron', () => ({
 
 describe('AppListeners', () => {
   let windowManager: WindowManagerService;
-  let autoUpdater: AutoUpdaterService;
+  let autoUpdater: UpdateCheckerService;
   let configManager: ConfigManagerService;
 
   beforeEach(() => {

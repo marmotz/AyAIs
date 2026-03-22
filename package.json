@@ -34,6 +34,7 @@
     "icon:generate": "cp resources/icon.png app/ && npx electron-icon-builder --input=./resources/icon.png --output=./src/assets",
     "update:minor": "npx npm-check-updates -i -t minor",
     "update:latest": "npx npm-check-updates -i -t latest",
+    "type:check": "tsc --noEmit",
     "release": "bun scripts/release.ts"
   },
   "dependencies": {

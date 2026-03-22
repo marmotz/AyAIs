@@ -1,11 +1,11 @@
 import { app, Menu } from 'electron';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { AutoUpdaterService } from '../services/auto-updater.service';
 import { ConfigManagerService } from '../services/config-manager.service';
 import { DebugLoggerService } from '../services/debug-logger.service';
 import { ShortcutManagerService } from '../services/shortcut-manager.service';
 import { StartupManagerService } from '../services/startup-manager.service';
 import { TrayManagerService } from '../services/tray-manager.service';
+import { UpdateCheckerService } from '../services/update-checker.service';
 import { WindowManagerService } from '../services/window-manager.service';
 import { MOCK_CONFIG } from '../tests/test-config';
 import { initializeApp } from './app-initializer';
@@ -40,7 +40,7 @@ describe('AppInitializer', () => {
   let windowManager: WindowManagerService;
   let shortcutManager: ShortcutManagerService;
   let trayManager: TrayManagerService;
-  let autoUpdater: AutoUpdaterService;
+  let autoUpdater: UpdateCheckerService;
   let startupManager: StartupManagerService;
   let debugLogger: DebugLoggerService;
 

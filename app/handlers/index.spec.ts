@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { AutoUpdaterService } from '../services/auto-updater.service';
 import { ConfigManagerService } from '../services/config-manager.service';
 import { DebugLoggerService } from '../services/debug-logger.service';
 import { ShortcutManagerService } from '../services/shortcut-manager.service';
 import { StartupManagerService } from '../services/startup-manager.service';
+import { UpdateCheckerService } from '../services/update-checker.service';
 import { WindowManagerService } from '../services/window-manager.service';
 import {
   setupConfigIPCHandlers,
@@ -38,7 +38,7 @@ vi.mock('../services/window-manager.service');
 vi.mock('../services/shortcut-manager.service');
 vi.mock('../services/startup-manager.service');
 vi.mock('../services/debug-logger.service');
-vi.mock('../services/auto-updater.service');
+vi.mock('../services/update-checker.service');
 
 describe('setupIPCHandlers (Index)', () => {
   let configManager: ConfigManagerService;
@@ -46,7 +46,7 @@ describe('setupIPCHandlers (Index)', () => {
   let shortcutManager: ShortcutManagerService;
   let startupManager: StartupManagerService;
   let debugLogger: DebugLoggerService;
-  let autoUpdater: AutoUpdaterService;
+  let autoUpdater: UpdateCheckerService;
 
   beforeEach(() => {
     vi.clearAllMocks();

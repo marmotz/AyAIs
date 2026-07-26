@@ -1,6 +1,6 @@
 {
   "name": "ayais",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "description": "AyAIs (All your AIs) is a cross-platform desktop app with Electron for AI website integration",
   "homepage": "https://github.com/marmotz/ayais",
   "author": {
@@ -9,7 +9,6 @@
   },
   "main": "./dist/app/main.js",
   "scripts": {
-    "reset": "rm -rf .angular dist node_modules release app/node_modules && npm ci && cd app && npm ci && cd ..",
     "postinstall": "electron-builder install-app-deps",
     "ng": "ng",
     "start": "npm-run-all -p electron:serve ng:serve",
@@ -20,7 +19,7 @@
     "electron": "electron",
     "electron:serve-tsc": "tsc -p app/tsconfig.json && npm run electron:copy-assets",
     "electron:copy-assets": "copyfiles -f \"app/*.png\" dist/app/",
-    "electron:serve": "wait-on tcp:4215 && npm run electron:serve-tsc && electron . --serve",
+    "electron:serve": "wait-on tcp:4213 && npm run electron:serve-tsc && electron . --serve",
     "electron:test": "npm run electron:serve-tsc && electron . --test",
     "electron:local": "npm run web:dev && electron .",
     "electron:build": "rimraf dist && npm run web:prod && electron-builder --config electron-builder.json --publish=never",

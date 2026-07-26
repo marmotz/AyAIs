@@ -166,25 +166,50 @@ describe('Home', () => {
     const service: ConfiguredService = { id: 'default-chatgpt', serviceName: 'ChatGPT' };
 
     await home.onServiceSelected(service);
-    const reloadSpy = vi.fn();
-    home['webviews'].set('default-chatgpt', { reload: reloadSpy });
+    const reloadIgnoringCacheSpy = vi.fn();
+    home['webviews'].set('default-chatgpt', {
+      executeJavaScript: vi.fn().mockResolvedValue(undefined),
+      reloadIgnoringCache: reloadIgnoringCacheSpy,
+    });
 
     await home.refreshService(service);
 
-    expect(reloadSpy).toHaveBeenCalled();
+    expect(reloadIgnoringCacheSpy).toHaveBeenCalled();
   });
 
   it('should select service when refreshing a different service', async () => {
     const home = TestBed.createComponent(Home).componentInstance;
     const service: ConfiguredService = { id: 'default-chatgpt', serviceName: 'ChatGPT' };
 
-    const reloadSpy = vi.fn();
-    home['webviews'].set('default-chatgpt', { reload: reloadSpy });
+    const reloadIgnoringCacheSpy = vi.fn();
+    home['webviews'].set('default-chatgpt', {
+      executeJavaScript: vi.fn().mockResolvedValue(undefined),
+      reloadIgnoringCache: reloadIgnoringCacheSpy,
+    });
 
     await home.refreshService(service);
 
-    expect(reloadSpy).toHaveBeenCalled();
+    expect(reloadIgnoringCacheSpy).toHaveBeenCalled();
     expect((home as any).selectedService()).toBe(service);
+  });
+
+  it('should open dev tools for the selected webview', async () => {
+    const home = TestBed.createComponent(Home).componentInstance;
+    const service: ConfiguredService = { id: 'default-chatgpt', serviceName: 'ChatGPT' };
+
+    const openDevToolsSpy = vi.fn();
+    home['webviews'].set('default-chatgpt', { openDevTools: openDevToolsSpy });
+
+    home.openServiceDevTools(service);
+
+    expect(openDevToolsSpy).toHaveBeenCalled();
+  });
+
+  it('should not throw opening dev tools for an unknown service', () => {
+    const home = TestBed.createComponent(Home).componentInstance;
+    const service: ConfiguredService = { id: 'unknown', serviceName: 'ChatGPT' };
+
+    expect(() => home.openServiceDevTools(service)).not.toThrow();
   });
 
   describe('onServiceRemoved', () => {

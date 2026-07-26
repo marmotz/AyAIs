@@ -5,6 +5,7 @@ import { DevShortcutsService } from '@app/services/dev-shortcuts.service';
 import { FaIconLibrary } from '@fortawesome/angular-fontawesome';
 import { faRotateRight } from '@fortawesome/free-solid-svg-icons';
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons/faArrowLeft';
+import { faBug } from '@fortawesome/free-solid-svg-icons/faBug';
 import { faClock } from '@fortawesome/free-solid-svg-icons/faClock';
 import { faDownload } from '@fortawesome/free-solid-svg-icons/faDownload';
 import { faInfoCircle } from '@fortawesome/free-solid-svg-icons/faInfoCircle';
@@ -33,6 +34,7 @@ export class App {
     // init font awesome icons
     this.fortAwesomeIconLibrary.addIcons(
       faArrowLeft,
+      faBug,
       faClock,
       faDownload,
       faInfoCircle,

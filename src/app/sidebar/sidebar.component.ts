@@ -44,6 +44,7 @@ export class SidebarComponent {
   serviceSelected = output<ConfiguredService>();
   serviceRefresh = output<ConfiguredService>();
   serviceRemoved = output<ConfiguredService>();
+  serviceDevTools = output<ConfiguredService>();
   selectedService = model<ConfiguredService | null>(null);
   selectedIndex = computed(() => this.configuredServices().findIndex((p) => p.id === this.selectedService()?.id));
   addServiceDialogVisible = signal(false);
@@ -125,6 +126,12 @@ export class SidebarComponent {
     }
 
     return 'Settings';
+  }
+
+  onContextMenuDevTools() {
+    if (this.contextMenuService) {
+      this.serviceDevTools.emit(this.contextMenuService);
+    }
   }
 
   onContextMenuRefresh() {

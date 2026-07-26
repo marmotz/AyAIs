@@ -70,5 +70,53 @@ describe('SidebarContextmenuComponent', () => {
 
       expect(emitSpy).toHaveBeenCalled();
     });
+
+    it('should not include DevTools when not in dev mode', () => {
+      const mockEvent = new MouseEvent('contextmenu');
+      const mockTarget = document.createElement('button');
+      Object.defineProperty(mockEvent, 'currentTarget', { value: mockTarget });
+      vi.spyOn(component.contextMenu(), 'show').mockImplementation(() => {});
+
+      component.show(mockEvent);
+
+      expect(component.menuItems.some((item) => item.label === 'DevTools')).toBe(false);
+    });
+  });
+
+  describe('show in dev mode', () => {
+    beforeEach(async () => {
+      (window as any).electronAPI = {
+        isDevMode: () => Promise.resolve(true),
+      };
+
+      fixture = TestBed.createComponent(SidebarContextmenuComponent);
+      component = fixture.componentInstance;
+      await Promise.resolve();
+    });
+
+    it('should build menu items with DevTools when in dev mode', () => {
+      const mockEvent = new MouseEvent('contextmenu');
+      const mockTarget = document.createElement('button');
+      Object.defineProperty(mockEvent, 'currentTarget', { value: mockTarget });
+      vi.spyOn(component.contextMenu(), 'show').mockImplementation(() => {});
+
+      component.show(mockEvent);
+
+      expect(component.menuItems.length).toBe(4);
+      expect(component.menuItems[1].label).toBe('DevTools');
+    });
+
+    it('should emit serviceDevTools when DevTools command is called', () => {
+      const mockEvent = new MouseEvent('contextmenu');
+      const mockTarget = document.createElement('button');
+      Object.defineProperty(mockEvent, 'currentTarget', { value: mockTarget });
+      vi.spyOn(component.contextMenu(), 'show').mockImplementation(() => {});
+      const emitSpy = vi.spyOn(component.serviceDevTools, 'emit');
+
+      component.show(mockEvent);
+      component.menuItems[1].command!({} as any);
+
+      expect(emitSpy).toHaveBeenCalled();
+    });
   });
 });

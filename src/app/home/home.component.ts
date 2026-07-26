@@ -171,10 +171,17 @@ export class Home {
 
     const webview: WebviewTag = this.webviews.get(serviceToRefresh.id);
     if (webview) {
-      this.webviewService.reloadWebview(webview);
+      await this.webviewService.reloadWebview(webview);
       if (this.selectedService()?.id !== serviceToRefresh.id) {
         this.selectedService.set(serviceToRefresh);
       }
+    }
+  }
+
+  openServiceDevTools(configuredService: ConfiguredService) {
+    const webview: WebviewTag = this.webviews.get(configuredService.id);
+    if (webview) {
+      this.webviewService.openDevTools(webview);
     }
   }
 

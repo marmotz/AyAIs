@@ -231,6 +231,26 @@ describe('SidebarComponent', () => {
     });
   });
 
+  describe('onContextMenuDevTools', () => {
+    it('should emit serviceDevTools with context menu service', () => {
+      const service: ConfiguredService = { id: 'default-chatgpt', serviceName: 'ChatGPT' };
+      const emitSpy = vi.spyOn(component.serviceDevTools, 'emit');
+      (component as any).contextMenuService = service;
+
+      component.onContextMenuDevTools();
+
+      expect(emitSpy).toHaveBeenCalledWith(service);
+    });
+
+    it('should not emit when no context menu service', () => {
+      const emitSpy = vi.spyOn(component.serviceDevTools, 'emit');
+
+      component.onContextMenuDevTools();
+
+      expect(emitSpy).not.toHaveBeenCalled();
+    });
+  });
+
   describe('onContextMenuRemove', () => {
     it('should remove context menu service', () => {
       const service = component.configuredServices()[0];

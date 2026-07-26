@@ -171,7 +171,7 @@ export class WindowManagerService {
         reloaderFn(module);
       });
 
-      window.loadURL('http://localhost:4213');
+      window.loadURL('http://localhost:4215');
       window.webContents.openDevTools();
     } else {
       window.webContents.on('before-input-event', (_event, input) => {

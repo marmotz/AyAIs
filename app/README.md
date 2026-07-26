@@ -105,7 +105,7 @@ All services, handlers, and bootstrap modules have unit tests:
 
 1. **Development**:
    - Electron main process TypeScript is compiled on-the-fly using Vite
-   - Angular dev server runs on port 4213
+   - Angular dev server runs on port 4215
    - Hot reload enabled for both main and renderer processes
 
 2. **Production**:

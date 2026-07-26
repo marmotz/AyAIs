@@ -140,7 +140,7 @@ describe('WebviewService', () => {
     expect(capturedShortcuts[1]).toBe('Ctrl+B');
   });
 
-  it('should reload webview', async () => {
+  it('should clear service workers and cache storage then reload ignoring cache', async () => {
     const mockService: AIService = {
       name: 'TestService',
       url: 'https://example.com',
@@ -149,15 +149,57 @@ describe('WebviewService', () => {
     };
 
     const webview = await service.createWebview(mockService);
-    const reloadSpy = vi.fn();
-    webview.reload = reloadSpy;
+    const executeJavaScriptSpy = vi.fn().mockResolvedValue(undefined);
+    const reloadIgnoringCacheSpy = vi.fn();
+    webview.executeJavaScript = executeJavaScriptSpy;
+    webview.reloadIgnoringCache = reloadIgnoringCacheSpy;
 
-    service.reloadWebview(webview);
+    await service.reloadWebview(webview);
 
-    expect(reloadSpy).toHaveBeenCalled();
+    expect(executeJavaScriptSpy).toHaveBeenCalled();
+    expect(reloadIgnoringCacheSpy).toHaveBeenCalled();
   });
 
-  it('should not reload when webview is null', () => {
-    expect(() => service.reloadWebview(null as any)).not.toThrow();
+  it('should still reload ignoring cache when clearing service workers/caches fails', async () => {
+    const mockService: AIService = {
+      name: 'TestService',
+      url: 'https://example.com',
+      icon: 'test-icon',
+      internalDomains: ['example.com'],
+    };
+
+    const webview = await service.createWebview(mockService);
+    const reloadIgnoringCacheSpy = vi.fn();
+    webview.executeJavaScript = vi.fn().mockRejectedValue(new Error('blocked'));
+    webview.reloadIgnoringCache = reloadIgnoringCacheSpy;
+
+    await service.reloadWebview(webview);
+
+    expect(reloadIgnoringCacheSpy).toHaveBeenCalled();
+  });
+
+  it('should not reload when webview is null', async () => {
+    await expect(service.reloadWebview(null as any)).resolves.not.toThrow();
+  });
+
+  it('should open dev tools on the webview', async () => {
+    const mockService: AIService = {
+      name: 'TestService',
+      url: 'https://example.com',
+      icon: 'test-icon',
+      internalDomains: ['example.com'],
+    };
+
+    const webview = await service.createWebview(mockService);
+    const openDevToolsSpy = vi.fn();
+    webview.openDevTools = openDevToolsSpy;
+
+    service.openDevTools(webview);
+
+    expect(openDevToolsSpy).toHaveBeenCalled();
+  });
+
+  it('should not throw when opening dev tools on a null webview', () => {
+    expect(() => service.openDevTools(null as any)).not.toThrow();
   });
 });

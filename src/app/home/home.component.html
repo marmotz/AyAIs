@@ -1,5 +1,6 @@
 <div class="flex h-screen overflow-hidden">
   <app-sidebar
+    (serviceDevTools)="openServiceDevTools($event)"
     (serviceRefresh)="refreshService($event)"
     (serviceRemoved)="onServiceRemoved($event)"
     (serviceSelected)="onServiceSelected($event)"

@@ -26,8 +26,14 @@ export class WebviewService {
     webview.style.display = 'flex';
     webview.partition = `persist:${partitionKey ?? service.name}`;
     webview.spellcheck = true;
-    webview.useragent =
-      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chromium/142.0.0.0 Safari/537.36';
+    // Strip app-identifying tokens (product name, Electron/x.y.z) while keeping the real
+    // platform and Chrome version, so navigator.userAgent stays consistent with
+    // navigator.userAgentData (Client Hints), which Chromium derives from the true OS/engine
+    // and cannot be overridden here. A mismatch (e.g. forcing "Windows" on Linux) is an easy
+    // signal for sites to detect spoofing and serve a degraded/blocked experience.
+    webview.useragent = navigator.userAgent
+      .replace(/\s*AyAIs\/\S+/i, '')
+      .replace(/\s*Electron\/\S+/i, '');
 
     webview.addEventListener('dom-ready', () => this.injectScript(webview, service));
     webview.addEventListener('did-navigate', () => this.injectScript(webview, service));
@@ -108,9 +114,35 @@ export class WebviewService {
     }
   }
 
-  reloadWebview(webview: WebviewTag): void {
+  async reloadWebview(webview: WebviewTag): Promise<void> {
+    if (!webview) {
+      return;
+    }
+
+    try {
+      await webview.executeJavaScript(`
+        (async () => {
+          if ('serviceWorker' in navigator) {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(registrations.map((registration) => registration.unregister()));
+          }
+
+          if ('caches' in window) {
+            const keys = await caches.keys();
+            await Promise.all(keys.map((key) => caches.delete(key)));
+          }
+        })();
+      `);
+    } catch {
+      // Some pages restrict access to service workers/cache storage, ignore and reload anyway
+    }
+
+    webview.reloadIgnoringCache();
+  }
+
+  openDevTools(webview: WebviewTag): void {
     if (webview) {
-      webview.reload();
+      webview.openDevTools();
     }
   }
 
